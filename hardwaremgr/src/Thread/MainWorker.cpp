@@ -37,13 +37,13 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
     // Process the event based on its type
     switch (event->getEventTypeId()) {
         case EventTypeID::ONOFF_LED: {
-            // TO DO
+            // TODO
             // gpioHandler_->handleOnOffLEDEvent(event->getPayload());
             break;
         }
         case EventTypeID::STARTUP: {
             printf("[MainWorker] Processing STARTUP event\n");
-            // TO DO : blink LED
+            // TODO : blink LED
             // gpioHandler_->handleStartupEvent();
             break;
         }

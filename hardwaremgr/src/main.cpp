@@ -22,7 +22,7 @@ int main(int argc, char *argv[]){
     while(true) {
         std::this_thread::sleep_for(std::chrono::milliseconds((uint32_t)INTERNAL_WATCHDOG_STANDARD_MS));
         printf("Hardware Manager is running...\n");
-        // TO DO : Read CPU Temps, .... of Raspberry Pi 4 (polling)
+        // TODO : Read CPU Temps, .... of Raspberry Pi 4 (polling)
         // Send info to CoreManager Service each 5 using DBus
     }
 

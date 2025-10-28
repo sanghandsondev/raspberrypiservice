@@ -3,6 +3,7 @@
 
 #include <thread>
 #include <atomic>
+#include <string>
 
 class ThreadBase {
     protected:
