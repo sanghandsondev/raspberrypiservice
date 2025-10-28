@@ -22,7 +22,8 @@ class EventQueue {
         void waitForEvent(const uint32_t timeout_ms);
     private:
         std::mutex queueMutex_;
-        std::condition_variable eventCondition_;
+        std::mutex wakeupMutex_;
+        std::condition_variable wakeupCondition_;
 
         std::list<std::shared_ptr<Event>> eventList_;
 

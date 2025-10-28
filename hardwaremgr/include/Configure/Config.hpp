@@ -26,7 +26,7 @@ class Config {
         ~Config() = default;
 
         static const std::string HARDWAREMGR_BINARYPATH;
-
+        
 };
 
 #endif // CONFIG_HPP_

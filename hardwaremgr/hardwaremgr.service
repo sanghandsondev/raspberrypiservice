@@ -1,12 +1,12 @@
 [Unit]
 Description=Hardware Manager Service
 After=network.target
+# After=coremgr.service
 
 [Service]
-ExecStart=/usr/local/bin/hardwaremgr
+ExecStart=/usr/local/bin/hardwaremanager
 Restart=always
 User=pi
-WorkingDirectory=/path/to/your/project # Replace with the actual path to your project
 
 [Install]
 WantedBy=multi-user.target

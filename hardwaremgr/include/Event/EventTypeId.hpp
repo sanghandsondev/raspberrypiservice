@@ -3,7 +3,8 @@
 
 enum class EventTypeID {
     NONE = 0,
-    TURN_ON_LED,
+    STARTUP,
+    ONOFF_LED,
 
     MAX
 };
