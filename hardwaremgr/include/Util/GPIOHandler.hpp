@@ -21,7 +21,7 @@ class GPIOHandler {
         // bool blinkLED();
 
     private:
-        bool ledState_;
+        LEDState ledState_;
         SwitchState switchState_;
 };
 
