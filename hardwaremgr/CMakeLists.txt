@@ -27,9 +27,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 # Link libraries (if any)
-find_package(sdbus-c++ REQUIRED)
+# find_package(sdbus-c++ REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     pthread
-    SDBusCpp::sdbus-c++
 )
