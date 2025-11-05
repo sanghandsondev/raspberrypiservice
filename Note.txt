@@ -6,3 +6,5 @@
 + ghi log vào 1 file (mỗi lần restart Pi là 1 file khác nhau, còn restart app thì ko)
 + NÂNG CAO: quá bao nhiêu MB thì qua log mới dù ko restart Pi
 
+3. Cross compiler ở laptop Linux xong sync bằng ssh chứ tình hình là Pi nóng quá rồi. Chỉ cắm Pi rồi để cho nó chạy daemon thôi.
+Bug thì mới ssh vào lấy log.
