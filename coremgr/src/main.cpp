@@ -2,6 +2,7 @@
 #include "MainWorker.hpp"
 #include "Event.hpp"
 #include "DBusReceiver.hpp"
+#include "WebSocketServer.hpp"
 
 #define INTERNAL_WATCHDOG_STANDARD_MS  5000
 
@@ -16,16 +17,19 @@ int main(int argc, char *argv[]){
 
     MainWorker mainWorker(eventQueue);
     DBusReceiver dbusReceiver(eventQueue);
+    WebSocketServer wsServer("127.0.0.1", 9000);
 
     mainWorker.run();
     dbusReceiver.run();
+    
+    wsServer.run();     // infinite loop inside
 
-    while(true) {
-        std::this_thread::sleep_for(std::chrono::milliseconds((uint32_t)INTERNAL_WATCHDOG_STANDARD_MS));
-        printf("[Main] Core Manager is running...\n");
-        // TODO : Read CPU Temps, .... of Raspberry Pi 4 (polling)
-        // Send info to CoreManager Service each 5 using DBus
-    }
+    // while(true) {
+    //     std::this_thread::sleep_for(std::chrono::milliseconds((uint32_t)INTERNAL_WATCHDOG_STANDARD_MS));
+    //     printf("[Main] Core Manager is running...\n");
+    //     // TODO : Read CPU Temps, .... of Raspberry Pi 4 (polling)
+    //     // Send info to CoreManager Service each 5 using DBus
+    // }
 
     mainWorker.join();
     dbusReceiver.join();

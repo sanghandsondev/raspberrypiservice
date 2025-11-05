@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(DBUS-1 REQUIRED dbus-1)
 
+find_package(Boost REQUIRED COMPONENTS system)
+
 set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Add source files
@@ -28,8 +30,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${ROOT_DIR}/include/Configure
     ${ROOT_DIR}/include/Thread
     ${ROOT_DIR}/include/Util
-    ${DBUS-1_INCLUDE_DIRS}
     ${ROOT_DIR}/../common/include
+    ${DBUS-1_INCLUDE_DIRS}
+    ${Boost_INCLUDE_DIRS}
 )
 
 # Link libraries (if any)
@@ -38,4 +41,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
     pthread
     ${DBUS-1_LIBRARIES}
+    ${Boost_LIBRARIES}
 )

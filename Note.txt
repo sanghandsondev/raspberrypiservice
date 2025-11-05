@@ -1,0 +1,8 @@
+1. Sửa lại WebSocketServer
+   Xem lại cách vận hành của nó, sửa lại trong main
+
+2. Viết Logger chung cho toàn bộ bên ngoài
++ syslog() để realtime với journalctl và console
++ ghi log vào 1 file (mỗi lần restart Pi là 1 file khác nhau, còn restart app thì ko)
++ NÂNG CAO: quá bao nhiêu MB thì qua log mới dù ko restart Pi
+
