@@ -1,0 +1,12 @@
+[Unit]
+Description=Core Manager Service
+After=network.target
+# After=coremgr.service
+
+[Service]
+ExecStart=/usr/local/bin/coremanager
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
