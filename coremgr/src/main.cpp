@@ -22,13 +22,14 @@ int main(int argc, char *argv[]){
 
     while(true) {
         std::this_thread::sleep_for(std::chrono::milliseconds((uint32_t)INTERNAL_WATCHDOG_STANDARD_MS));
-        printf("Core Manager is running...\n");
+        printf("[Main] Core Manager is running...\n");
         // TODO : Read CPU Temps, .... of Raspberry Pi 4 (polling)
         // Send info to CoreManager Service each 5 using DBus
     }
 
     mainWorker.join();
-    printf("Core Manager exited.\n");
+    dbusReceiver.join();
+    printf("[Main] Core Manager exited.\n");
 
     return 0;
 }

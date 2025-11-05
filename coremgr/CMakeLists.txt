@@ -29,6 +29,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${ROOT_DIR}/include/Thread
     ${ROOT_DIR}/include/Util
     ${DBUS-1_INCLUDE_DIRS}
+    ${ROOT_DIR}/../common/include
 )
 
 # Link libraries (if any)

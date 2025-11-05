@@ -1,7 +1,19 @@
 #include "GPIOHandler.hpp"
+#include <stdio.h>
 
-// bool GPIOHandler::handleOnOffLEDEvent(const std::shared_ptr<Payload> payload) {
-//     // TODO: Implement GPIO handling for On/Off LED event
-//      Send NOTI to CoreManager using DBus
-//     return true;
-// }
+bool GPIOHandler::OnOffLED(std::shared_ptr<Payload> payload){
+    std::shared_ptr<LEDPayload> ledPayload = std::static_pointer_cast<LEDPayload>(payload);
+    if(ledPayload == nullptr){
+        printf("[GPIOHandler] OnOffLED: Invalid payload\n");
+        return false;
+    }
+
+    bool state = ledPayload->getState();
+    if(state){
+        // TODO
+    } else {
+        // TODO
+    }
+    return true;
+
+}

@@ -14,18 +14,13 @@ class Payload {
 
 class LEDPayload : public Payload {
     public:
-        explicit LEDPayload(int ledNumber, bool state) : ledNumber_(ledNumber), state_(state) {}
-
-        int getLedNumber() const {
-            return ledNumber_;
-        }
+        explicit LEDPayload(bool state) : state_(state) {}
 
         bool getState() const {
             return state_;
         }
 
     private:
-        int ledNumber_;
         bool state_;
 };
 

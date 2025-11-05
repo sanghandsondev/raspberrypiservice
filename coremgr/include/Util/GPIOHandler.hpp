@@ -1,10 +1,11 @@
 #ifndef GPIO_HANDLER_HPP_
 #define GPIO_HANDLER_HPP_
 
+#include "Event.hpp"
+
 enum class LEDState {
     OFF = 0,
     ON,
-    BLINKING,
     PROCESSING
 };
 
@@ -13,7 +14,7 @@ class GPIOHandler {
         explicit GPIOHandler() {};
         virtual ~GPIOHandler() {};
 
-        // bool OnOffLED(std::shared_ptr<Payload> payload);
+        bool OnOffLED(std::shared_ptr<Payload> payload);
         // bool blinkLED();
 
     private:

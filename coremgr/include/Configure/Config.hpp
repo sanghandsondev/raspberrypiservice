@@ -15,6 +15,9 @@ class Config {
         Config &operator=(const Config &) = delete;
 
         const std::string &getCoreMgrBinaryPath() const { return COREMGR_BINARYPATH;}
+        const std::string &getCoreMgrServiceName() const { return COREMGR_SERVICE_NAME;}
+        const std::string &getCoreMgrObjectPath() const { return COREMGR_OBJECT_PATH;}
+        const std::string &getCoreMgrInterfaceName() const { return COREMGR_INTERFACE_NAME;}
 
     private:
         Config() = default;

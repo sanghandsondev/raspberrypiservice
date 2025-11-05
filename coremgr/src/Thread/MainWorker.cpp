@@ -3,6 +3,7 @@
 #include "Event.hpp"
 #include "EventTypeId.hpp"
 #include "GPIOHandler.hpp"
+#include "DBusSender.hpp"
 
 MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue) 
     : ThreadBase("MainWorker"), eventQueue_(eventQueue) {
@@ -44,10 +45,10 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         }
         case EventTypeID::ONOFF_LED: {
             printf("[MainWorker] Processing ONOFF_LED event\n");
-            // TODO : handle ONOFF LED event
-            // gpioHandler_->handleOnOffLEDEvent(event->getPayload());
+            bool ret = gpioHandler_->OnOffLED(event->getPayload());
             break;
         }
+        
         default:
             printf("[MainWorker] Unknown event type received\n");
             break;
