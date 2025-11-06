@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Find required packages and libraries
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(DBUS-1 REQUIRED dbus-1)
-# pkg_check_modules(SYSTEMD REQUIRED libsystemd)
+pkg_check_modules(SYSTEMD REQUIRED libsystemd)
 
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 
@@ -44,7 +44,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${ROOT_DIR}/../common/include
     ${DBUS-1_INCLUDE_DIRS}
     ${Boost_INCLUDE_DIRS}
-    # ${SYSTEMD_INCLUDE_DIRS}
+    ${SYSTEMD_INCLUDE_DIRS}
 )
 
 # Link libraries (if any)
@@ -54,9 +54,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     pthread
     ${DBUS-1_LIBRARIES}
     ${Boost_LIBRARIES}
-    # ${SYSTEMD_LIBRARIES}
+    ${SYSTEMD_LIBRARIES}
 )
 
 # Install target: cd build && sudo make install
 install(TARGETS ${PROJECT_NAME} DESTINATION /usr/local/bin)
-# install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/coremanager.service DESTINATION /etc/systemd/system)

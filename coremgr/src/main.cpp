@@ -8,6 +8,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
+#include <systemd/sd-daemon.h>
 
 #define INTERNAL_WATCHDOG_STANDARD_MS  5000
 
@@ -32,6 +33,8 @@ int main(){
 
     CM_LOG(INFO, "Core Manager is starting...");
     
+    sd_notify(0, "READY=1");
+    
     std::shared_ptr<EventQueue> eventQueue = std::make_shared<EventQueue>();
     startUpCoreMgr(eventQueue);
 
@@ -53,8 +56,7 @@ int main(){
             break;
         }
         
-        CM_LOG(INFO, "Core Manager is running...");
-        // TODO : WATCHDOG to systemd
+        sd_notify(0, "WATCHDOG=1");
     }
 
     CM_LOG(WARN, "Shutdown signal received, stopping threads...");

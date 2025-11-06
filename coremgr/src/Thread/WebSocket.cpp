@@ -5,7 +5,7 @@
 
 WebSocket::WebSocket(std::shared_ptr<EventQueue> eventQueue) 
     : ThreadBase("MainWorker"), eventQueue_(eventQueue){
-        wsServer_ = std::make_shared<WebSocketServer>("127.0.0.1", 9000);
+        wsServer_ = std::make_shared<WebSocketServer>("0.0.0.0", 9000);     // Listen on all interfaces at port 9000
     }
 
 WebSocket::~WebSocket() {}

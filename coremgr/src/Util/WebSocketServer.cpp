@@ -57,7 +57,7 @@ WebSocketServer::WebSocketServer(const std::string& host, unsigned short port)
 void WebSocketServer::run(){
     doAccept();
 
-    CM_LOG(INFO, "WebSocket server running on ws://127.0.0.1 (ws://localhost)");
+    CM_LOG(INFO, "WebSocket server running on port %d.", acceptor_.local_endpoint().port());
     io_.run();
 
     CM_LOG(INFO, "WebSocket server stopped.");

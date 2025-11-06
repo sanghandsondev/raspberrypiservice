@@ -1,11 +1,9 @@
 all: install
 
-build: clean
+install: clean
 	mkdir -p build
 	cd build && cmake .. 
 	cd build && make
-
-install: build
 	cd build && sudo make install
 
 cross: clean
@@ -22,4 +20,4 @@ setenv:
 clean:
 	rm -rf build
 
-.PHONY: all build install cross deploy setenv clean
+.PHONY: all install cross deploy setenv clean
