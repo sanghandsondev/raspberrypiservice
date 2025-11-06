@@ -7,6 +7,7 @@ After=network.target
 ExecStart=/usr/local/bin/coremanager
 Restart=always
 User=pi
+WatchdogSec=5
 
 [Install]
 WantedBy=multi-user.target

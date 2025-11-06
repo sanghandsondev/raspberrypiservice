@@ -14,10 +14,10 @@ class DBusClient {
         DBusMessage* waitForAndProcessSignal();
 
     private:
-        DBusConnection* conn_;
         std::string serviceName_;
         std::string objectPath_;
         std::string interfaceName_;
+        DBusConnection* conn_;
 };
 
 #endif // DBUS_CLIENT_HPP_

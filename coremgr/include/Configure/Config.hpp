@@ -31,6 +31,3 @@ class Config {
 };
 
 #endif // CONFIG_HPP_
-
-// Definition
-// const std::string Config::COREMGR_BINARYPATH = "/usr/local/bin/coremanager";

@@ -2,38 +2,70 @@
 #include "MainWorker.hpp"
 #include "Event.hpp"
 #include "DBusReceiver.hpp"
-#include "WebSocketServer.hpp"
+#include "WebSocket.hpp"
+#include "RLogger.hpp"
+#include <csignal>
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
 
 #define INTERNAL_WATCHDOG_STANDARD_MS  5000
+
+std::atomic<bool> g_runningFlag;
+std::condition_variable g_cv;
+std::mutex g_mutex;
+
+void signalHandler(int signum) {
+    CM_LOG(WARN, "Interrupt Signal (%d).", signum);
+    g_runningFlag = false;
+    g_cv.notify_one();  // Notify main thread to exit
+}
 
 void startUpCoreMgr(std::shared_ptr<EventQueue> eventQueue) {
     std::shared_ptr<Event> event = std::make_shared<Event>(EventTypeID::STARTUP, nullptr);
     eventQueue->pushEvent(event);
 }
 
-int main(int argc, char *argv[]){
+int main(){
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
+
+    CM_LOG(INFO, "Core Manager is starting...");
+    
     std::shared_ptr<EventQueue> eventQueue = std::make_shared<EventQueue>();
     startUpCoreMgr(eventQueue);
 
-    MainWorker mainWorker(eventQueue);
-    DBusReceiver dbusReceiver(eventQueue);
-    WebSocketServer wsServer("127.0.0.1", 9000);
+    std::unique_ptr<MainWorker> mainWorker = std::make_unique<MainWorker>(eventQueue);
+    std::unique_ptr<DBusReceiver> dbusReceiver = std::make_unique<DBusReceiver>(eventQueue);
+    std::unique_ptr<WebSocket> webSocketThread = std::make_unique<WebSocket>(eventQueue);
 
-    mainWorker.run();
-    dbusReceiver.run();
-    
-    wsServer.run();     // infinite loop inside
+    mainWorker->run();
+    dbusReceiver->run();
+    webSocketThread->run();
 
-    // while(true) {
-    //     std::this_thread::sleep_for(std::chrono::milliseconds((uint32_t)INTERNAL_WATCHDOG_STANDARD_MS));
-    //     printf("[Main] Core Manager is running...\n");
-    //     // TODO : Read CPU Temps, .... of Raspberry Pi 4 (polling)
-    //     // Send info to CoreManager Service each 5 using DBus
-    // }
+    g_runningFlag = true;
+    while(g_runningFlag) {
+        std::unique_lock<std::mutex> lk(g_mutex);
 
-    mainWorker.join();
-    dbusReceiver.join();
-    printf("[Main] Core Manager exited.\n");
+        g_cv.wait_for(lk, std::chrono::milliseconds(INTERNAL_WATCHDOG_STANDARD_MS));
+
+        if (!g_runningFlag) {
+            break;
+        }
+        
+        CM_LOG(INFO, "Core Manager is running...");
+        // TODO : WATCHDOG to systemd
+    }
+
+    CM_LOG(WARN, "Shutdown signal received, stopping threads...");
+    mainWorker->stop();
+    dbusReceiver->stop();
+    webSocketThread->stop();
+
+    webSocketThread->join();
+    mainWorker->join();
+    dbusReceiver->join();
+    CM_LOG(WARN, "Core Manager exited.");
 
     return 0;
 }

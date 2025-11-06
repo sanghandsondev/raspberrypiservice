@@ -14,7 +14,7 @@ class Event;
 class MainWorker : public ThreadBase {
     public:
         explicit MainWorker(std::shared_ptr<EventQueue> eventQueue);
-        ~MainWorker();;
+        ~MainWorker();
 
     private:
         std::shared_ptr<EventQueue> eventQueue_;

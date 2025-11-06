@@ -1,5 +1,5 @@
 #include "WebSocketServer.hpp"
-#include <iostream>
+#include "RLogger.hpp"
 
 namespace beast = boost::beast;
 namespace websocket = beast::websocket;
@@ -8,13 +8,9 @@ using tcp = asio::ip::tcp;
 
 // ================== Session =====================
 
-WebSocketSession::WebSocketSession(tcp::socket socket)
-    : ws_(std::move(socket))
-{
-}
+WebSocketSession::WebSocketSession(tcp::socket socket): ws_(std::move(socket)) {}
 
-void WebSocketSession::start()
-{
+void WebSocketSession::start(){
     // Async accept handshake
     ws_.async_accept(
         std::bind(
@@ -24,31 +20,27 @@ void WebSocketSession::start()
     );
 }
 
-void WebSocketSession::doAccept()
-{
+void WebSocketSession::doAccept(){
     doRead();
 }
 
-void WebSocketSession::doRead()
-{
+void WebSocketSession::doRead(){
     ws_.async_read(
         buffer_,
-        [self = shared_from_this()](beast::error_code ec, std::size_t bytes)
+        [self = shared_from_this()](beast::error_code ec, [[maybe_unused]] std::size_t bytes)
         {
-            if(ec == websocket::error::closed)
-            {
-                std::cout << "Client disconnected\n";
+            if(ec == websocket::error::closed){
+                CM_LOG(INFO, "WebSocket client disconnected.");
                 return;
             }
 
-            if(ec)
-            {
-                std::cerr << "Read error: " << ec.message() << "\n";
+            if(ec){
+                CM_LOG(ERROR, "WebSocket read error: %s", ec.message().c_str());
                 return;
             }
 
             auto msg = beast::buffers_to_string(self->buffer_.data());
-            std::cout << "[Received] " << msg << std::endl;
+            CM_LOG(INFO, "WebSocket received message: %s", msg.c_str());
 
             self->buffer_.consume(self->buffer_.size());
 
@@ -60,32 +52,33 @@ void WebSocketSession::doRead()
 // ================== Server =======================
 
 WebSocketServer::WebSocketServer(const std::string& host, unsigned short port)
-    : acceptor_(io_, tcp::endpoint(asio::ip::make_address(host), port))
-{
-}
+    : acceptor_(io_, tcp::endpoint(asio::ip::make_address(host), port)){}
 
-void WebSocketServer::run()
-{
+void WebSocketServer::run(){
     doAccept();
-    std::cout << "WebSocket server running on ws://127.0.0.1\n";
+
+    CM_LOG(INFO, "WebSocket server running on ws://127.0.0.1 (ws://localhost)");
     io_.run();
+
+    CM_LOG(INFO, "WebSocket server stopped.");
 }
 
-void WebSocketServer::doAccept()
-{
+void WebSocketServer::stop(){
+    acceptor_.close();
+    io_.stop();
+}
+
+void WebSocketServer::doAccept(){
     acceptor_.async_accept(
         [this](beast::error_code ec, tcp::socket socket)
         {
-            if(!ec)
-            {
-                std::cout << "Client connected: " 
-                          << socket.remote_endpoint() << std::endl;
+            if(!ec){
+                CM_LOG(INFO, "WebSocket client connected: %s", 
+                       socket.remote_endpoint().address().to_string().c_str());
 
                 std::make_shared<WebSocketSession>(std::move(socket))->start();
-            }
-            else
-            {
-                std::cerr << "Accept error: " << ec.message() << "\n";
+            } else {
+                CM_LOG(ERROR, "WebSocket accept error: %s", ec.message().c_str());
             }
 
             // Accept next client

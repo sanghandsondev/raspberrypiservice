@@ -1,5 +1,5 @@
 #include "SenderFactory.hpp"
-#include <stdio.h>
+#include "RLogger.hpp"
 
 DBusMessage* SenderFactory::makeMsg(const char *objectpath, const char *interface,
                              const char* signal, DBusCommand cmd) {
@@ -11,12 +11,12 @@ DBusMessage* SenderFactory::makeMsg(const char *objectpath, const char *interfac
     );
 
     if (msg == nullptr) {
-        fprintf(stderr, "SenderFactory makeMsg Error: Message Null\n");
+        CM_LOG(ERROR, "SenderFactory makeMsg Error: Message Null");
         return nullptr;
     }
 
     if (!dbus_message_append_args(msg, DBUS_TYPE_INT32, &cmd, DBUS_TYPE_INVALID)) {
-        fprintf(stderr, "SenderFactory makeMsg Error: Out of Memory when appending args\n");
+        CM_LOG(ERROR, "SenderFactory makeMsg Error: Out of Memory when appending args");
         dbus_message_unref(msg);
         return nullptr;
     }

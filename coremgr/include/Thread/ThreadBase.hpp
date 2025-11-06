@@ -6,20 +6,21 @@
 #include <string>
 
 class ThreadBase {
+    private:
+        std::thread threadObj_;
+        std::string threadName_;
+
     protected:
         std::atomic<bool> runningFlag_;
         virtual void threadFunction() = 0;
 
-    private:
-        std::thread threadObj_;
-        std::string threadName_;
     public:
         explicit ThreadBase(std::string threadName);
         virtual ~ThreadBase();
 
         void run();
-        void stop();
         void join();
+        virtual void stop();
 };
 
 #endif // THREAD_BASE_HPP_

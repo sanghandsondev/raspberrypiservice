@@ -4,6 +4,7 @@
 #include "EventTypeId.hpp"
 #include "GPIOHandler.hpp"
 #include "DBusSender.hpp"
+#include "RLogger.hpp"
 
 MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue) 
     : ThreadBase("MainWorker"), eventQueue_(eventQueue) {
@@ -13,7 +14,7 @@ MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue)
 MainWorker::~MainWorker() {}
 
 void MainWorker::threadFunction() {
-    printf("[MainWorker] Thread function started\n");
+    CM_LOG(INFO, "MainWorker Thread function started");
 
     while (runningFlag_) {
         if (eventQueue_->hasEvent()) {
@@ -27,7 +28,7 @@ void MainWorker::threadFunction() {
         }
     }
 
-    printf("[MainWorker] Thread function exiting\n");
+    CM_LOG(INFO, "MainWorker Thread function exiting");
 }
 
 void MainWorker::processEvent(const std::shared_ptr<Event> event) {
@@ -38,19 +39,19 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
     // Process the event based on its type
     switch (event->getEventTypeId()) {
         case EventTypeID::STARTUP: {
-            printf("[MainWorker] Processing STARTUP event\n");
+            CM_LOG(INFO, "Processing STARTUP event");
             // TODO : blink LED
             // gpioHandler_->handleStartupEvent();
             break;
         }
         case EventTypeID::ONOFF_LED: {
-            printf("[MainWorker] Processing ONOFF_LED event\n");
-            bool ret = gpioHandler_->OnOffLED(event->getPayload());
+            CM_LOG(INFO, "Processing ONOFF_LED event");
+            gpioHandler_->OnOffLED(event->getPayload());
             break;
         }
         
         default:
-            printf("[MainWorker] Unknown event type received\n");
+            CM_LOG(WARN, "MainWorker received unknown event type");
             break;
     }
 }

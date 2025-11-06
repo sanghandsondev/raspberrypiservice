@@ -1,10 +1,10 @@
 #include "GPIOHandler.hpp"
-#include <stdio.h>
+#include "RLogger.hpp"
 
 bool GPIOHandler::OnOffLED(std::shared_ptr<Payload> payload){
     std::shared_ptr<LEDPayload> ledPayload = std::static_pointer_cast<LEDPayload>(payload);
     if(ledPayload == nullptr){
-        printf("[GPIOHandler] OnOffLED: Invalid payload\n");
+        CM_LOG(ERROR, "GPIOHandler OnOffLED Error: Invalid payload");
         return false;
     }
 

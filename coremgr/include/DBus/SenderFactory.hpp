@@ -2,7 +2,7 @@
 #define SENDER_FACTORY_HPP_
 
 #include <dbus/dbus.h>
-#include "DBusCommand.hpp"
+#include "Define.hpp"
 
 class ISenderFactory {
     public:
