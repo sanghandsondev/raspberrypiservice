@@ -11,7 +11,7 @@
 #include <mutex>
 #include <systemd/sd-daemon.h>
 
-#define INTERNAL_WATCHDOG_STANDARD_MS  5000
+#define INTERNAL_WATCHDOG_STANDARD_MS  10000
 
 std::atomic<bool> g_runningFlag;
 std::condition_variable g_cv;

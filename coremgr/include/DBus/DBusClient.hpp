@@ -11,6 +11,7 @@ class DBusClient {
 
         void addMatchRule(const std::string& signalName, const std::string& sender = "");
 
+        DBusConnection* getConnection() { return conn_;}
         DBusMessage* waitForAndProcessSignal();
 
     private:

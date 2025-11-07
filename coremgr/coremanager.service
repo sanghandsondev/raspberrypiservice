@@ -1,13 +1,17 @@
 [Unit]
-Description=Core Manager Service
-After=network.target
-# After=coremgr.service
+Description=Core Manager Service for Raspberry Pi
+After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/coremanager
-Restart=always
 User=pi
-WatchdogSec=5
+Group=pi
+Restart=on-failure
+RestartSec=5s
+StartLimitBurst=5
+StartLimitIntervalSec=600s
+WatchdogSec=10
+Type=notify
 
 [Install]
 WantedBy=multi-user.target
