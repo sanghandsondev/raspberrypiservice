@@ -2,16 +2,19 @@
 #include "EventQueue.hpp"
 #include "Event.hpp"
 #include "EventTypeId.hpp"
-#include "GPIOHandler.hpp"
 #include "DBusSender.hpp"
 #include "RLogger.hpp"
+#include "WebSocket.hpp"
+#include "WebSocketServer.hpp"
 
 MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue) 
-    : ThreadBase("MainWorker"), eventQueue_(eventQueue) {
-        gpioHandler_ = std::make_shared<GPIOHandler>();
-    }
+    : ThreadBase("MainWorker"), eventQueue_(eventQueue) {}
 
 MainWorker::~MainWorker() {}
+
+void MainWorker::setWebSocket(std::shared_ptr<WebSocket> ws) {
+    webSocket_ = ws;
+}
 
 void MainWorker::threadFunction() {
     CM_LOG(INFO, "MainWorker Thread function started");
@@ -41,12 +44,11 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::STARTUP: {
             CM_LOG(INFO, "Processing STARTUP event");
             // TODO : blink LED
-            // gpioHandler_->handleStartupEvent();
             break;
         }
         case EventTypeID::ONOFF_LED: {
             CM_LOG(INFO, "Processing ONOFF_LED event");
-            gpioHandler_->OnOffLED(event->getPayload());
+            processOnOffLEDEvent();
             break;
         }
         
@@ -54,5 +56,16 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             CM_LOG(WARN, "MainWorker received unknown event type");
             break;
     }
+}
+
+void MainWorker::processOnOffLEDEvent(void){
+    LEDState currentState = STATE_VIEW()->LED_STATE;
+    if (currentState == LEDState::ON) {
+        STATE_VIEW()->LED_STATE = LEDState::OFF;
+    } else {
+        STATE_VIEW()->LED_STATE = LEDState::ON;
+    }
+    webSocket_->getServer()->updateStateAndBroadcast("led", 
+        (STATE_VIEW()->LED_STATE == LEDState::ON) ? true : false);
 }
 

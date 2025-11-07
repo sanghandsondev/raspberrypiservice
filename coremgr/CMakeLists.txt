@@ -34,6 +34,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 
 # Include directories
 target_include_directories(${PROJECT_NAME} PRIVATE 
+    ${ROOT_DIR}/external
     ${ROOT_DIR}/include
     ${ROOT_DIR}/include/Event
     ${ROOT_DIR}/include/Configure

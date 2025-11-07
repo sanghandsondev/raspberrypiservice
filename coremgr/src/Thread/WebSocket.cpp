@@ -2,11 +2,23 @@
 #include "EventQueue.hpp"
 #include "WebSocketServer.hpp"
 #include "RLogger.hpp"
+#include "Config.hpp"
+#include "json.hpp"
+#include "Event.hpp"
+#include "EventTypeId.hpp"
+
+using json = nlohmann::json;
 
 WebSocket::WebSocket(std::shared_ptr<EventQueue> eventQueue) 
-    : ThreadBase("MainWorker"), eventQueue_(eventQueue){
-        wsServer_ = std::make_shared<WebSocketServer>("0.0.0.0", 9000);     // Listen on all interfaces at port 9000
-    }
+        : ThreadBase("WebSocket"), eventQueue_(eventQueue){
+    auto messageHandler = [this](const std::string& message) {
+        this->handleMessageFromClient(message);
+    };
+    
+    wsServer_ = std::make_unique<WebSocketServer>(CONFIG_INSTANCE()->getWebSocketHost().c_str(),
+                                                CONFIG_INSTANCE()->getWebSocketPort(),
+                                                messageHandler);
+}
 
 WebSocket::~WebSocket() {}
 
@@ -25,4 +37,33 @@ void WebSocket::stop(){
         }
         ThreadBase::stop();
     }
+}
+
+void WebSocket::handleMessageFromClient(const std::string& message){
+    CM_LOG(INFO, "WebSocket received message from client: %s", message.c_str());
+
+    try {
+        json jsonData = json::parse(message);
+
+        if (jsonData.contains("command")) {
+            std::string command = jsonData["command"];
+            CM_LOG(INFO, "Parsed command: %s", command.c_str());
+
+            if (command == "toggle_led") {
+                auto event = std::make_shared<Event>(EventTypeID::ONOFF_LED);
+                eventQueue_->pushEvent(event);
+            }
+            // Bạn có thể thêm các lệnh khác ở đây
+            // else if (command == "get_status") { ... }
+
+        } else {
+            CM_LOG(WARN, "Received JSON does not contain 'command' field.");
+        }
+
+    } catch (json::parse_error& e) {
+        CM_LOG(ERROR, "Failed to parse JSON message: %s. Error: %s", message.c_str(), e.what());
+    } catch (std::exception& e) {
+        CM_LOG(ERROR, "Exception while handling message: %s", e.what());
+    }
+    
 }

@@ -3,6 +3,7 @@
 #include "Event.hpp"
 #include "DBusReceiver.hpp"
 #include "WebSocket.hpp"
+#include "WebSocketServer.hpp"
 #include "RLogger.hpp"
 #include <csignal>
 #include <atomic>
@@ -38,9 +39,11 @@ int main(){
     std::shared_ptr<EventQueue> eventQueue = std::make_shared<EventQueue>();
     startUpCoreMgr(eventQueue);
 
-    std::unique_ptr<MainWorker> mainWorker = std::make_unique<MainWorker>(eventQueue);
-    std::unique_ptr<DBusReceiver> dbusReceiver = std::make_unique<DBusReceiver>(eventQueue);
-    std::unique_ptr<WebSocket> webSocketThread = std::make_unique<WebSocket>(eventQueue);
+    auto mainWorker = std::make_shared<MainWorker>(eventQueue);
+    auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
+    auto webSocketThread = std::make_shared<WebSocket>(eventQueue);
+
+    mainWorker->setWebSocket(webSocketThread);
 
     mainWorker->run();
     dbusReceiver->run();

@@ -13,10 +13,14 @@ class WebSocket : public ThreadBase {
         explicit WebSocket(std::shared_ptr<EventQueue> eventQueue);
         ~WebSocket();
 
+        WebSocketServer* getServer() { return wsServer_.get(); }
+
         void stop();
     private:
         std::shared_ptr<EventQueue> eventQueue_;
-        std::shared_ptr<WebSocketServer> wsServer_;
+        std::unique_ptr<WebSocketServer> wsServer_;
+
+        void handleMessageFromClient(const std::string& message);
 
         void threadFunction() override;
 };

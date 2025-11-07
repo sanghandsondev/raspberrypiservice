@@ -8,21 +8,24 @@
 
 class EventQueue;
 class ThreadBase;
-class GPIOHandler;
 class Event;
+class WebSocket;
 
 class MainWorker : public ThreadBase {
     public:
         explicit MainWorker(std::shared_ptr<EventQueue> eventQueue);
         ~MainWorker();
 
+        void setWebSocket(std::shared_ptr<WebSocket> ws);
+
     private:
         std::shared_ptr<EventQueue> eventQueue_;
-        std::shared_ptr<GPIOHandler> gpioHandler_;
+        std::shared_ptr<WebSocket> webSocket_;
 
         void threadFunction() override;
 
         void processEvent(const std::shared_ptr<Event> event);
+        void processOnOffLEDEvent();
 };
 
 #endif // MAIN_WORKER_HPP_

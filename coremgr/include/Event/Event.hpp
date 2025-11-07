@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "EventTypeId.hpp"
+#include "StateView.hpp"
 
 enum class EventTypeID;
 
