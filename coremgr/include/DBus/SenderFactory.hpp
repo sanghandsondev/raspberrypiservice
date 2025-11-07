@@ -3,25 +3,15 @@
 
 #include <dbus/dbus.h>
 #include "Define.hpp"
-
-class ISenderFactory {
-    public:
-        virtual ~ISenderFactory() = default;
-        virtual DBusMessage* makeTurnOnLedMsg() = 0;
-        virtual DBusMessage* makeTurnOffLedMsg() = 0;
-
-    protected:
-        virtual DBusMessage* makeMsg(const char *objectpath, const char *interface,
-                                    const char* signal, DBusCommand cmd) = 0;
-};
+#include "ISenderFactory.hpp"
 
 class SenderFactory : public ISenderFactory {
     public:
         SenderFactory() = default;
         ~SenderFactory() override = default;
 
-        DBusMessage* makeTurnOnLedMsg() override;
-        DBusMessage* makeTurnOffLedMsg() override;
+        DBusMessage* makeTurnOnLedMsg();
+        DBusMessage* makeTurnOffLedMsg();
 
     protected:
         DBusMessage* makeMsg(const char *objectpath, const char *interface,

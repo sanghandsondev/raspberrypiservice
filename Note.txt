@@ -13,25 +13,4 @@ Note: Chưa biết cái nào là best practice
 
 7. Unit test dùng gg test (Có CmakeList riêng)
 
-3. Cross compiler ở laptop Linux xong sync bằng ssh chứ tình hình là Pi nóng quá rồi. Chỉ cắm Pi rồi để cho nó chạy daemon thôi.
-Bug thì mới ssh vào lấy log.
-
-Bước 1: Cài đặt Cross-Compiler Toolchain
-Trên máy tính phát triển của bạn (giả sử là Ubuntu/Debian), hãy cài đặt bộ công cụ biên dịch cho kiến trúc ARM 64-bit của Raspberry Pi 4.
-sudo apt update
-sudo apt install -y g++-aarch64-linux-gnu gcc-aarch64-linux-gnu
-
-Bước 2: Chuẩn bị Sysroot từ Raspberry Pi
-Sysroot là một bản sao của hệ thống tệp gốc (/) trên Pi, chứa tất cả các thư viện (lib, lib) và tệp header (include) mà dự án của bạn cần để liên kết (link).
-Trên máy tính phát triển của bạn, tạo một thư mục để chứa sysroot:
-mkdir -p ~/raspberrypi/sysroot
-
-Sử dụng rsync để sao chép các thư mục cần thiết từ Raspberry Pi sang máy tính của bạn. Thay PI_IP_ADDRESS bằng địa chỉ IP của Pi.
-# Chạy lệnh này trên máy tính phát triển
-rsync -avz --rsync-path="sudo rsync" pi@PI_IP_ADDRESS:/{lib,usr} ~/raspberrypi/sysroot/
-
-Quan trọng: Các symlink tuyệt đối bên trong sysroot bây giờ đang trỏ sai. Chúng ta cần sửa chúng. Tải và chạy một script nhỏ để tự động sửa các symlink này.
-# Chạy các lệnh này trên máy tính phát triển
-wget https://raw.githubusercontent.com/riscv/riscv-poky/master/scripts/sysroot-relativelinks.py
-python3 sysroot-relativelinks.py ~/raspberrypi/sysroot
-
+8. Sua lai ISenderFactory sao cho chuan -> SenderFactory

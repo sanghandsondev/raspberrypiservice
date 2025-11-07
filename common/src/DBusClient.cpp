@@ -57,14 +57,3 @@ void DBusClient::addMatchRule(const std::string& signalName, const std::string& 
     CM_LOG(INFO, "Added D-Bus match rule: %s", rule.c_str());
 
 }
-
-DBusMessage* DBusClient::waitForAndProcessSignal() {
-    // Đọc message từ bus, không block
-    dbus_connection_read_write(conn_, 0);
-    DBusMessage* msg = dbus_connection_pop_message(conn_);
-    if (msg) {
-        return msg;
-    }
-
-    return nullptr; 
-}

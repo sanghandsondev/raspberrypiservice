@@ -3,10 +3,9 @@
 
 #include <dbus/dbus.h>
 #include <memory>
+#include "SenderFactory.hpp"
 
 #define DBUS_SENDER() DBusSender::getInstance()
-
-class SenderFactory;
 
 class DBusSender {
     public:

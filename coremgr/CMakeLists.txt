@@ -19,6 +19,7 @@ set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 # Add source files
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     ${ROOT_DIR}/src/*.cpp
+    ${ROOT_DIR}/../common/src/*.cpp
 )
 
 # Add executable
