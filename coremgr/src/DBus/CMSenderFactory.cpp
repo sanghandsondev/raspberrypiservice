@@ -7,6 +7,10 @@ DBusMessage* CMSenderFactory::makeMsg(DBusCommand cmd) {
             return makeMsg_TurnOnLed(cmd);
         case DBusCommand::TURN_OFF_LED:
             return makeMsg_TurnOffLed(cmd);
+        case DBusCommand::START_RECORD:
+            return makeMsg_StartRecord(cmd);
+        case DBusCommand::STOP_RECORD:
+            return makeMsg_StopRecord(cmd);
         default:
             CM_LOG(ERROR, "CMSenderFactory makeMsg Error: Unknown DBusCommand");
             return nullptr;
@@ -49,6 +53,22 @@ DBusMessage* CMSenderFactory::makeMsg_TurnOffLed(DBusCommand cmd) {
     const char* objectPath = "/com/example/hardwaremanager";
     const char* interfaceName = "com.example.hardwaremanager.interface";
     const char* signalName = "HardwareSignal";
+
+    return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
+}
+
+DBusMessage* CMSenderFactory::makeMsg_StartRecord(DBusCommand cmd) {
+    const char* objectPath = "/com/example/recordmanager";
+    const char* interfaceName = "com.example.recordmanager.interface";
+    const char* signalName = "RecordSignal";
+
+    return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
+}
+
+DBusMessage* CMSenderFactory::makeMsg_StopRecord(DBusCommand cmd) {
+    const char* objectPath = "/com/example/recordmanager";
+    const char* interfaceName = "com.example.recordmanager.interface";
+    const char* signalName = "RecordSignal";
 
     return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
 }

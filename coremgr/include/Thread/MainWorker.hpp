@@ -26,6 +26,10 @@ class MainWorker : public ThreadBase {
 
         void processEvent(const std::shared_ptr<Event> event);
         void processOnOffLEDEvent();
+        void processStartRecordEvent();
+        // void processStopRecordEvent();
+        void processStartRecordNOTIEvent();
+        // void processStopRecordNOTIEvent();
 };
 
 #endif // MAIN_WORKER_HPP_

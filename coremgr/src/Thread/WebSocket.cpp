@@ -49,12 +49,17 @@ void WebSocket::handleMessageFromClient(const std::string& message){
             std::string command = jsonData["command"];
             CM_LOG(INFO, "Parsed command: %s", command.c_str());
 
+            // TODO: Tạo một TranslateCommand cho chuyên nghiệp hơn
             if (command == "toggle_led") {
                 auto event = std::make_shared<Event>(EventTypeID::ONOFF_LED);
                 eventQueue_->pushEvent(event);
+            } else if (command == "start_record") { 
+                auto event = std::make_shared<Event>(EventTypeID::START_RECORD);
+                eventQueue_->pushEvent(event);
+            } else if (command == "stop_record") {
+                auto event = std::make_shared<Event>(EventTypeID::STOP_RECORD);
+                eventQueue_->pushEvent(event);
             }
-            // Bạn có thể thêm các lệnh khác ở đây
-            // else if (command == "get_status") { ... }
 
         } else {
             CM_LOG(WARN, "Received JSON does not contain 'command' field.");

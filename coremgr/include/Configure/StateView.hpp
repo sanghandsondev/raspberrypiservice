@@ -11,6 +11,14 @@ enum class LEDState {
     PROCESSING
 };
 
+enum class RecordState {
+    STOPPED = 0,
+    RECORDING,
+    PAUSED,
+
+    PROCESSING
+};
+
 class StateView {
     public:
         static StateView *getInstance() {
@@ -22,6 +30,7 @@ class StateView {
 
         // View Properties
         inline static LEDState LED_STATE = LEDState::OFF;
+        inline static RecordState RECORD_STATE = RecordState::STOPPED;
 
     private:
         StateView() = default;

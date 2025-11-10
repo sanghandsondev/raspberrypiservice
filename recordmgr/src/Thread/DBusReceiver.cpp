@@ -4,6 +4,7 @@
 #include "RMLogger.hpp"
 #include <poll.h>       // poll()
 #include <cstring>      // strerror
+#include "DBusSender.hpp"
 
 DBusReceiver::DBusReceiver() : ThreadBase("DBusReceiver") {
     dbusClient_ = std::make_shared<DBusClient>(
@@ -73,20 +74,41 @@ void DBusReceiver::threadFunction() {
 void DBusReceiver::dispatchMessage(DBusMessage *msg){
     RM_LOG(INFO, "Dispatching message...");
     DBusError err;
-    const char* received_string = nullptr;
+    int32_t received_cmd = 0;
 
-    // Khởi tạo lỗi
     dbus_error_init(&err);
-    if (!dbus_message_get_args(msg, &err, DBUS_TYPE_STRING, &received_string, DBUS_TYPE_INVALID)) {
+
+    if (!dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &received_cmd, DBUS_TYPE_INVALID)) {
         RM_LOG(ERROR, "DBusReceiver Error getting arguments: %s", err.message);
         dbus_error_free(&err);
         return;
     }
+    
+    if(!received_cmd){
+        RM_LOG(ERROR, "DBusReceiver Received signal but no command data found.");
+        return;
+    }
 
-    if (received_string) {
-        RM_LOG(INFO, "DBusReceiver Received string data: \"%s\"", received_string);
-
-    } else {
-        RM_LOG(WARN, "DBusReceiver Received signal but no string data found.");
+    RM_LOG(INFO, "DBusReceiver Received command: %d", static_cast<DBusCommand>(received_cmd));
+    switch (static_cast<DBusCommand>(received_cmd)) {
+        case DBusCommand::START_RECORD:
+            // TODO : Xử lý sự kiện START_RECORD
+            DBUS_SENDER()->sendMessage(DBusCommand::START_RECORD_NOTI);
+            break;
+        case DBusCommand::STOP_RECORD:
+            // TODO : Xử lý sự kiện STOP_RECORD
+            DBUS_SENDER()->sendMessage(DBusCommand::STOP_RECORD_NOTI);
+            break;
+        case DBusCommand::PAUSE_RECORD:
+            // TODO : Xử lý sự kiện PAUSE_RECORD
+            DBUS_SENDER()->sendMessage(DBusCommand::PAUSE_RECORD_NOTI);
+            break;
+        case DBusCommand::RESUME_RECORD:
+            // TODO : Xử lý sự kiện RESUME_RECORD
+            DBUS_SENDER()->sendMessage(DBusCommand::RESUME_RECORD_NOTI);
+            break;
+        default:
+            RM_LOG(WARN, "DBusReceiver received unknown DBusCommand");
+            break;
     }
 }

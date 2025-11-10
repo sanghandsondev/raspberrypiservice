@@ -41,24 +41,34 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
 
     // Process the event based on its type
     switch (event->getEventTypeId()) {
-        case EventTypeID::STARTUP: {
+        case EventTypeID::STARTUP:
             CM_LOG(INFO, "Processing STARTUP event");
             // TODO : blink LED
             break;
-        }
-        case EventTypeID::ONOFF_LED: {
+        case EventTypeID::ONOFF_LED:
             CM_LOG(INFO, "Processing ONOFF_LED event");
             processOnOffLEDEvent();
             break;
-        }
-        
+        case EventTypeID::START_RECORD:
+            CM_LOG(INFO, "Processing START_RECORD event");
+            processStartRecordEvent();
+            break;
+        // case EventTypeID::STOP_RECORD:
+        //     CM_LOG(INFO, "Processing STOP_RECORD event");
+        //     processStopRecordEvent();
+        //     break;
+        case EventTypeID::START_RECORD_NOTI:
+            CM_LOG(INFO, "Processing START_RECORD_NOTI event");
+            processStartRecordNOTIEvent();
+            break;
+
         default:
             CM_LOG(WARN, "MainWorker received unknown event type");
             break;
     }
 }
 
-void MainWorker::processOnOffLEDEvent(void){
+void MainWorker::processOnOffLEDEvent(){
     LEDState currentState = STATE_VIEW()->LED_STATE;
     if (currentState == LEDState::ON) {
         STATE_VIEW()->LED_STATE = LEDState::OFF;
@@ -67,5 +77,31 @@ void MainWorker::processOnOffLEDEvent(void){
     }
     webSocket_->getServer()->updateStateAndBroadcast("led", 
         (STATE_VIEW()->LED_STATE == LEDState::ON) ? true : false);
+}
+
+void MainWorker::processStartRecordEvent(){
+    RecordState currentState = STATE_VIEW()->RECORD_STATE;
+    switch (currentState) {
+        case RecordState::STOPPED:
+        case RecordState::PAUSED:
+            STATE_VIEW()->RECORD_STATE = RecordState::PROCESSING;
+            DBUS_SENDER()->sendMessage(DBusCommand::START_RECORD);
+            break;
+        case RecordState::RECORDING:
+            CM_LOG(WARN, "Received START_RECORD event while already RECORDING. No Action taken.");
+            break;
+        case RecordState::PROCESSING:
+            CM_LOG(WARN, "Received START_RECORD event while PROCESSING. No Action taken.");
+            break;
+        default:
+            CM_LOG(WARN, "Received START_RECORD event in invalid state");
+            break;
+    }
+}
+
+void MainWorker::processStartRecordNOTIEvent(){
+    STATE_VIEW()->RECORD_STATE = RecordState::RECORDING;
+    CM_LOG(INFO, "Record State updated to RECORDING due to START_RECORD_NOTI");
+    webSocket_->getServer()->updateStateAndBroadcast("record", "recording");
 }
 

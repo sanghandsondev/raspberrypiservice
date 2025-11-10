@@ -9,6 +9,11 @@ enum class DBusCommand {
     TURN_OFF_LED,
 
     // Record
+    START_RECORD,
+    STOP_RECORD,
+    PAUSE_RECORD,
+    RESUME_RECORD,
+
     START_RECORD_NOTI,
     STOP_RECORD_NOTI,
     PAUSE_RECORD_NOTI,

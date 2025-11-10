@@ -4,9 +4,16 @@
 enum class EventTypeID {
     NONE = 0,
     STARTUP,
+
+
     ONOFF_LED,
-    WS_MESSAGE_RECEIVED,
-    WS_SEND_MESSAGE,
+
+
+    START_RECORD,
+    STOP_RECORD,
+
+    START_RECORD_NOTI,
+    STOP_RECORD_NOTI,
 
     MAX
 };

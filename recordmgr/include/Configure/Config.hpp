@@ -29,7 +29,7 @@ class Config {
         inline static const std::string RECORDMGR_SERVICE_NAME = "com.example.recordmanager";
         inline static const std::string RECORDMGR_OBJECT_PATH = "/com/example/recordmanager";
         inline static const std::string RECORDMGR_INTERFACE_NAME = "com.example.recordmanager.interface";
-        inline static const std::string RECORDMGR_SIGNAL_NAME = "RecordManagerSignal";
+        inline static const std::string RECORDMGR_SIGNAL_NAME = "RecordSignal";
 };
 
 #endif // CONFIG_HPP_

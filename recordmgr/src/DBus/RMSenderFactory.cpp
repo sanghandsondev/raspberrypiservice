@@ -38,17 +38,17 @@ DBusMessage* RMSenderFactory::makeMsgInternal(const char *objectpath, const char
 
 // Specific message creation functions
 DBusMessage* RMSenderFactory::makeMsg_StartRecord_NOTI(DBusCommand cmd) {
-    const char* objectPath = "/com/example/hardwaremanager";
-    const char* interfaceName = "com.example.hardwaremanager.interface";
-    const char* signalName = "HardwareSignal";
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
 
     return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
 }
 
 DBusMessage* RMSenderFactory::makeMsg_StopRecord_NOTI(DBusCommand cmd) {
-    const char* objectPath = "/com/example/hardwaremanager";
-    const char* interfaceName = "com.example.hardwaremanager.interface";
-    const char* signalName = "HardwareSignal";
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
 
     return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
 }

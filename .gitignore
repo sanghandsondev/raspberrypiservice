@@ -1,2 +1,5 @@
-.vscode/*.json
+.vscode*/
+
 build*/
+
+static_report*/

@@ -32,7 +32,7 @@ class Config {
         inline static const std::string COREMGR_SERVICE_NAME = "com.example.coremanager";
         inline static const std::string COREMGR_OBJECT_PATH = "/com/example/coremanager";
         inline static const std::string COREMGR_INTERFACE_NAME = "com.example.coremanager.interface";
-        inline static const std::string COREMGR_SIGNAL_NAME = "CoreManagerSignal";
+        inline static const std::string COREMGR_SIGNAL_NAME = "CoreSignal";
 
         inline static const std::string WEBSOCKET_HOST = "0.0.0.0";
         inline static const unsigned short WEBSOCKET_PORT = 9000;   // Listen on all interfaces at port 9000
