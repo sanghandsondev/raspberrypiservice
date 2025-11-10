@@ -1,11 +1,10 @@
 [Unit]
-Description=Core Manager Service for Raspberry Pi
-After=network-online.target dbus.socket
-Wants=network-online.target
-Requires=dbus.socket
+Description=Record Manager Service for Raspberry Pi
+After=coremanager.service
+Requires=coremanager.service
 
 [Service]
-ExecStart=/usr/local/bin/coremanager
+ExecStart=/usr/local/bin/recordmanager
 User=pi
 Group=pi
 Restart=on-failure

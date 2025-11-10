@@ -12,5 +12,3 @@ Note: Chưa biết cái nào là best practice
 6. Chay cppcheck cho app
 
 7. Unit test dùng gg test (Có CmakeList riêng)
-
-8. Sua lai ISenderFactory sao cho chuan -> SenderFactory

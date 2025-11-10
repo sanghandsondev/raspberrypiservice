@@ -1,4 +1,4 @@
-#include "RLogger.hpp"
+#include "Logger.hpp"
 #include <cstdarg>
 #include <chrono>
 #include <iomanip>
@@ -8,7 +8,9 @@
 #include <cstring>
 #include <unistd.h> // getpid()
 
-const char* RLogger::levelToString(LogLevel level) {
+Logger::Logger(std::string moduleName) : m_moduleName(std::move(moduleName)) {}
+
+const char* Logger::levelToString(LogLevel level) {
     switch (level) {
         case DEBUG: return "DEBUG";
         case INFO:  return "INFO";
@@ -19,7 +21,7 @@ const char* RLogger::levelToString(LogLevel level) {
     return "DEBUG";
 }
 
-void RLogger::printLog(LogLevel level, const char* file, int line, const char* func, const char* fmt, ...) {
+void Logger::printLog(LogLevel level, const char* file, int line, const char* func, const char* fmt, ...) {
     std::lock_guard<std::mutex> lock(m_logMutex); // Đảm bảo thread-safety
 
     auto now = std::chrono::system_clock::now();
@@ -52,7 +54,8 @@ void RLogger::printLog(LogLevel level, const char* file, int line, const char* f
         short_file = file;
     }
 
-    printf("[CoreManager:%d][%s][%s:%d][%s] [%s]%s\n",
+    printf("[%s][%d][%s][%s:%d][%s] [%s]%s\n",
+        m_moduleName.c_str(),
         getpid(),
         timeStream.str().c_str(),
         short_file,

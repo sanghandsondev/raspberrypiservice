@@ -3,8 +3,16 @@
 
 enum class DBusCommand {
     NONE = 0,
+
+    // Hardware
     TURN_ON_LED = 1,
     TURN_OFF_LED,
+
+    // Record
+    START_RECORD_NOTI,
+    STOP_RECORD_NOTI,
+    PAUSE_RECORD_NOTI,
+    RESUME_RECORD_NOTI,
 
     MAX
 };
@@ -14,7 +22,6 @@ enum LogLevel {
     INFO,
     WARN,
     ERROR,
-
     MAX
 };
 

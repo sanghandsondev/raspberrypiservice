@@ -2,7 +2,7 @@
 #define DBUS_SENDER_HPP_
 
 #include "DBusSenderBase.hpp"
-#include "CMSenderFactory.hpp"
+#include "RMSenderFactory.hpp"
 
 #define DBUS_SENDER() DBusSender::getInstance()
 
@@ -17,7 +17,7 @@ class DBusSender : public DBusSenderBase {
 
     private:
         DBusSender() : DBusSenderBase() {
-            msgMaker = std::make_shared<CMSenderFactory>();
+            msgMaker = std::make_shared<RMSenderFactory>();
         };
         ~DBusSender() override = default;
 };
