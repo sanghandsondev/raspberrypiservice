@@ -1,5 +1,5 @@
 #include "DBusReceiver.hpp"
-#include "RMLogger.hpp"
+#include "HMLogger.hpp"
 #include <csignal>
 #include <atomic>
 #include <condition_variable>
@@ -13,7 +13,7 @@ std::condition_variable g_cv;
 std::mutex g_mutex;
 
 void signalHandler(int signum) {
-    RM_LOG(WARN, "Interrupt Signal (%d).", signum);
+    HM_LOG(WARN, "Interrupt Signal (%d).", signum);
     g_runningFlag = false;
     g_cv.notify_one();  // Notify main thread to exit
 }
@@ -22,7 +22,7 @@ int main(){
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
 
-    RM_LOG(INFO, "Record Manager is starting...");
+    HM_LOG(INFO, "Hardware Manager is starting...");
     
     sd_notify(0, "READY=1");
 
@@ -43,11 +43,11 @@ int main(){
         sd_notify(0, "WATCHDOG=1");
     }
 
-    RM_LOG(WARN, "Shutdown signal received, stopping threads...");
+    HM_LOG(WARN, "Shutdown signal received, stopping threads...");
     dbusReceiver->stop();
 
     dbusReceiver->join();
-    RM_LOG(WARN, "Record Manager exited.");
+    HM_LOG(WARN, "Hardware Manager exited.");
 
     return 0;
 }

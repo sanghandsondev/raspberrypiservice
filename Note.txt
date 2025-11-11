@@ -10,3 +10,9 @@ aplay ten_file.wav
 Note: Chưa biết cái nào là best practice
 
 7. Unit test dùng gg test (Có CmakeList riêng)
+- Cho thằng coremgr là được
+- Xài GMOCK + CmakeList cho nó chuẩn chuyên nghiệp
+
+8. Hoàn thành harewaremgr clone từ recordmgr
+
+9. Viet IConfig de gop chung may cai ServiceName,....

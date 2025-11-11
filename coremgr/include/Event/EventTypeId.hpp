@@ -7,6 +7,8 @@ enum class EventTypeID {
 
 
     ONOFF_LED,
+    TURN_ON_LED_NOTI,
+    TURN_OFF_LED_NOTI,
 
 
     START_RECORD,

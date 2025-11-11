@@ -33,8 +33,12 @@ class MainWorker : public ThreadBase {
         void processOnOffLEDEvent();
         void processStartRecordEvent();
         void processStopRecordEvent();
+
+        
         void processStartRecordNOTIEvent();
         void processStopRecordNOTIEvent();
+        void processTurnOnLEDNOTIEvent();
+        void processTurnOffLEDNOTIEvent();
 };
 
 #endif // MAIN_WORKER_HPP_

@@ -110,6 +110,19 @@ void DBusReceiver::dispatchMessage(DBusMessage *msg){
             eventQueue_->pushEvent(event);
             break;
         }
+        case DBusCommand::TURN_ON_LED_NOTI: {
+            CM_LOG(INFO, "Dispatching TURN_ON_LED_NOTI from DBus");
+            auto event = std::make_shared<Event>(EventTypeID::TURN_ON_LED_NOTI);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::TURN_OFF_LED_NOTI: {
+            CM_LOG(INFO, "Dispatching TURN_OFF_LED_NOTI from DBus");
+            auto event = std::make_shared<Event>(EventTypeID::TURN_OFF_LED_NOTI);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+            
         default:
             CM_LOG(WARN, "DBusReceiver received unknown DBusCommand");
             break;
