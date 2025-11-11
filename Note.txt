@@ -6,7 +6,7 @@
 5. Viết RecordManager (ALSA API để ghi âm)
 mpv ten_file.wav
 ffplay ten_file.wav
-aplay ten_file.wav
+aplay ten_file.wav (Của ALSA thì phải)
 Note: Chưa biết cái nào là best practice
 
 7. Unit test dùng gg test (Có CmakeList riêng)
@@ -19,3 +19,10 @@ Note: Chưa biết cái nào là best practice
 -Nếu mà nhiệt độ / tình trạng CPU / ... của Pi 4 ko chênh lệch quá bao nhiêu % đó thì sẽ ko
     gửi đến CloundManager. 
 - Còn ko thì update lên CloudManager
+
+9. Thằng hardware sẽ xài Queue vì nhiều task lộn xộn
+Còn thằng record hoặc th cloud sau này xài Singleton là đc. Vì nó chỉ có 1 chức năng duy nhất
+
+10. Lọc tạp âm (trước / sau khi ghi âm)
+
+11. Tối ưu hóa RecordWorker vào Config.hpp 

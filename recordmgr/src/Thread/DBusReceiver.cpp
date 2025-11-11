@@ -5,6 +5,7 @@
 #include <poll.h>       // poll()
 #include <cstring>      // strerror
 #include "DBusSender.hpp"
+#include "MainWorker.hpp"
 
 DBusReceiver::DBusReceiver() : ThreadBase("DBusReceiver") {
     dbusClient_ = std::make_shared<DBusClient>(
@@ -93,12 +94,10 @@ void DBusReceiver::dispatchMessage(DBusMessage *msg){
 
     switch (static_cast<DBusCommand>(received_cmd)) {
         case DBusCommand::START_RECORD:
-            // TODO : Xử lý sự kiện START_RECORD
-            DBUS_SENDER()->sendMessage(DBusCommand::START_RECORD_NOTI);
+            MAIN_WORKER()->startRecord();
             break;
         case DBusCommand::STOP_RECORD:
-            // TODO : Xử lý sự kiện STOP_RECORD
-            DBUS_SENDER()->sendMessage(DBusCommand::STOP_RECORD_NOTI);
+            MAIN_WORKER()->stopRecord();
             break;
         default:
             RM_LOG(WARN, "DBusReceiver received unknown DBusCommand");
