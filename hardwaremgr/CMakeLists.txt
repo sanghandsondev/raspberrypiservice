@@ -7,17 +7,14 @@ project(${PROJECT_NAME})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find required packages and libraries
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(DBUS-1 REQUIRED dbus-1)
-pkg_check_modules(SYSTEMD REQUIRED libsystemd)
-
 set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Add common library
+add_subdirectory(${ROOT_DIR}/../common ${CMAKE_CURRENT_BINARY_DIR}/common)
 
 # Add source files
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     ${ROOT_DIR}/src/*.cpp
-    ${ROOT_DIR}/../common/src/*.cpp
 )
 
 # Add executable
@@ -38,19 +35,11 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${ROOT_DIR}/include/Thread
     ${ROOT_DIR}/include/DBus
     ${ROOT_DIR}/include/Log
-    ${ROOT_DIR}/../common/include
-    ${ROOT_DIR}/../common/include/DBus
-    ${ROOT_DIR}/../common/include/Thread
-    ${ROOT_DIR}/../common/include/Log
-    ${DBUS-1_INCLUDE_DIRS}
-    ${SYSTEMD_INCLUDE_DIRS}
 )
 
 # Link libraries (if any)
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    pthread
-    ${DBUS-1_LIBRARIES}
-    ${SYSTEMD_LIBRARIES}
+    common
 )
 
 # Install target: cd build && sudo make install

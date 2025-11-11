@@ -1,7 +1,7 @@
 #ifndef CONFIG_HPP_
 #define CONFIG_HPP_
 
-#include <string>
+#include "IConfig.hpp"
 
 #define CONFIG_INSTANCE() Config::getInstance()
 
@@ -14,11 +14,11 @@ class Config {
         Config(const Config &) = delete;
         Config &operator=(const Config &) = delete;
 
-        const std::string &getRecordMgrBinaryPath() const { return RECORDMGR_BINARYPATH;}
-        const std::string &getRecordMgrServiceName() const { return RECORDMGR_SERVICE_NAME;}
-        const std::string &getRecordMgrObjectPath() const { return RECORDMGR_OBJECT_PATH;}
-        const std::string &getRecordMgrInterfaceName() const { return RECORDMGR_INTERFACE_NAME;}
-        const std::string &getRecordMgrSignalName() const { return RECORDMGR_SIGNAL_NAME;}
+        const std::string &getBinaryPath() const { return RECORDMGR_BINARYPATH;}
+        const std::string &getServiceName() const { return RECORDMGR_SERVICE_NAME;}
+        const std::string &getObjectPath() const { return RECORDMGR_OBJECT_PATH;}
+        const std::string &getInterfaceName() const { return RECORDMGR_INTERFACE_NAME;}
+        const std::string &getSignalName() const { return RECORDMGR_SIGNAL_NAME;}
 
     private:
         Config() = default;

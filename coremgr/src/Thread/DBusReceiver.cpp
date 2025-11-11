@@ -12,11 +12,11 @@ DBusReceiver::DBusReceiver(std::shared_ptr<EventQueue> eventQueue)
     : ThreadBase("DBusReceiver"), eventQueue_(eventQueue) {
 
     dbusClient_ = std::make_shared<DBusClient>(
-        CONFIG_INSTANCE()->getCoreMgrServiceName(),
-        CONFIG_INSTANCE()->getCoreMgrObjectPath(),
-        CONFIG_INSTANCE()->getCoreMgrInterfaceName()
+        CONFIG_INSTANCE()->getServiceName(),
+        CONFIG_INSTANCE()->getObjectPath(),
+        CONFIG_INSTANCE()->getInterfaceName()
     );
-    dbusClient_->addMatchRule(CONFIG_INSTANCE()->getCoreMgrSignalName());
+    dbusClient_->addMatchRule(CONFIG_INSTANCE()->getSignalName());
 }
 
 DBusReceiver::~DBusReceiver() {}
@@ -64,8 +64,8 @@ void DBusReceiver::threadFunction() {
             DBusMessage* msg = nullptr;
             // Lấy các message đã được xử lý ra
             while ((msg = dbus_connection_pop_message(conn)) != nullptr) {
-                if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getCoreMgrInterfaceName().c_str(), 
-                                                CONFIG_INSTANCE()->getCoreMgrSignalName().c_str())) {
+                if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getInterfaceName().c_str(), 
+                                                CONFIG_INSTANCE()->getSignalName().c_str())) {
                     CM_LOG(INFO, "Received CoreManagerSignal via poll()");
                     dispatchMessage(msg);
                 }

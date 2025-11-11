@@ -1,7 +1,7 @@
 #ifndef CONFIG_HPP_
 #define CONFIG_HPP_
 
-#include <string>
+#include "IConfig.hpp"
 
 #define CONFIG_INSTANCE() Config::getInstance()
 
@@ -14,11 +14,11 @@ class Config {
         Config(const Config &) = delete;
         Config &operator=(const Config &) = delete;
 
-        const std::string &getHardwareMgrBinaryPath() const { return HARDWAREMGR_BINARYPATH;}
-        const std::string &getHardwareMgrServiceName() const { return HARDWAREMGR_SERVICE_NAME;}
-        const std::string &getHardwareMgrObjectPath() const { return HARDWAREMGR_OBJECT_PATH;}
-        const std::string &getHardwareMgrInterfaceName() const { return HARDWAREMGR_INTERFACE_NAME;}
-        const std::string &getHardwareMgrSignalName() const { return HARDWAREMGR_SIGNAL_NAME;}
+        const std::string &getBinaryPath() const { return HARDWAREMGR_BINARYPATH;}
+        const std::string &getServiceName() const { return HARDWAREMGR_SERVICE_NAME;}
+        const std::string &getObjectPath() const { return HARDWAREMGR_OBJECT_PATH;}
+        const std::string &getInterfaceName() const { return HARDWAREMGR_INTERFACE_NAME;}
+        const std::string &getSignalName() const { return HARDWAREMGR_SIGNAL_NAME;}
 
     private:
         Config() = default;

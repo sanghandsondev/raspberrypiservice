@@ -8,11 +8,11 @@
 
 DBusReceiver::DBusReceiver() : ThreadBase("DBusReceiver") {
     dbusClient_ = std::make_shared<DBusClient>(
-        CONFIG_INSTANCE()->getRecordMgrServiceName(),
-        CONFIG_INSTANCE()->getRecordMgrObjectPath(),
-        CONFIG_INSTANCE()->getRecordMgrInterfaceName()
+        CONFIG_INSTANCE()->getServiceName(),
+        CONFIG_INSTANCE()->getObjectPath(),
+        CONFIG_INSTANCE()->getInterfaceName()
     );
-    dbusClient_->addMatchRule(CONFIG_INSTANCE()->getRecordMgrSignalName());
+    dbusClient_->addMatchRule(CONFIG_INSTANCE()->getSignalName());
 }
 
 DBusReceiver::~DBusReceiver() {}
@@ -60,8 +60,8 @@ void DBusReceiver::threadFunction() {
             DBusMessage* msg = nullptr;
             // Lấy các message đã được xử lý ra
             while ((msg = dbus_connection_pop_message(conn)) != nullptr) {
-                if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getRecordMgrInterfaceName().c_str(), 
-                                                CONFIG_INSTANCE()->getRecordMgrSignalName().c_str())) {
+                if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getInterfaceName().c_str(), 
+                                                CONFIG_INSTANCE()->getSignalName().c_str())) {
                     RM_LOG(INFO, "Received RecordManagerSignal via poll()");
                     dispatchMessage(msg);
                 }
