@@ -16,7 +16,7 @@ class HMLogger : public Logger {
         HMLogger &operator=(const HMLogger &) = delete;
 
     private:
-        HMLogger() : Logger("RecordManager") {}
+        HMLogger() : Logger("HardwareManager") {}
         ~HMLogger() override = default;
 };
 

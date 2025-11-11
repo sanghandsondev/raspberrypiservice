@@ -12,3 +12,10 @@ Note: Chưa biết cái nào là best practice
 7. Unit test dùng gg test (Có CmakeList riêng)
 - Cho thằng coremgr là được
 - Xài GMOCK + CmakeList cho nó chuẩn chuyên nghiệp.
+
+8. Viết CloundManager nhận tín hiệu từ CoreManager
+-CoreManager nhận tín hiệu từ HardwareManager. 
+-Mỗi 5s bắn cho CoreManager một phát
+-Nếu mà nhiệt độ / tình trạng CPU / ... của Pi 4 ko chênh lệch quá bao nhiêu % đó thì sẽ ko
+    gửi đến CloundManager. 
+- Còn ko thì update lên CloudManager
