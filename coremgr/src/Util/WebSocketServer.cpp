@@ -151,19 +151,12 @@ void WebSocketServer::handleMessageFromSession(const std::string& message){
 }
 
 void WebSocketServer::sendInitStateToClient(std::shared_ptr<WebSocketSession> session){
-    // std::stringstream ss;
-    // LEDState currentState = STATE_VIEW()->LED_STATE;
-    // std::string stateStr = (currentState == LEDState::ON) ? "true" : "false";
-    // ss << "{\"type\":\"status\", \"led\":" << stateStr.c_str() << "}";
-    // session->send(ss.str());
-
     // TODO: Tạo JSON factory gì đó sau đó nếu được
     json status_msg;
     status_msg["type"] = "initial_status";
     status_msg["state"] = {
-        {"led", (STATE_VIEW()->LED_STATE == LEDState::ON)},
-        // {"temperature", STATE_VIEW()->TEMPERATURE}, // Ví dụ sau này
-        // {"humidity", STATE_VIEW()->HUMIDITY}      // Ví dụ sau này
+        {"led", (STATE_VIEW()->LED_STATE == LEDState::ON ? "on" : "off")},
+        {"record", (STATE_VIEW()->RECORD_STATE == RecordState::RECORDING ? "recording" : "stopped")}
     };
 
     std::string message = status_msg.dump();

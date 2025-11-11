@@ -14,8 +14,6 @@ enum class LEDState {
 enum class RecordState {
     STOPPED = 0,
     RECORDING,
-    PAUSED,
-
     PROCESSING
 };
 

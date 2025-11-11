@@ -18,8 +18,6 @@ class RMSenderFactory : public ISenderFactory {
                               
         DBusMessage* makeMsg_StartRecord_NOTI(DBusCommand cmd);
         DBusMessage* makeMsg_StopRecord_NOTI(DBusCommand cmd);
-        // DBusMessage* makeMsg_PauseRecord_NOTI(DBusCommand cmd);
-        // DBusMessage* makeMsg_ResumeRecord_NOTI(DBusCommand cmd);
 
 };
 

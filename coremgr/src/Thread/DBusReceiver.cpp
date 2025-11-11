@@ -96,11 +96,17 @@ void DBusReceiver::dispatchMessage(DBusMessage *msg){
     }
 
     CM_LOG(INFO, "DBusReceiver Received command: %d", static_cast<DBusCommand>(received_cmd));
+
     switch (static_cast<DBusCommand>(received_cmd)) {
         case DBusCommand::START_RECORD_NOTI: {
-            // TODO : Xử lý sự kiện START_RECORD
-            CM_LOG(INFO, "Dispatching START_RECORD_NOTI event to EventQueue");
+            CM_LOG(INFO, "Dispatching START_RECORD_NOTI from DBus");
             auto event = std::make_shared<Event>(EventTypeID::START_RECORD_NOTI);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::STOP_RECORD_NOTI: {
+            CM_LOG(INFO, "Dispatching STOP_RECORD_NOTI from DBus");
+            auto event = std::make_shared<Event>(EventTypeID::STOP_RECORD_NOTI);
             eventQueue_->pushEvent(event);
             break;
         }

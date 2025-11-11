@@ -90,6 +90,7 @@ void DBusReceiver::dispatchMessage(DBusMessage *msg){
     }
 
     RM_LOG(INFO, "DBusReceiver Received command: %d", static_cast<DBusCommand>(received_cmd));
+
     switch (static_cast<DBusCommand>(received_cmd)) {
         case DBusCommand::START_RECORD:
             // TODO : Xử lý sự kiện START_RECORD
@@ -98,14 +99,6 @@ void DBusReceiver::dispatchMessage(DBusMessage *msg){
         case DBusCommand::STOP_RECORD:
             // TODO : Xử lý sự kiện STOP_RECORD
             DBUS_SENDER()->sendMessage(DBusCommand::STOP_RECORD_NOTI);
-            break;
-        case DBusCommand::PAUSE_RECORD:
-            // TODO : Xử lý sự kiện PAUSE_RECORD
-            DBUS_SENDER()->sendMessage(DBusCommand::PAUSE_RECORD_NOTI);
-            break;
-        case DBusCommand::RESUME_RECORD:
-            // TODO : Xử lý sự kiện RESUME_RECORD
-            DBUS_SENDER()->sendMessage(DBusCommand::RESUME_RECORD_NOTI);
             break;
         default:
             RM_LOG(WARN, "DBusReceiver received unknown DBusCommand");

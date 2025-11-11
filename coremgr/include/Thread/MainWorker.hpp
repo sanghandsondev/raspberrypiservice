@@ -10,6 +10,8 @@ class EventQueue;
 class ThreadBase;
 class Event;
 class WebSocket;
+class HardwareHandler;
+class RecordHandler;
 
 class MainWorker : public ThreadBase {
     public:
@@ -21,15 +23,18 @@ class MainWorker : public ThreadBase {
     private:
         std::shared_ptr<EventQueue> eventQueue_;
         std::shared_ptr<WebSocket> webSocket_;
+        std::shared_ptr<HardwareHandler> hardwareHandler_;
+        std::shared_ptr<RecordHandler> recordHandler_;
 
         void threadFunction() override;
 
         void processEvent(const std::shared_ptr<Event> event);
+        
         void processOnOffLEDEvent();
         void processStartRecordEvent();
-        // void processStopRecordEvent();
+        void processStopRecordEvent();
         void processStartRecordNOTIEvent();
-        // void processStopRecordNOTIEvent();
+        void processStopRecordNOTIEvent();
 };
 
 #endif // MAIN_WORKER_HPP_
