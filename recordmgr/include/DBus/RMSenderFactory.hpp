@@ -11,13 +11,11 @@ class RMSenderFactory : public ISenderFactory {
         ~RMSenderFactory() override = default;
 
         DBusMessage* makeMsg(DBusCommand cmd) override;
+        DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) override;
 
-    private:
-        DBusMessage* makeMsgInternal(const char *objectpath, const char *interface,
-                              const char* signal, DBusCommand cmd) override;
-                              
-        DBusMessage* makeMsg_StartRecord_NOTI(DBusCommand cmd);
-        DBusMessage* makeMsg_StopRecord_NOTI(DBusCommand cmd);
+    private:        
+        DBusMessage* makeMsgNoti_StartRecord(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
+        DBusMessage* makeMsgNoti_StopRecord(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
 
 };
 

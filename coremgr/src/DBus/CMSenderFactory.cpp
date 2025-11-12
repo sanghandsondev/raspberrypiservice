@@ -17,27 +17,14 @@ DBusMessage* CMSenderFactory::makeMsg(DBusCommand cmd) {
     }
 }
 
-DBusMessage* CMSenderFactory::makeMsgInternal(const char *objectpath, const char *interface,
-                             const char* signal, DBusCommand cmd) {
-    // Tạo một DBusMessage kiểu signal
-    DBusMessage* msg = dbus_message_new_signal(
-        objectpath,
-        interface,
-        signal
-    );
-
-    if (msg == nullptr) {
-        CM_LOG(ERROR, "CMSenderFactory makeMsgInternal Error: Message Null");
-        return nullptr;
+DBusMessage* CMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) {
+    CM_LOG(INFO, "CMSenderFactory makeMsgNoti called with cmd: %d, isSuccess: %d, msgInfo: %s",
+            static_cast<int>(cmd), isSuccess, msgInfo.c_str());
+    switch(cmd) {
+        default:
+            CM_LOG(ERROR, "CMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
+            return nullptr;
     }
-
-    if (!dbus_message_append_args(msg, DBUS_TYPE_INT32, &cmd, DBUS_TYPE_INVALID)) {
-        CM_LOG(ERROR, "CMSenderFactory makeMsgInternal Error: Out of Memory when appending args");
-        dbus_message_unref(msg);
-        return nullptr;
-    }
-
-    return msg;
 }
 
 // Specific message creation functions

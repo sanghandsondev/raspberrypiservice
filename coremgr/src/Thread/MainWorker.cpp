@@ -68,19 +68,19 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             break;
         case EventTypeID::START_RECORD_NOTI:
             CM_LOG(INFO, "Processing START_RECORD_NOTI event");
-            processStartRecordNOTIEvent();
+            processStartRecordNOTIEvent(event->getPayload());
             break;
         case EventTypeID::STOP_RECORD_NOTI:
             CM_LOG(INFO, "Processing STOP_RECORD_NOTI event");
-            processStopRecordNOTIEvent();
+            processStopRecordNOTIEvent(event->getPayload());
             break;
         case EventTypeID::TURN_ON_LED_NOTI:
             CM_LOG(INFO, "Processing TURN_ON_LED_NOTI event");
-            processTurnOnLEDNOTIEvent();
+            processTurnOnLEDNOTIEvent(event->getPayload());
             break;
         case EventTypeID::TURN_OFF_LED_NOTI:
             CM_LOG(INFO, "Processing TURN_OFF_LED_NOTI event");
-            processTurnOffLEDNOTIEvent();
+            processTurnOffLEDNOTIEvent(event->getPayload());
             break;
         default:
             CM_LOG(WARN, "MainWorker received unknown event type");
@@ -94,10 +94,10 @@ void MainWorker::processStartRecordEvent(){ recordHandler_->startRecord();}
 
 void MainWorker::processStopRecordEvent(){ recordHandler_->stopRecord();}
 
-void MainWorker::processStartRecordNOTIEvent(){ recordHandler_->startRecordNOTI();}
+void MainWorker::processStartRecordNOTIEvent(std::shared_ptr<Payload> payload){ recordHandler_->startRecordNOTI(payload);}
 
-void MainWorker::processStopRecordNOTIEvent(){ recordHandler_->stopRecordNOTI();}
+void MainWorker::processStopRecordNOTIEvent(std::shared_ptr<Payload> payload){ recordHandler_->stopRecordNOTI(payload);}
 
-void MainWorker::processTurnOnLEDNOTIEvent(){ hardwareHandler_->turnOnLEDNOTI();}
+void MainWorker::processTurnOnLEDNOTIEvent(std::shared_ptr<Payload> payload){ hardwareHandler_->turnOnLEDNOTI(payload);}
 
-void MainWorker::processTurnOffLEDNOTIEvent(){ hardwareHandler_->turnOffLEDNOTI();}
+void MainWorker::processTurnOffLEDNOTIEvent(std::shared_ptr<Payload> payload){ hardwareHandler_->turnOffLEDNOTI(payload);}

@@ -5,17 +5,17 @@
 #include "WebSocketServer.hpp"
 #include "CMLogger.hpp"
 #include "DBusSender.hpp"
-
+#include "Event.hpp"
 
 void HardwareHandler::onOffLED(){
-    LEDState currentState = STATE_VIEW()->LED_STATE;
+    LEDState currentState = STATE_VIEW_INSTANCE()->LED_STATE;
     switch (currentState) {
         case LEDState::OFF:
-            STATE_VIEW()->LED_STATE = LEDState::PROCESSING;
+            STATE_VIEW_INSTANCE()->LED_STATE = LEDState::PROCESSING;
             DBUS_SENDER()->sendMessage(DBusCommand::TURN_ON_LED);
             break;
         case LEDState::ON:
-            STATE_VIEW()->LED_STATE = LEDState::PROCESSING;
+            STATE_VIEW_INSTANCE()->LED_STATE = LEDState::PROCESSING;
             DBUS_SENDER()->sendMessage(DBusCommand::TURN_OFF_LED);
             break;
         case LEDState::PROCESSING:
@@ -27,14 +27,35 @@ void HardwareHandler::onOffLED(){
     }
 }
 
-void HardwareHandler::turnOnLEDNOTI(){
-    STATE_VIEW()->LED_STATE = LEDState::ON;
-    CM_LOG(INFO, "LED State updated to ON due to TURN_ON_LED_NOTI");
-    webSocket_->getServer()->updateStateAndBroadcast("led", "on");
+void HardwareHandler::turnOnLEDNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        CM_LOG(ERROR, "TURN_ON_LED_NOTI payload is not of type NotiPayload");
+        return;
+    }
+
+    if (notiPayload->isSuccess() == false) {
+        STATE_VIEW_INSTANCE()->LED_STATE = LEDState::OFF;
+        webSocket_->getServer()->updateStateAndBroadcast("led", "off", notiPayload->getMsgInfo());
+    } else {
+        STATE_VIEW_INSTANCE()->LED_STATE = LEDState::ON;
+        webSocket_->getServer()->updateStateAndBroadcast("led", "on");
+    }
+    
 }
 
-void HardwareHandler::turnOffLEDNOTI(){
-    STATE_VIEW()->LED_STATE = LEDState::OFF;
-    CM_LOG(INFO, "LED State updated to OFF due to TURN_OFF_LED_NOTI");
-    webSocket_->getServer()->updateStateAndBroadcast("led", "off");
+void HardwareHandler::turnOffLEDNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        CM_LOG(ERROR, "TURN_OFF_LED_NOTI payload is not of type NotiPayload");
+        return;
+    }
+
+    if (notiPayload->isSuccess() == false) {
+        STATE_VIEW_INSTANCE()->LED_STATE = LEDState::ON;
+        webSocket_->getServer()->updateStateAndBroadcast("led", "off", notiPayload->getMsgInfo());
+    } else {
+        STATE_VIEW_INSTANCE()->LED_STATE = LEDState::OFF;
+        webSocket_->getServer()->updateStateAndBroadcast("led", "off");
+    }
 }

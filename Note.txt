@@ -20,9 +20,13 @@ Note: Chưa biết cái nào là best practice
     gửi đến CloundManager. 
 - Còn ko thì update lên CloudManager
 
-9. Thằng hardware sẽ xài Queue vì nhiều task lộn xộn
-Còn thằng record hoặc th cloud sau này xài Singleton là đc. Vì nó chỉ có 1 chức năng duy nhất
+9. Xài queue hết
 
-10. Lọc tạp âm (trước / sau khi ghi âm)
+10. Lọc tạp âm (sau khi ghi âm = 1 thread khác của RecordManager, SAU NÀY)
 
-11. Tối ưu hóa RecordWorker vào Config.hpp 
+11. Sửa lại Logger cho chuẩn chứ hiện tại để linh tinh vl
+
+12. Khi start lại Core thì nó phải lấy được data lưu ở một vị trí nào đó trong Pi (có thể là file json. Hỏi AI)
+
+
+13. Sửa coredump -> xài queue cho RecordManager

@@ -4,7 +4,7 @@
 #include <memory>
 #include "RecordWorker.hpp"
 
-#define MAIN_WORKER() MainWorker::getInstance()
+#define MAIN_WORKER_INSTANCE() MainWorker::getInstance()
 
 class MainWorker {
     public:
@@ -19,7 +19,7 @@ class MainWorker {
         void stopRecord();
 
     private:
-        MainWorker() : recordWorker_{std::make_shared<RecordWorker>()} {};
+        MainWorker() : recordWorker_(nullptr) {};
         ~MainWorker() = default;
 
         std::shared_ptr<RecordWorker> recordWorker_;

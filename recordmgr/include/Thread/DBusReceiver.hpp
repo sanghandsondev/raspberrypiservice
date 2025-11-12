@@ -1,23 +1,18 @@
 #ifndef DBUS_RECEIVER_HPP_
 #define DBUS_RECEIVER_HPP_
 
-#include <memory>
+#include "DBusReceiverBase.hpp"
 #include <dbus/dbus.h>
-#include "ThreadBase.hpp"
+#include <memory>
 
-class DBusClient;
-
-class DBusReceiver : public ThreadBase {
+class DBusReceiver : public DBusReceiverBase {
     public:
         explicit DBusReceiver();
-        ~DBusReceiver();
+        ~DBusReceiver() override = default;
 
     private:
-        std::shared_ptr<DBusClient> dbusClient_;
-
-        void threadFunction() override;
-
-        void dispatchMessage(DBusMessage* msg);
+        void handleMessage(DBusCommand cmd) override;
+        void handleMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) override;
 };
 
 #endif // DBUS_RECEIVER_HPP_

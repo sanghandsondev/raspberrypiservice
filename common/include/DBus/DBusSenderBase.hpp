@@ -10,6 +10,7 @@ class DBusSenderBase {
         explicit DBusSenderBase();
         virtual ~DBusSenderBase();
         bool sendMessage(DBusCommand cmd);
+        bool sendMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
 
     protected:
         DBusConnection* conn_;

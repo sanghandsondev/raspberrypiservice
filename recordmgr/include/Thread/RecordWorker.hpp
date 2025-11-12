@@ -19,10 +19,6 @@ class RecordWorker : public ThreadBase {
         std::vector<int16_t> audioBuffer_;
         std::string outputFilePath_;
 
-        // Configuration
-        static const unsigned int SAMPLE_RATE;
-        static const snd_pcm_uframes_t FRAMES_PER_PERIOD;
-
         // Helpers
         bool initAlsa();
         void cleanupAlsa();

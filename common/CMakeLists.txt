@@ -22,9 +22,10 @@ add_library(common STATIC ${COMMON_SOURCES})
 target_include_directories(common PUBLIC 
     ${ROOT_DIR}/include
     ${ROOT_DIR}/include/Configure
-    ${ROOT_DIR}/include/Thread
     ${ROOT_DIR}/include/DBus
+    ${ROOT_DIR}/include/Event
     ${ROOT_DIR}/include/Log
+    ${ROOT_DIR}/include/Thread
     ${DBUS-1_INCLUDE_DIRS}
     ${SYSTEMD_INCLUDE_DIRS}
 )

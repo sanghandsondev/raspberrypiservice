@@ -11,13 +11,12 @@ class HMSenderFactory : public ISenderFactory {
         ~HMSenderFactory() override = default;
 
         DBusMessage* makeMsg(DBusCommand cmd) override;
+        DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) override;
 
     private:
-        DBusMessage* makeMsgInternal(const char *objectpath, const char *interface,
-                              const char* signal, DBusCommand cmd) override;
                               
-        DBusMessage* makeMsg_TurnOnLED_NOTI(DBusCommand cmd);
-        DBusMessage* makeMsg_TurnOffLED_NOTI(DBusCommand cmd);
+        DBusMessage* makeMsgNoti_TurnOnLED(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
+        DBusMessage* makeMsgNoti_TurnOffLED(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
 
 };
 

@@ -2,6 +2,7 @@
 #define CONFIG_HPP_
 
 #include "IConfig.hpp"
+#include <alsa/asoundlib.h>
 
 #define CONFIG_INSTANCE() Config::getInstance()
 
@@ -20,6 +21,11 @@ class Config {
         const std::string &getInterfaceName() const { return RECORDMGR_INTERFACE_NAME;}
         const std::string &getSignalName() const { return RECORDMGR_SIGNAL_NAME;}
 
+        unsigned int getSampleRate() const { return SAMPLE_RATE; }
+        snd_pcm_uframes_t getFramesPerPeriod() const { return FRAMES_PER_PERIOD; }
+        const std::string &getMicrophoneDevice() const { return MICROPHONE_DEVICE; }
+        const std::string &getWavOutputDir() const { return WAV_OUTPUT_DIR; }
+
     private:
         Config() = default;
         ~Config() = default;
@@ -30,6 +36,11 @@ class Config {
         inline static const std::string RECORDMGR_OBJECT_PATH = "/com/example/recordmanager";
         inline static const std::string RECORDMGR_INTERFACE_NAME = "com.example.recordmanager.interface";
         inline static const std::string RECORDMGR_SIGNAL_NAME = "RecordSignal";
+
+        inline static const unsigned int SAMPLE_RATE = 16000;
+        inline static const snd_pcm_uframes_t FRAMES_PER_PERIOD = 1024;
+        inline static const std::string MICROPHONE_DEVICE = "plughw:1,0"; // card 1 device 0 -> hw:1,0 (use plughw for convenience)
+        inline static const std::string WAV_OUTPUT_DIR = "/tmp";
 };
 
 #endif // CONFIG_HPP_

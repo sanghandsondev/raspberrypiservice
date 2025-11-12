@@ -1,6 +1,7 @@
 #include "EventQueue.hpp"
-#include "MainWorker.hpp"
 #include "Event.hpp"
+#include "EventTypeId.hpp"
+#include "MainWorker.hpp"
 #include "DBusReceiver.hpp"
 #include "WebSocket.hpp"
 #include "WebSocketServer.hpp"

@@ -1,16 +1,13 @@
 #include "RecordWorker.hpp"
+#include "DBusSender.hpp"
 #include "RMLogger.hpp"
+#include "Config.hpp"
 #include <fstream>
 #include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
 #include <cstring>
-#include "DBusSender.hpp"
-
-// Configuration constants
-const unsigned int RecordWorker::SAMPLE_RATE = 16000;
-const snd_pcm_uframes_t RecordWorker::FRAMES_PER_PERIOD = 1024;
 
 RecordWorker::RecordWorker() : ThreadBase("RecordWorker"), pcmHandle_(nullptr) {}
 
@@ -27,12 +24,15 @@ void RecordWorker::threadFunction() {
     // Initialize ALSA for audio capture
 	if (!initAlsa()) {
 		RM_LOG(ERROR, "Failed to initialize ALSA, exiting RecordWorker thread");
-        ThreadBase::stop();
+		cleanupAlsa();
+        stop();
+		join();
+		DBUS_SENDER()->sendMessageNoti(DBusCommand::START_RECORD_NOTI, false, "ALSA initialization failed");
 		return;
 	}
 
     // Notify start recording via D-Bus
-    DBUS_SENDER()->sendMessage(DBusCommand::START_RECORD_NOTI);
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::START_RECORD_NOTI, true, "Recording started");
 
 	// Capture loop - uses runningFlag_ from ThreadBase
     bool isCaptureError = false;
@@ -46,15 +46,17 @@ void RecordWorker::threadFunction() {
 
     if (isCaptureError) {
         RM_LOG(WARN, "Recording stopped due to capture error. No WAV file will be saved.");
+		DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "Recording stopped due to capture error. No WAV file will be saved.");
     } else {
         RM_LOG(INFO, "Recording stopped by client request");
         if (!saveWavFile()) {
+			DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "Failed to save WAV file.");
 		    RM_LOG(ERROR, "Failed to save WAV file");
-	    }
+	    } else {
+			DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, true, "WAV file saved: " + outputFilePath_);
+			RM_LOG(INFO, "WAV file saved successfully: %s", outputFilePath_.c_str());
+		}
     }
-
-    // Notify stop recording via D-Bus
-    DBUS_SENDER()->sendMessage(DBusCommand::STOP_RECORD_NOTI);
 
     // Cleanup ALSA resources
 	cleanupAlsa();
@@ -64,7 +66,7 @@ void RecordWorker::threadFunction() {
 bool RecordWorker::initAlsa() {
 	int err;
 	snd_pcm_hw_params_t* hwParams = nullptr;
-	const std::string device = "plughw:1,0"; // card 1 device 0 -> hw:1,0 (use plughw for convenience)
+	const std::string device = CONFIG_INSTANCE()->getMicrophoneDevice(); // e.g. "plughw:1,0"
 
 	err = snd_pcm_open(&pcmHandle_, device.c_str(), SND_PCM_STREAM_CAPTURE, 0);
 	if (err < 0) {
@@ -92,7 +94,7 @@ bool RecordWorker::initAlsa() {
 		return false;
 	}
 
-	unsigned int rate = SAMPLE_RATE;
+	unsigned int rate = CONFIG_INSTANCE()->getSampleRate();
 	if ((err = snd_pcm_hw_params_set_rate_near(pcmHandle_, hwParams, &rate, nullptr)) < 0) {
 		RM_LOG(ERROR, "snd_pcm_hw_params_set_rate_near failed: %s", snd_strerror(err));
 		snd_pcm_hw_params_free(hwParams);
@@ -133,7 +135,7 @@ void RecordWorker::cleanupAlsa() {
 bool RecordWorker::captureOnce() {
 	if (!pcmHandle_) return false;
 
-	const snd_pcm_uframes_t frames = FRAMES_PER_PERIOD;
+	const snd_pcm_uframes_t frames = CONFIG_INSTANCE()->getFramesPerPeriod();
 	std::vector<int16_t> buffer(frames);
 
 	snd_pcm_sframes_t r = snd_pcm_readi(pcmHandle_, buffer.data(), frames);
@@ -167,7 +169,8 @@ bool RecordWorker::saveWavFile() {
 	std::time_t t = std::chrono::system_clock::to_time_t(now);
 	std::tm tm = *std::localtime(&t);
 	std::ostringstream ss;
-	ss << "/tmp/record_" << std::put_time(&tm, "%Y%m%d_%H%M%S") << ".wav";
+	std::string warDir = CONFIG_INSTANCE()->getWavOutputDir();
+	ss << warDir << "/record_" << std::put_time(&tm, "%Y%m%d_%H%M%S") << ".wav";
 	outputFilePath_ = ss.str();
 
 	std::ofstream out(outputFilePath_, std::ios::binary);
@@ -178,7 +181,7 @@ bool RecordWorker::saveWavFile() {
 
 	uint32_t subchunk2Size = static_cast<uint32_t>(audioBuffer_.size() * sizeof(int16_t));
 	uint32_t chunkSize = 36 + subchunk2Size;
-	uint32_t byteRate = SAMPLE_RATE * 1 * 2;
+	uint32_t byteRate = CONFIG_INSTANCE()->getSampleRate() * 1 * 2;
 	uint16_t blockAlign = 1 * 2;
 
 	// RIFF header
@@ -194,7 +197,7 @@ bool RecordWorker::saveWavFile() {
 	out.write(reinterpret_cast<const char*>(&audioFormat), 2);
 	uint16_t numChannels = 1;
 	out.write(reinterpret_cast<const char*>(&numChannels), 2);
-	uint32_t sampleRate = SAMPLE_RATE;
+	uint32_t sampleRate = CONFIG_INSTANCE()->getSampleRate();;
 	out.write(reinterpret_cast<const char*>(&sampleRate), 4);
 	out.write(reinterpret_cast<const char*>(&byteRate), 4);
 	out.write(reinterpret_cast<const char*>(&blockAlign), 2);

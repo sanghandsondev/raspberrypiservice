@@ -11,11 +11,9 @@ class CMSenderFactory : public ISenderFactory {
         ~CMSenderFactory() override = default;
 
         DBusMessage* makeMsg(DBusCommand cmd) override;
+        DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) override;
 
     private:
-        DBusMessage* makeMsgInternal(const char *objectpath, const char *interface,
-                              const char* signal, DBusCommand cmd) override;
-
         DBusMessage* makeMsg_TurnOnLed(DBusCommand cmd);
         DBusMessage* makeMsg_TurnOffLed(DBusCommand cmd);
         DBusMessage* makeMsg_StartRecord(DBusCommand cmd);

@@ -18,6 +18,9 @@ class ThreadBase {
         explicit ThreadBase(std::string threadName);
         virtual ~ThreadBase();
 
+        bool isRunning() const {
+            return runningFlag_;
+        }
         void run();
         void join();
         virtual void stop();

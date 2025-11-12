@@ -12,6 +12,7 @@ class Event;
 class WebSocket;
 class HardwareHandler;
 class RecordHandler;
+class Payload;
 
 class MainWorker : public ThreadBase {
     public:
@@ -35,10 +36,10 @@ class MainWorker : public ThreadBase {
         void processStopRecordEvent();
 
         
-        void processStartRecordNOTIEvent();
-        void processStopRecordNOTIEvent();
-        void processTurnOnLEDNOTIEvent();
-        void processTurnOffLEDNOTIEvent();
+        void processStartRecordNOTIEvent(std::shared_ptr<Payload>);
+        void processStopRecordNOTIEvent(std::shared_ptr<Payload>);
+        void processTurnOnLEDNOTIEvent(std::shared_ptr<Payload>);
+        void processTurnOffLEDNOTIEvent(std::shared_ptr<Payload>);
 };
 
 #endif // MAIN_WORKER_HPP_

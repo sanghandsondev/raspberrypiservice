@@ -4,6 +4,7 @@
 #include <memory>
 
 class WebSocket;
+class Payload;
 
 class RecordHandler {
     public:
@@ -17,8 +18,8 @@ class RecordHandler {
         void startRecord();
         void stopRecord();
 
-        void startRecordNOTI();
-        void stopRecordNOTI();
+        void startRecordNOTI(std::shared_ptr<Payload>);
+        void stopRecordNOTI(std::shared_ptr<Payload>);
     
     private:
         std::shared_ptr<WebSocket> webSocket_;

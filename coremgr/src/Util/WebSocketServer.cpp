@@ -155,8 +155,8 @@ void WebSocketServer::sendInitStateToClient(std::shared_ptr<WebSocketSession> se
     json status_msg;
     status_msg["type"] = "initial_status";
     status_msg["state"] = {
-        {"led", (STATE_VIEW()->LED_STATE == LEDState::ON ? "on" : "off")},
-        {"record", (STATE_VIEW()->RECORD_STATE == RecordState::RECORDING ? "recording" : "stopped")}
+        {"led", (STATE_VIEW_INSTANCE()->LED_STATE == LEDState::ON ? "on" : "off")},
+        {"record", (STATE_VIEW_INSTANCE()->RECORD_STATE == RecordState::RECORDING ? "recording" : "stopped")}
     };
 
     std::string message = status_msg.dump();
@@ -164,13 +164,14 @@ void WebSocketServer::sendInitStateToClient(std::shared_ptr<WebSocketSession> se
     CM_LOG(INFO, "Sent initial state to client: %s", message.c_str());
 }
 
-void WebSocketServer::updateStateAndBroadcast(const std::string& component, const nlohmann::json& value) {
+void WebSocketServer::updateStateAndBroadcast(const std::string& component, const nlohmann::json& value, const std::string& msgInfo) {
     std::lock_guard<std::mutex> lock(mutex_);
     
     json status_msg;
     status_msg["type"] = "update_status";
     status_msg["component"] = component;
     status_msg["value"] = value;
+    status_msg["msg"] = msgInfo;
 
     std::string message = status_msg.dump();
     broadcast(message);

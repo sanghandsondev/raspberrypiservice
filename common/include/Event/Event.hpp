@@ -2,8 +2,7 @@
 #define EVENT_HPP_
 
 #include <memory>
-#include "EventTypeId.hpp"
-#include "StateView.hpp"
+#include <string>
 
 enum class EventTypeID;
 
@@ -13,21 +12,27 @@ class Payload {
         virtual ~Payload() {}   // Virtual destructor for proper cleanup of derived classes
 };
 
-class LEDPayload : public Payload {
+class NotiPayload : public Payload {
     public:
-        explicit LEDPayload(bool state) : state_(state) {}
+        NotiPayload(bool isSuccess = false, const std::string &msgInfo = "")
+            : isSuccess_(isSuccess), msgInfo_(msgInfo) {}
 
-        bool getState() const {
-            return state_;
+        bool isSuccess() const {
+            return isSuccess_;
+        }
+
+        std::string getMsgInfo() const {
+            return msgInfo_;
         }
 
     private:
-        bool state_;
+        bool isSuccess_;
+        std::string msgInfo_;
 };
 
 class Event {
     public:
-        explicit Event() : eventTypeId_(EventTypeID::NONE), payload_(nullptr) {}
+        explicit Event() : eventTypeId_(static_cast<EventTypeID>(0)), payload_(nullptr) {}
 
         Event(EventTypeID eventTypeId) : eventTypeId_(eventTypeId), payload_(nullptr) {}
 

@@ -3,7 +3,7 @@
 
 #include "Define.hpp"
 
-#define STATE_VIEW() StateView::getInstance()
+#define STATE_VIEW_INSTANCE() StateView::getInstance()
 
 enum class LEDState {
     OFF = 0,

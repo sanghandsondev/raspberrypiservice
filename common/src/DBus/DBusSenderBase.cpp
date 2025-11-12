@@ -73,3 +73,16 @@ bool DBusSenderBase::sendMessage(DBusCommand cmd) {
 
     return result;
 }
+
+bool DBusSenderBase::sendMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) {
+    DBusMessage* msg = msgMaker->makeMsgNoti(cmd, isSuccess, msgInfo);
+    if (msg == nullptr) {
+        R_LOG(ERROR, "DBusSenderBase sendMessageNoti Error: Message creation failed");
+        return false;
+    }
+
+    bool result = sendMessageInternal(msg);
+    dbus_message_unref(msg);    // Release message after sending
+
+    return result;
+}

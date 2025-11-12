@@ -5,12 +5,13 @@
 #include "CMLogger.hpp"
 #include "WebSocketServer.hpp"
 #include "WebSocket.hpp"
+#include "Event.hpp"
 
 void RecordHandler::startRecord(){
-    RecordState currentState = STATE_VIEW()->RECORD_STATE;
+    RecordState currentState = STATE_VIEW_INSTANCE()->RECORD_STATE;
     switch (currentState) {
         case RecordState::STOPPED:
-            STATE_VIEW()->RECORD_STATE = RecordState::PROCESSING;
+            STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::PROCESSING;
             DBUS_SENDER()->sendMessage(DBusCommand::START_RECORD);
             break;
         case RecordState::RECORDING:
@@ -26,10 +27,10 @@ void RecordHandler::startRecord(){
 }
 
 void RecordHandler::stopRecord(){
-    RecordState currentState = STATE_VIEW()->RECORD_STATE;
+    RecordState currentState = STATE_VIEW_INSTANCE()->RECORD_STATE;
     switch (currentState) {
         case RecordState::RECORDING:
-            STATE_VIEW()->RECORD_STATE = RecordState::PROCESSING;
+            STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::PROCESSING;
             DBUS_SENDER()->sendMessage(DBusCommand::STOP_RECORD);
             break;
         case RecordState::STOPPED:
@@ -44,14 +45,34 @@ void RecordHandler::stopRecord(){
     }
 }
 
-void RecordHandler::startRecordNOTI(){
-    STATE_VIEW()->RECORD_STATE = RecordState::RECORDING;
-    CM_LOG(INFO, "Record State updated to RECORDING due to START_RECORD_NOTI");
-    webSocket_->getServer()->updateStateAndBroadcast("record", "recording");
+void RecordHandler::startRecordNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        CM_LOG(ERROR, "START_RECORD_NOTI payload is not of type NotiPayload");
+        return;
+    }
+
+    if (notiPayload->isSuccess() == false) {
+        STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
+        webSocket_->getServer()->updateStateAndBroadcast("record", "stopped", notiPayload->getMsgInfo());
+    } else {
+        STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::RECORDING;
+        webSocket_->getServer()->updateStateAndBroadcast("record", "recording");
+    }
 }
 
-void RecordHandler::stopRecordNOTI(){
-    STATE_VIEW()->RECORD_STATE = RecordState::STOPPED;
-    CM_LOG(INFO, "Record State updated to STOPPED due to STOP_RECORD_NOTI");
-    webSocket_->getServer()->updateStateAndBroadcast("record", "stopped");
+void RecordHandler::stopRecordNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        CM_LOG(ERROR, "STOP_RECORD_NOTI payload is not of type NotiPayload");
+        return;
+    }
+
+    if (notiPayload->isSuccess() == false) {
+        STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::RECORDING;
+        webSocket_->getServer()->updateStateAndBroadcast("record", "stopped", notiPayload->getMsgInfo());
+    } else {
+        STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
+        webSocket_->getServer()->updateStateAndBroadcast("record", "stopped");
+    }
 }

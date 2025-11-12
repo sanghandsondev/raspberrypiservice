@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <systemd/sd-daemon.h>
+#include "MainWorker.hpp"
 
 #define INTERNAL_WATCHDOG_STANDARD_MS  10000
 
@@ -45,6 +46,7 @@ int main(){
 
     RM_LOG(WARN, "Shutdown signal received, stopping threads...");
     dbusReceiver->stop();
+    MAIN_WORKER_INSTANCE()->stopRecord();
 
     dbusReceiver->join();
     RM_LOG(WARN, "Record Manager exited.");

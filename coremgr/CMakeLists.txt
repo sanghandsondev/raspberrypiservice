@@ -36,7 +36,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PRIVATE 
     ${ROOT_DIR}/external/json
     ${ROOT_DIR}/include
-    ${ROOT_DIR}/include/Event
     ${ROOT_DIR}/include/Configure
     ${ROOT_DIR}/include/Thread
     ${ROOT_DIR}/include/DBus
