@@ -1,5 +1,5 @@
 #include "DBusReceiver.hpp"
-#include "CMLogger.hpp"
+#include "RLogger.hpp"
 #include "Config.hpp"
 #include "Event.hpp"
 #include "EventTypeId.hpp"

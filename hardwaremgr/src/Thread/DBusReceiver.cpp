@@ -1,5 +1,5 @@
 #include "DBusReceiver.hpp"
-#include "HMLogger.hpp"
+#include "RLogger.hpp"
 #include "Config.hpp"
 #include "DBusSender.hpp"   // TODO: Remove later if not used
 

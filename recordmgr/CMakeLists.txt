@@ -35,7 +35,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${ROOT_DIR}/include/Thread
     ${ROOT_DIR}/include/DBus
     ${ROOT_DIR}/include/Log
-    ${ROOT_DIR}/include/Util
 )
 
 # Link libraries (if any)

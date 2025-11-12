@@ -9,14 +9,14 @@ DBusSenderBase::DBusSenderBase() : conn_(nullptr) {
     // 1. Kết nối tới System Bus khi đối tượng được tạo lần đầu
     conn_ = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
     if (dbus_error_is_set(&err)) {
-        R_LOG(ERROR, "DBusSenderBase Connection Error: %s", err.message);
+        CMN_LOG(ERROR, "DBusSenderBase Connection Error: %s", err.message);
         dbus_error_free(&err);
         throw std::runtime_error("DBusSenderBase failed to connect to system bus");
     }
     if (conn_ == nullptr) {
         throw std::runtime_error("DBusSenderBase connection is NULL");
     }
-    R_LOG(INFO, "DBusSenderBase connected to system bus.");
+    CMN_LOG(INFO, "DBusSenderBase connected to system bus.");
 }
 
 DBusSenderBase::~DBusSenderBase() {
@@ -35,12 +35,12 @@ bool DBusSenderBase::isMsgValid(DBusMessage* msg){
 
 bool DBusSenderBase::sendMessageInternal(DBusMessage* msg) {
     if(conn_ == nullptr) {
-        R_LOG(ERROR, "DBusSenderBase sendMessageInternal Error: Connection is NULL");
+        CMN_LOG(ERROR, "DBusSenderBase sendMessageInternal Error: Connection is NULL");
         return false;
     }
 
     if (!isMsgValid(msg)) {
-        R_LOG(ERROR, "DBusSenderBase sendMessageInternal Error: Invalid message");
+        CMN_LOG(ERROR, "DBusSenderBase sendMessageInternal Error: Invalid message");
         return false;
     }
 
@@ -51,20 +51,20 @@ bool DBusSenderBase::sendMessageInternal(DBusMessage* msg) {
 
     // Send message signal
     if (!dbus_connection_send(conn_, msg, &serial)) {
-        R_LOG(ERROR, "DBusSenderBase sendMessageInternal Error: Out Of Memory!");
+        CMN_LOG(ERROR, "DBusSenderBase sendMessageInternal Error: Out Of Memory!");
         return false;
     }
 
     dbus_connection_flush(conn_);
 
-    R_LOG(INFO, "DBusSenderBase sent message successfully.");
+    CMN_LOG(INFO, "DBusSenderBase sent message successfully.");
     return true;
 }
 
 bool DBusSenderBase::sendMessage(DBusCommand cmd) {
     DBusMessage* msg = msgMaker->makeMsg(cmd);
     if (msg == nullptr) {
-        R_LOG(ERROR, "DBusSenderBase sendMessage Error: Message creation failed");
+        CMN_LOG(ERROR, "DBusSenderBase sendMessage Error: Message creation failed");
         return false;
     }
 
@@ -77,7 +77,7 @@ bool DBusSenderBase::sendMessage(DBusCommand cmd) {
 bool DBusSenderBase::sendMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) {
     DBusMessage* msg = msgMaker->makeMsgNoti(cmd, isSuccess, msgInfo);
     if (msg == nullptr) {
-        R_LOG(ERROR, "DBusSenderBase sendMessageNoti Error: Message creation failed");
+        CMN_LOG(ERROR, "DBusSenderBase sendMessageNoti Error: Message creation failed");
         return false;
     }
 

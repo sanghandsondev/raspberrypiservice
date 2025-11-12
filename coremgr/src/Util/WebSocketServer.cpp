@@ -1,5 +1,5 @@
 #include "WebSocketServer.hpp"
-#include "CMLogger.hpp"
+#include "RLogger.hpp"
 #include "StateView.hpp"
 
 namespace beast = boost::beast;

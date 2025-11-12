@@ -1,21 +1,26 @@
 #include "DBusReceiver.hpp"
-#include "RMLogger.hpp"
+#include "RLogger.hpp"
 #include "MainWorker.hpp"
 #include "Config.hpp"
+#include "EventQueue.hpp"
+#include "EventTypeId.hpp"
+#include "Event.hpp"
 
-DBusReceiver::DBusReceiver() 
+DBusReceiver::DBusReceiver(std::shared_ptr<EventQueue> eventQueue) 
     : DBusReceiverBase(CONFIG_INSTANCE()->getServiceName(),
                         CONFIG_INSTANCE()->getObjectPath(),
                         CONFIG_INSTANCE()->getInterfaceName(),
-                        CONFIG_INSTANCE()->getSignalName()) {}
+                        CONFIG_INSTANCE()->getSignalName()), eventQueue_(eventQueue) {}
 
 void DBusReceiver::handleMessage(DBusCommand cmd) {
     switch (cmd) {
         case DBusCommand::START_RECORD:
-            MAIN_WORKER_INSTANCE()->startRecord();
+            RM_LOG(INFO, "DBusReceiver: Received START_RECORD command. Pushing event.");
+            eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::START_RECORD));
             break;
         case DBusCommand::STOP_RECORD:
-            MAIN_WORKER_INSTANCE()->stopRecord();
+            RM_LOG(INFO, "DBusReceiver: Received STOP_RECORD command. Pushing event.");
+            eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::STOP_RECORD));
             break;
         default:
             RM_LOG(WARN, "DBusReceiver received unknown DBusCommand");

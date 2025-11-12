@@ -1,5 +1,5 @@
 #include "CMSenderFactory.hpp"
-#include "CMLogger.hpp"
+#include "RLogger.hpp"
 
 DBusMessage* CMSenderFactory::makeMsg(DBusCommand cmd) {
     switch (cmd) {

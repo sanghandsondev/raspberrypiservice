@@ -20,17 +20,17 @@ DBusReceiverBase::DBusReceiverBase(const std::string& serviceName, const std::st
 }
 
 void DBusReceiverBase::threadFunction() {
-    R_LOG(INFO, "DBusReceiverBase Thread function started using poll()");
+    CMN_LOG(INFO, "DBusReceiverBase Thread function started using poll()");
 
     DBusConnection* conn = dbusClient_->getConnection();
     if (!conn) {
-        R_LOG(ERROR, "Failed to get D-Bus connection for polling.");
+        CMN_LOG(ERROR, "Failed to get D-Bus connection for polling.");
         return;
     }
 
     int fd;
     if (!dbus_connection_get_unix_fd(conn, &fd)) {
-        R_LOG(ERROR, "Failed to get D-Bus file descriptor.");
+        CMN_LOG(ERROR, "Failed to get D-Bus file descriptor.");
         return;
     }
 
@@ -46,7 +46,7 @@ void DBusReceiverBase::threadFunction() {
         int ret = poll(&pfd, 1, 500);
 
         if (ret < 0) {
-            R_LOG(ERROR, "poll() error: %s", strerror(errno));
+            CMN_LOG(ERROR, "poll() error: %s", strerror(errno));
             continue;
         }
 
@@ -64,20 +64,20 @@ void DBusReceiverBase::threadFunction() {
             while ((msg = dbus_connection_pop_message(conn)) != nullptr) {
                 if (dbus_message_is_signal(msg, interfaceName_.c_str(), 
                                                 signalName_.c_str())) {
-                    R_LOG(INFO, "Received Signal via poll()");
+                    CMN_LOG(INFO, "Received Signal via poll()");
                     dispatchMessage(msg);
                 }
                 dbus_message_unref(msg);
             }
         }
     }
-    R_LOG(INFO, "DBusReceiverBase Thread function exiting.");
+    CMN_LOG(INFO, "DBusReceiverBase Thread function exiting.");
 }
 
 void DBusReceiverBase::dispatchMessage(DBusMessage* msg) {
     const char* signature = dbus_message_get_signature(msg);
     if (signature == nullptr) {
-        R_LOG(WARN, "Received D-Bus message with no signature.");
+        CMN_LOG(WARN, "Received D-Bus message with no signature.");
         return;
     }
 
@@ -89,10 +89,10 @@ void DBusReceiverBase::dispatchMessage(DBusMessage* msg) {
         // Đây là message thường (chỉ có command)
         int32_t received_cmd = 0;
         if (dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &received_cmd, DBUS_TYPE_INVALID)) {
-            R_LOG(INFO, "Dispatching command: %d", received_cmd);
+            CMN_LOG(INFO, "Dispatching command: %d", received_cmd);
             handleMessage(static_cast<DBusCommand>(received_cmd));
         } else {
-            R_LOG(ERROR, "Failed to parse command message: %s", err.message);
+            CMN_LOG(ERROR, "Failed to parse command message: %s", err.message);
         }
     } else if (strcmp(signature, "ibs") == 0) {
         // Đây là message notification (command, success, info)
@@ -108,14 +108,14 @@ void DBusReceiverBase::dispatchMessage(DBusMessage* msg) {
             // Khởi tạo std::string từ con trỏ char* một cách an toàn
             std::string msgInfo = (msgInfo_cstr) ? msgInfo_cstr : "";
             
-            R_LOG(INFO, "Dispatching notification: cmd=%d, success=%d, msg=%s",
+            CMN_LOG(INFO, "Dispatching notification: cmd=%d, success=%d, msg=%s",
                   received_cmd, isSuccess, msgInfo.c_str());
             handleMessageNoti(static_cast<DBusCommand>(received_cmd), isSuccess, msgInfo);
         } else {
-            R_LOG(ERROR, "Failed to parse notification message: %s", err.message);
+            CMN_LOG(ERROR, "Failed to parse notification message: %s", err.message);
         }
     } else {
-        R_LOG(WARN, "Received D-Bus message with unknown signature: %s", signature);
+        CMN_LOG(WARN, "Received D-Bus message with unknown signature: %s", signature);
     }
 
     // Luôn giải phóng tài nguyên của DBusError ở cuối hàm

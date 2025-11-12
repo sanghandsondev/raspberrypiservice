@@ -1,11 +1,13 @@
 #include "DBusReceiver.hpp"
-#include "RMLogger.hpp"
+#include "RLogger.hpp"
+#include "MainWorker.hpp"
+#include "RecordWorker.hpp"
+#include "EventQueue.hpp"
 #include <csignal>
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <systemd/sd-daemon.h>
-#include "MainWorker.hpp"
 
 #define INTERNAL_WATCHDOG_STANDARD_MS  10000
 
@@ -27,8 +29,14 @@ int main(){
     
     sd_notify(0, "READY=1");
 
-    auto dbusReceiver = std::make_shared<DBusReceiver>();
+    std::shared_ptr<EventQueue> eventQueue = std::make_shared<EventQueue>();
 
+    auto recordWorker = std::make_shared<RecordWorker>();
+    auto mainWorker = std::make_shared<MainWorker>(eventQueue, recordWorker);
+    auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
+
+    recordWorker->run();
+    mainWorker->run();
     dbusReceiver->run();
 
     g_runningFlag = true;
@@ -45,10 +53,13 @@ int main(){
     }
 
     RM_LOG(WARN, "Shutdown signal received, stopping threads...");
+    mainWorker->stop();
     dbusReceiver->stop();
-    MAIN_WORKER_INSTANCE()->stopRecord();
+    recordWorker->stop();
 
+    mainWorker->join();
     dbusReceiver->join();
+    recordWorker->join();
     RM_LOG(WARN, "Record Manager exited.");
 
     return 0;

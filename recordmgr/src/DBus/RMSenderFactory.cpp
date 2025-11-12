@@ -1,5 +1,5 @@
 #include "RMSenderFactory.hpp"
-#include "RMLogger.hpp"
+#include "RLogger.hpp"
 
 DBusMessage* RMSenderFactory::makeMsg(DBusCommand cmd) {
     switch (cmd) {

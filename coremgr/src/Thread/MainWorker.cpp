@@ -3,7 +3,7 @@
 #include "Event.hpp"
 #include "EventTypeId.hpp"
 #include "DBusSender.hpp"
-#include "CMLogger.hpp"
+#include "RLogger.hpp"
 #include "WebSocket.hpp"
 #include "WebSocketServer.hpp"
 #include "HardwareHandler.hpp"

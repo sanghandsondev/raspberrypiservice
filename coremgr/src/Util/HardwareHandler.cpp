@@ -3,7 +3,7 @@
 #include "StateView.hpp"
 #include "WebSocket.hpp"
 #include "WebSocketServer.hpp"
-#include "CMLogger.hpp"
+#include "RLogger.hpp"
 #include "DBusSender.hpp"
 #include "Event.hpp"
 

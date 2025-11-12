@@ -1,6 +1,6 @@
 #include "RecordWorker.hpp"
 #include "DBusSender.hpp"
-#include "RMLogger.hpp"
+#include "RLogger.hpp"
 #include "Config.hpp"
 #include <fstream>
 #include <chrono>
@@ -9,57 +9,103 @@
 #include <sstream>
 #include <cstring>
 
-RecordWorker::RecordWorker() : ThreadBase("RecordWorker"), pcmHandle_(nullptr) {}
+RecordWorker::RecordWorker() : ThreadBase("RecordWorker"), pcmHandle_(nullptr), state_(State::IDLE) {}
 
 RecordWorker::~RecordWorker() {
     cleanupAlsa();      // Ensure ALSA resources are freed
 }
 
-void RecordWorker::threadFunction() {
-	RM_LOG(INFO, "RecordWorker thread started");
-    
-    // Clear previous buffer
-	audioBuffer_.clear();
+void RecordWorker::stop() {
+    ThreadBase::stop();
+    state_.store(State::IDLE); // Change state to allow thread to exit if in capture loop
+    cv_.notify_one(); // Wake up thread if it's waiting
+}
 
-    // Initialize ALSA for audio capture
-	if (!initAlsa()) {
-		RM_LOG(ERROR, "Failed to initialize ALSA, exiting RecordWorker thread");
-		cleanupAlsa();
-        stop();
-		join();
-		DBUS_SENDER()->sendMessageNoti(DBusCommand::START_RECORD_NOTI, false, "ALSA initialization failed");
-		return;
-	}
-
-    // Notify start recording via D-Bus
-    DBUS_SENDER()->sendMessageNoti(DBusCommand::START_RECORD_NOTI, true, "Recording started");
-
-	// Capture loop - uses runningFlag_ from ThreadBase
-    bool isCaptureError = false;
-	while (runningFlag_) {
-		if (!captureOnce()) {
-			RM_LOG(ERROR, "captureOnce failed, breaking capture loop");
-            isCaptureError = true;
-			break;
-		}
-	}
-
-    if (isCaptureError) {
-        RM_LOG(WARN, "Recording stopped due to capture error. No WAV file will be saved.");
-		DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "Recording stopped due to capture error. No WAV file will be saved.");
+void RecordWorker::startRecording() {
+    std::unique_lock<std::mutex> lock(mtx_);
+    if (state_ == State::IDLE) {
+        state_ = State::RECORDING;
+        cv_.notify_one();
     } else {
-        RM_LOG(INFO, "Recording stopped by client request");
-        if (!saveWavFile()) {
-			DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "Failed to save WAV file.");
-		    RM_LOG(ERROR, "Failed to save WAV file");
-	    } else {
-			DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, true, "WAV file saved: " + outputFilePath_);
-			RM_LOG(INFO, "WAV file saved successfully: %s", outputFilePath_.c_str());
-		}
+        RM_LOG(WARN, "Record worker is already recording. Ignoring start request.");
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::START_RECORD_NOTI, false, "Recording is already in progress.");
+    }
+}
+
+void RecordWorker::stopRecording() {
+    if (state_ == State::RECORDING) {
+        state_ = State::IDLE;
+        // The capture loop in threadFunction will see the state change and stop.
+        RM_LOG(INFO, "Recording stop requested.");
+    } else {
+        RM_LOG(WARN, "No active recording to stop. Ignoring stop request.");
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "No recording is in progress.");
+    }
+}
+
+void RecordWorker::threadFunction() {
+	RM_LOG(INFO, "RecordWorker thread started, waiting for recording tasks.");
+
+    while (runningFlag_) {
+        // Wait until startRecording() is called
+		// Wait until state is RECORDING or runningFlag_ is false, so we can exit wait
+        {
+            std::unique_lock<std::mutex> lock(mtx_);
+            cv_.wait(lock, [this]{ return state_ == State::RECORDING || !runningFlag_; });
+        }
+
+		// Check runningFlag_ again after waking up
+        if (!runningFlag_) {
+            break; // Exit if shutdown was requested
+        }
+
+        // -- Start Recording Session --
+        RM_LOG(INFO, "RecordWorker woken up, starting recording session.");
+        audioBuffer_.clear();
+
+        if (!initAlsa()) {
+            RM_LOG(ERROR, "Failed to initialize ALSA, aborting recording session.");
+            cleanupAlsa();
+            DBUS_SENDER()->sendMessageNoti(DBusCommand::START_RECORD_NOTI, false, "ALSA initialization failed");
+            state_ = State::IDLE; // Reset state
+            continue; // Go back to waiting
+        }
+
+		// Notify that recording has started
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::START_RECORD_NOTI, true, "Recording started");
+
+        bool isCaptureError = false;
+        while (runningFlag_ && state_ == State::RECORDING) {
+            if (!captureOnce()) {
+                RM_LOG(ERROR, "captureOnce failed, breaking capture loop");
+                isCaptureError = true;
+                break;
+            }
+        }
+
+        // -- End Recording Session --
+        if (isCaptureError) {
+            RM_LOG(WARN, "Recording stopped due to capture error. No WAV file will be saved.");
+            DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "Recording stopped due to capture error.");
+        } else if (audioBuffer_.empty()) {
+            RM_LOG(WARN, "Recording stopped but no audio was captured. No file saved.");
+            DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "No audio data captured.");
+        } else {
+            RM_LOG(INFO, "Recording stopped. Saving WAV file.");
+            if (!saveWavFile()) {
+                DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "Failed to save WAV file.");
+                RM_LOG(ERROR, "Failed to save WAV file");
+            } else {
+                DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, true, "WAV file saved: " + outputFilePath_);
+                RM_LOG(INFO, "WAV file saved successfully: %s", outputFilePath_.c_str());
+            }
+        }
+
+        cleanupAlsa();
+        state_ = State::IDLE; // Ensure state is IDLE before waiting again
+        RM_LOG(INFO, "Recording session finished. Returning to idle state.");
     }
 
-    // Cleanup ALSA resources
-	cleanupAlsa();
 	RM_LOG(INFO, "RecordWorker thread finished");
 }
 

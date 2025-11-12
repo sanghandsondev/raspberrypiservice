@@ -5,7 +5,7 @@
 #include "DBusReceiver.hpp"
 #include "WebSocket.hpp"
 #include "WebSocketServer.hpp"
-#include "CMLogger.hpp"
+#include "RLogger.hpp"
 #include <csignal>
 #include <atomic>
 #include <condition_variable>

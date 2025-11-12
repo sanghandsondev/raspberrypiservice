@@ -11,12 +11,12 @@ DBusMessage* ISenderFactory::makeMsgInternal(const char *objectpath, const char 
     );
 
     if (msg == nullptr) {
-        R_LOG(ERROR, "ISenderFactory makeMsgInternal Error: Message Null");
+        CMN_LOG(ERROR, "ISenderFactory makeMsgInternal Error: Message Null");
         return nullptr;
     }
 
     if (!dbus_message_append_args(msg, DBUS_TYPE_INT32, &cmd, DBUS_TYPE_INVALID)) {
-        R_LOG(ERROR, "ISenderFactory makeMsgInternal Error: Out of Memory when appending args");
+        CMN_LOG(ERROR, "ISenderFactory makeMsgInternal Error: Out of Memory when appending args");
         dbus_message_unref(msg);
         return nullptr;
     }
@@ -35,7 +35,7 @@ DBusMessage* ISenderFactory::makeMsgNotiInternal(const char *objectpath, const c
     );
 
     if (msg == nullptr) {
-        R_LOG(ERROR, "ISenderFactory makeMsgNotiInternal Error: Message Null");
+        CMN_LOG(ERROR, "ISenderFactory makeMsgNotiInternal Error: Message Null");
         return nullptr;
     }
 
@@ -47,7 +47,7 @@ DBusMessage* ISenderFactory::makeMsgNotiInternal(const char *objectpath, const c
                                   DBUS_TYPE_BOOLEAN, &success,
                                   DBUS_TYPE_STRING, &infoCStr,
                                   DBUS_TYPE_INVALID)) {
-        R_LOG(ERROR, "ISenderFactory makeMsgNotiInternal Error: Out of Memory when appending args");
+        CMN_LOG(ERROR, "ISenderFactory makeMsgNotiInternal Error: Out of Memory when appending args");
         dbus_message_unref(msg);
         return nullptr;
     }

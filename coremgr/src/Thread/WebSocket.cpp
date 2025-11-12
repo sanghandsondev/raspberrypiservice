@@ -1,7 +1,7 @@
 #include "WebSocket.hpp"
 #include "EventQueue.hpp"
 #include "WebSocketServer.hpp"
-#include "CMLogger.hpp"
+#include "RLogger.hpp"
 #include "Config.hpp"
 #include "json.hpp"
 #include "Event.hpp"

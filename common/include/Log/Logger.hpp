@@ -5,7 +5,7 @@
 #include <string>
 #include <mutex>
 
-#define R_LOG(level, fmt, ...) \
+#define CMN_LOG(level, fmt, ...) \
     Logger("Common").printLog(level, __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__);
 
 class Logger {
