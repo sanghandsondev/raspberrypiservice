@@ -14,7 +14,7 @@ class Payload {
 
 class NotiPayload : public Payload {
     public:
-        NotiPayload(bool isSuccess = false, const std::string &msgInfo = "")
+        explicit NotiPayload(bool isSuccess = false, const std::string &msgInfo = "")
             : isSuccess_(isSuccess), msgInfo_(msgInfo) {}
 
         bool isSuccess() const {
@@ -28,6 +28,18 @@ class NotiPayload : public Payload {
     private:
         bool isSuccess_;
         std::string msgInfo_;
+};
+
+class WavPayload : public Payload {
+    public:
+        explicit WavPayload(const std::string &filePath = "") : filePath_(filePath) {}
+
+        std::string getFilePath() const {
+            return filePath_;
+        }
+
+    private:
+        std::string filePath_;
 };
 
 class Event {

@@ -76,3 +76,19 @@ void RecordHandler::stopRecordNOTI(std::shared_ptr<Payload> payload){
         webSocket_->getServer()->updateStateAndBroadcast("record", "stopped");
     }
 }
+
+void RecordHandler::filterWavFileNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "FILTER_WAV_FILE_NOTI payload is not of type NotiPayload");
+        return;
+    }
+
+    if (notiPayload->isSuccess() == false) {
+        R_LOG(ERROR, "Audio filtering failed: %s", notiPayload->getMsgInfo().c_str());
+        webSocket_->getServer()->updateStateAndBroadcast("record", "filter_failed", notiPayload->getMsgInfo());
+    } else {
+        R_LOG(INFO, "Audio filtering succeeded: %s", notiPayload->getMsgInfo().c_str());
+        // TODO: Lưu vào thông tin file vào data base
+    }
+}

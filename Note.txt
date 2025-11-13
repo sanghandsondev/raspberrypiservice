@@ -28,5 +28,3 @@ Sau đó bắn NOTI cho CoreManager để CoreManager lưu vào Database + gửi
 15. Cần có xử lý Timer Timeout ở CoreManager, tức nó phải nhận NOTI sau mấy giây ko thì nó sẽ tự động trả về App status false
 và kill thằng service đó (Để nó start lại)
 
-16. ALSA helper. Có thể là một class friend của thằng RecordWorker và sử dụng như  1member variable
-

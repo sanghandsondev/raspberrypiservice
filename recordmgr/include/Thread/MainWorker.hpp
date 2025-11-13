@@ -9,6 +9,7 @@
 class EventQueue;
 class Event;
 class RecordWorker;
+class Payload;
 
 class MainWorker : public ThreadBase {
     public:
@@ -25,6 +26,7 @@ class MainWorker : public ThreadBase {
 
         void processStartRecordEvent();
         void processStopRecordEvent();
+        void processFilterWavFileEvent(std::shared_ptr<Payload>);
 };
 
 #endif // MAIN_WORKER_HPP_

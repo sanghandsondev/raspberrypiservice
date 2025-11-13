@@ -82,6 +82,10 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             R_LOG(INFO, "Processing TURN_OFF_LED_NOTI event");
             processTurnOffLEDNOTIEvent(event->getPayload());
             break;
+        case EventTypeID::FILTER_WAV_FILE_NOTI:
+            R_LOG(INFO, "Processing FILTER_WAV_FILE event");
+            processFilterWavFileNOTIEvent(event->getPayload());
+            break;
         default:
             R_LOG(WARN, "MainWorker received unknown event type");
             break;
@@ -94,10 +98,22 @@ void MainWorker::processStartRecordEvent(){ recordHandler_->startRecord();}
 
 void MainWorker::processStopRecordEvent(){ recordHandler_->stopRecord();}
 
-void MainWorker::processStartRecordNOTIEvent(std::shared_ptr<Payload> payload){ recordHandler_->startRecordNOTI(payload);}
+void MainWorker::processTurnOnLEDNOTIEvent(std::shared_ptr<Payload> payload){ 
+    hardwareHandler_->turnOnLEDNOTI(payload);
+}
 
-void MainWorker::processStopRecordNOTIEvent(std::shared_ptr<Payload> payload){ recordHandler_->stopRecordNOTI(payload);}
+void MainWorker::processTurnOffLEDNOTIEvent(std::shared_ptr<Payload> payload){ 
+    hardwareHandler_->turnOffLEDNOTI(payload);
+}
 
-void MainWorker::processTurnOnLEDNOTIEvent(std::shared_ptr<Payload> payload){ hardwareHandler_->turnOnLEDNOTI(payload);}
+void MainWorker::processStartRecordNOTIEvent(std::shared_ptr<Payload> payload){ 
+    recordHandler_->startRecordNOTI(payload);
+}
 
-void MainWorker::processTurnOffLEDNOTIEvent(std::shared_ptr<Payload> payload){ hardwareHandler_->turnOffLEDNOTI(payload);}
+void MainWorker::processStopRecordNOTIEvent(std::shared_ptr<Payload> payload){ 
+    recordHandler_->stopRecordNOTI(payload);
+}
+
+void MainWorker::processFilterWavFileNOTIEvent(std::shared_ptr<Payload> payload){ 
+    recordHandler_->filterWavFileNOTI(payload); 
+}

@@ -20,6 +20,7 @@ class RecordHandler {
 
         void startRecordNOTI(std::shared_ptr<Payload>);
         void stopRecordNOTI(std::shared_ptr<Payload>);
+        void filterWavFileNOTI(std::shared_ptr<Payload>);
     
     private:
         std::shared_ptr<WebSocket> webSocket_;

@@ -27,20 +27,7 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const std:
     R_LOG(INFO, "DBusReceiver handling notification: cmd=%d, isSuccess=%d, msgInfo=%s",
             static_cast<int>(cmd), isSuccess, msgInfo.c_str());
     switch (cmd) {
-        case DBusCommand::START_RECORD_NOTI: {
-            R_LOG(INFO, "Dispatching START_RECORD_NOTI from DBus");
-            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, msgInfo);
-            auto event = std::make_shared<Event>(EventTypeID::START_RECORD_NOTI, payload);
-            eventQueue_->pushEvent(event);
-            break;
-        }
-        case DBusCommand::STOP_RECORD_NOTI: {
-            R_LOG(INFO, "Dispatching STOP_RECORD_NOTI from DBus");
-            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, msgInfo);
-            auto event = std::make_shared<Event>(EventTypeID::STOP_RECORD_NOTI, payload);
-            eventQueue_->pushEvent(event);
-            break;
-        }
+        // From Hardware Manager Service
         case DBusCommand::TURN_ON_LED_NOTI: {
             R_LOG(INFO, "Dispatching TURN_ON_LED_NOTI from DBus");
             std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, msgInfo);
@@ -55,7 +42,30 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const std:
             eventQueue_->pushEvent(event);
             break;
         }
-            
+
+        // From Record Manager Service
+        case DBusCommand::START_RECORD_NOTI: {
+            R_LOG(INFO, "Dispatching START_RECORD_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, msgInfo);
+            auto event = std::make_shared<Event>(EventTypeID::START_RECORD_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::STOP_RECORD_NOTI: {
+            R_LOG(INFO, "Dispatching STOP_RECORD_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, msgInfo);
+            auto event = std::make_shared<Event>(EventTypeID::STOP_RECORD_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::FILTER_WAV_FILE_NOTI: {
+            R_LOG(INFO, "Dispatching FILTER_WAV_FILE_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, msgInfo);
+            auto event = std::make_shared<Event>(EventTypeID::FILTER_WAV_FILE_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+
         default:
             R_LOG(WARN, "DBusReceiver received unknown DBusCommand");
             break;

@@ -24,8 +24,9 @@ class Config {
         unsigned int getSampleRate() const { return SAMPLE_RATE; }
         snd_pcm_uframes_t getFramesPerPeriod() const { return FRAMES_PER_PERIOD; }
         const std::string &getMicrophoneDevice() const { return MICROPHONE_DEVICE; }
-        const std::string &getWavOutputDir() const { return WAV_OUTPUT_DIR; }
         unsigned int getMaxRecordDurationSec() const { return MAX_RECORD_DURATION_SEC; }
+        const std::string &getWavOutputDir() const { return WAV_OUTPUT_DIR; }
+        const std::string &getFilteredAudioDir() const { return FILTERED_AUDIO_DIR; }
 
     private:
         Config() = default;
@@ -47,6 +48,7 @@ class Config {
         inline static const std::string MICROPHONE_DEVICE = "default"; // For laptops or other systems
 #endif
         inline static const std::string WAV_OUTPUT_DIR = "/tmp";
+        inline static const std::string FILTERED_AUDIO_DIR = "/var/local/recordmanager/audio";
 };
 
 #endif // CONFIG_HPP_

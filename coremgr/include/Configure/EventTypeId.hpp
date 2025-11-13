@@ -17,6 +17,7 @@ enum class EventTypeID {
 
     START_RECORD_NOTI,
     STOP_RECORD_NOTI,
+    FILTER_WAV_FILE_NOTI,
 
     MAX
 };

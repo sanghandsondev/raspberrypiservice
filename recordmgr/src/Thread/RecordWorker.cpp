@@ -2,13 +2,10 @@
 #include "DBusSender.hpp"
 #include "RLogger.hpp"
 #include "Config.hpp"
-#include <fstream>
-#include <chrono>
-#include <ctime>
-#include <iomanip>
-#include <sstream>
-#include <cstring>
 #include "AlsaHelper.hpp"
+#include "EventQueue.hpp"
+#include "Event.hpp"
+#include "EventTypeId.hpp"
 
 RecordWorker::RecordWorker(std::shared_ptr<EventQueue> eventQueue) : ThreadBase("RecordWorker"),
 	 eventQueue_(eventQueue), alsaHelper_(std::make_unique<AlsaHelper>()), state_(State::IDLE) {}
@@ -111,6 +108,11 @@ void RecordWorker::threadFunction() {
             } else {
                 DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, true, "WAV file saved: " + alsaHelper_->getOutputFilePath());
                 R_LOG(INFO, "WAV file saved successfully: %s", alsaHelper_->getOutputFilePath().c_str());
+
+				// Push event for further processing
+				std::shared_ptr<Payload> payload = std::make_shared<WavPayload>(alsaHelper_->getOutputFilePath());
+				std::shared_ptr<Event> event = std::make_shared<Event>(EventTypeID::FILTER_WAV_FILE, payload);
+				eventQueue_->pushEvent(event);
             }
         }
 
