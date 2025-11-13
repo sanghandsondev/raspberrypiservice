@@ -13,7 +13,7 @@ std::condition_variable g_cv;
 std::mutex g_mutex;
 
 void signalHandler(int signum) {
-    HM_LOG(WARN, "Interrupt Signal (%d).", signum);
+    R_LOG(WARN, "Interrupt Signal (%d).", signum);
     g_runningFlag = false;
     g_cv.notify_one();  // Notify main thread to exit
 }
@@ -22,7 +22,7 @@ int main(){
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
 
-    HM_LOG(INFO, "Hardware Manager is starting...");
+    R_LOG(INFO, "Hardware Manager is starting...");
     
     sd_notify(0, "READY=1");
 
@@ -43,11 +43,11 @@ int main(){
         sd_notify(0, "WATCHDOG=1");
     }
 
-    HM_LOG(WARN, "Shutdown signal received, stopping threads...");
+    R_LOG(WARN, "Shutdown signal received, stopping threads...");
     dbusReceiver->stop();
 
     dbusReceiver->join();
-    HM_LOG(WARN, "Hardware Manager exited.");
+    R_LOG(WARN, "Hardware Manager exited.");
 
     return 0;
 }

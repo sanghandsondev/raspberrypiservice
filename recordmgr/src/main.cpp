@@ -16,7 +16,7 @@ std::condition_variable g_cv;
 std::mutex g_mutex;
 
 void signalHandler(int signum) {
-    RM_LOG(WARN, "Interrupt Signal (%d).", signum);
+    R_LOG(WARN, "Interrupt Signal (%d).", signum);
     g_runningFlag = false;
     g_cv.notify_one();  // Notify main thread to exit
 }
@@ -25,7 +25,7 @@ int main(){
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
 
-    RM_LOG(INFO, "Record Manager is starting...");
+    R_LOG(INFO, "Record Manager is starting...");
     
     sd_notify(0, "READY=1");
 
@@ -52,7 +52,7 @@ int main(){
         sd_notify(0, "WATCHDOG=1");
     }
 
-    RM_LOG(WARN, "Shutdown signal received, stopping threads...");
+    R_LOG(WARN, "Shutdown signal received, stopping threads...");
     mainWorker->stop();
     dbusReceiver->stop();
     recordWorker->stop();
@@ -60,7 +60,7 @@ int main(){
     mainWorker->join();
     dbusReceiver->join();
     recordWorker->join();
-    RM_LOG(WARN, "Record Manager exited.");
+    R_LOG(WARN, "Record Manager exited.");
 
     return 0;
 }

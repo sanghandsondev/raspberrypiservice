@@ -11,7 +11,7 @@ MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<R
 }
 
 void MainWorker::threadFunction() {
-    RM_LOG(INFO, "MainWorker Thread function started");
+    R_LOG(INFO, "MainWorker Thread function started");
 
     while (runningFlag_) {
         if (eventQueue_->hasEvent()) {
@@ -25,7 +25,7 @@ void MainWorker::threadFunction() {
         }
     }
 
-    RM_LOG(INFO, "MainWorker Thread function exiting");
+    R_LOG(INFO, "MainWorker Thread function exiting");
 }
 
 void MainWorker::processEvent(const std::shared_ptr<Event> event) {
@@ -36,15 +36,15 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
     // Process the event based on its type
     switch (event->getEventTypeId()) {
         case EventTypeID::START_RECORD:
-            RM_LOG(INFO, "Processing START_RECORD event");
+            R_LOG(INFO, "Processing START_RECORD event");
             processStartRecordEvent();
             break;
         case EventTypeID::STOP_RECORD:
-            RM_LOG(INFO, "Processing STOP_RECORD event");
+            R_LOG(INFO, "Processing STOP_RECORD event");
             processStopRecordEvent();
             break;
         default:
-            RM_LOG(WARN, "MainWorker received unknown EventTypeID");
+            R_LOG(WARN, "MainWorker received unknown EventTypeID");
             break;
     }
 }

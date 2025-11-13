@@ -19,7 +19,7 @@ std::condition_variable g_cv;
 std::mutex g_mutex;
 
 void signalHandler(int signum) {
-    CM_LOG(WARN, "Interrupt Signal (%d).", signum);
+    R_LOG(WARN, "Interrupt Signal (%d).", signum);
     g_runningFlag = false;
     g_cv.notify_one();  // Notify main thread to exit
 }
@@ -33,7 +33,7 @@ int main(){
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
 
-    CM_LOG(INFO, "Core Manager is starting...");
+    R_LOG(INFO, "Core Manager is starting...");
     
     sd_notify(0, "READY=1");
     
@@ -63,7 +63,7 @@ int main(){
         sd_notify(0, "WATCHDOG=1");
     }
 
-    CM_LOG(WARN, "Shutdown signal received, stopping threads...");
+    R_LOG(WARN, "Shutdown signal received, stopping threads...");
     mainWorker->stop();
     dbusReceiver->stop();
     webSocketThread->stop();
@@ -71,7 +71,7 @@ int main(){
     webSocketThread->join();
     mainWorker->join();
     dbusReceiver->join();
-    CM_LOG(WARN, "Core Manager exited.");
+    R_LOG(WARN, "Core Manager exited.");
 
     return 0;
 }

@@ -12,17 +12,17 @@ DBusMessage* CMSenderFactory::makeMsg(DBusCommand cmd) {
         case DBusCommand::STOP_RECORD:
             return makeMsg_StopRecord(cmd);
         default:
-            CM_LOG(ERROR, "CMSenderFactory makeMsg Error: Unknown DBusCommand");
+            R_LOG(ERROR, "CMSenderFactory makeMsg Error: Unknown DBusCommand");
             return nullptr;
     }
 }
 
 DBusMessage* CMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) {
-    CM_LOG(INFO, "CMSenderFactory makeMsgNoti called with cmd: %d, isSuccess: %d, msgInfo: %s",
+    R_LOG(INFO, "CMSenderFactory makeMsgNoti called with cmd: %d, isSuccess: %d, msgInfo: %s",
             static_cast<int>(cmd), isSuccess, msgInfo.c_str());
     switch(cmd) {
         default:
-            CM_LOG(ERROR, "CMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
+            R_LOG(ERROR, "CMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
             return nullptr;
     }
 }

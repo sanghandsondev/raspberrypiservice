@@ -39,7 +39,11 @@ class Config {
 
         inline static const unsigned int SAMPLE_RATE = 16000;
         inline static const snd_pcm_uframes_t FRAMES_PER_PERIOD = 1024;
+#ifdef RASPBERRY_PI
         inline static const std::string MICROPHONE_DEVICE = "plughw:1,0"; // card 1 device 0 -> hw:1,0 (use plughw for convenience)
+#else
+        inline static const std::string MICROPHONE_DEVICE = "default"; // For laptops or other systems
+#endif
         inline static const std::string WAV_OUTPUT_DIR = "/tmp";
 };
 

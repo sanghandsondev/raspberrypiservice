@@ -3,7 +3,7 @@
 
 #include "Logger.hpp"
 
-#define CM_LOG(level, fmt, ...) \
+#define R_LOG(level, fmt, ...) \
     RLogger::getInstance()->printLog(level, __FILE__, __LINE__, __func__, fmt, ##__VA_ARGS__);
 
 class RLogger : public Logger {

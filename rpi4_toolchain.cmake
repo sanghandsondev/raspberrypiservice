@@ -6,6 +6,9 @@ set (CMAKE_SYSROOT $ENV{HOME}/raspberrypi/sysroot)
 set (CMAKE_C_COMPILER aarch64-linux-gnu-gcc)
 set (CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
 
+# Add compile definition for Raspberry Pi builds
+add_compile_definitions(RASPBERRY_PI)
+
 set (CMAKE_FIND_ROOT_PATH ${CMAKE_SYSROOT})
 set (CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)

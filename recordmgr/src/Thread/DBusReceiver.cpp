@@ -15,21 +15,21 @@ DBusReceiver::DBusReceiver(std::shared_ptr<EventQueue> eventQueue)
 void DBusReceiver::handleMessage(DBusCommand cmd) {
     switch (cmd) {
         case DBusCommand::START_RECORD:
-            RM_LOG(INFO, "DBusReceiver: Received START_RECORD command. Pushing event.");
+            R_LOG(INFO, "DBusReceiver: Received START_RECORD command. Pushing event.");
             eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::START_RECORD));
             break;
         case DBusCommand::STOP_RECORD:
-            RM_LOG(INFO, "DBusReceiver: Received STOP_RECORD command. Pushing event.");
+            R_LOG(INFO, "DBusReceiver: Received STOP_RECORD command. Pushing event.");
             eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::STOP_RECORD));
             break;
         default:
-            RM_LOG(WARN, "DBusReceiver received unknown DBusCommand");
+            R_LOG(WARN, "DBusReceiver received unknown DBusCommand");
             break;
     }
 }
 
 void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) {
     // TODO
-    RM_LOG(INFO, "DBusReceiver handling notification: cmd=%d, isSuccess=%d, msgInfo=%s",
+    R_LOG(INFO, "DBusReceiver handling notification: cmd=%d, isSuccess=%d, msgInfo=%s",
             static_cast<int>(cmd), isSuccess, msgInfo.c_str());
 }

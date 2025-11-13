@@ -19,10 +19,10 @@ void HardwareHandler::onOffLED(){
             DBUS_SENDER()->sendMessage(DBusCommand::TURN_OFF_LED);
             break;
         case LEDState::PROCESSING:
-            CM_LOG(WARN, "Received ONOFF_LED event while PROCESSING. No Action taken.");
+            R_LOG(WARN, "Received ONOFF_LED event while PROCESSING. No Action taken.");
             return;
         default:
-            CM_LOG(WARN, "Received ONOFF_LED event in invalid state");
+            R_LOG(WARN, "Received ONOFF_LED event in invalid state");
             return;
     }
 }
@@ -30,7 +30,7 @@ void HardwareHandler::onOffLED(){
 void HardwareHandler::turnOnLEDNOTI(std::shared_ptr<Payload> payload){
     std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
     if (notiPayload == nullptr) {
-        CM_LOG(ERROR, "TURN_ON_LED_NOTI payload is not of type NotiPayload");
+        R_LOG(ERROR, "TURN_ON_LED_NOTI payload is not of type NotiPayload");
         return;
     }
 
@@ -47,7 +47,7 @@ void HardwareHandler::turnOnLEDNOTI(std::shared_ptr<Payload> payload){
 void HardwareHandler::turnOffLEDNOTI(std::shared_ptr<Payload> payload){
     std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
     if (notiPayload == nullptr) {
-        CM_LOG(ERROR, "TURN_OFF_LED_NOTI payload is not of type NotiPayload");
+        R_LOG(ERROR, "TURN_OFF_LED_NOTI payload is not of type NotiPayload");
         return;
     }
 

@@ -40,7 +40,7 @@ void WebSocketSession::send(const std::string& message) {
         asio::buffer(message),
         [self = shared_from_this()](beast::error_code ec, std::size_t /*bytes_transferred*/) {
             if (ec) {
-                CM_LOG(ERROR, "WebSocket write error: %s", ec.message().c_str());
+                R_LOG(ERROR, "WebSocket write error: %s", ec.message().c_str());
                 // Nếu có lỗi, xóa session khỏi server
                 self->server_.leave(self);
             }
@@ -54,7 +54,7 @@ void WebSocketSession::doRead(){
         [self = shared_from_this(), remote_ep](beast::error_code ec, [[maybe_unused]] std::size_t bytes)
         {
             if(ec == websocket::error::closed || ec == asio::error::eof){
-                CM_LOG(INFO, "WebSocket client disconnected: %s:%d",
+                R_LOG(INFO, "WebSocket client disconnected: %s:%d",
                        remote_ep.address().to_string().c_str(),
                        remote_ep.port());
                 self->server_.leave(self);
@@ -62,7 +62,7 @@ void WebSocketSession::doRead(){
             }
 
             if(ec){
-                CM_LOG(ERROR, "WebSocket read error from %s:%d: %s",
+                R_LOG(ERROR, "WebSocket read error from %s:%d: %s",
                        remote_ep.address().to_string().c_str(),
                        remote_ep.port(),
                        ec.message().c_str());
@@ -71,7 +71,7 @@ void WebSocketSession::doRead(){
             }
             // Xử lý message nhận được từ client
             auto msg = beast::buffers_to_string(self->buffer_.data());
-            CM_LOG(INFO, "WebSocket received message from %s:%d: %s",
+            R_LOG(INFO, "WebSocket received message from %s:%d: %s",
                    remote_ep.address().to_string().c_str(),
                    remote_ep.port(),
                    msg.c_str());
@@ -93,9 +93,9 @@ WebSocketServer::WebSocketServer(const std::string& host, unsigned short port, M
 
 void WebSocketServer::run(){
     doAccept();
-    CM_LOG(INFO, "WebSocket server running on port %d.", acceptor_.local_endpoint().port());
+    R_LOG(INFO, "WebSocket server running on port %d.", acceptor_.local_endpoint().port());
     io_.run();
-    CM_LOG(INFO, "WebSocket server stopped.");
+    R_LOG(INFO, "WebSocket server stopped.");
 }
 
 void WebSocketServer::stop(){
@@ -106,7 +106,7 @@ void WebSocketServer::stop(){
 void WebSocketServer::join(std::shared_ptr<WebSocketSession> session) {
     std::lock_guard<std::mutex> lock(mutex_);
     sessions_.insert(session);
-    CM_LOG(INFO, "New client joined. Total clients: %zu", sessions_.size());
+    R_LOG(INFO, "New client joined. Total clients: %zu", sessions_.size());
 
     sendInitStateToClient(session);
 }
@@ -114,7 +114,7 @@ void WebSocketServer::join(std::shared_ptr<WebSocketSession> session) {
 void WebSocketServer::leave(std::shared_ptr<WebSocketSession> session) {
     std::lock_guard<std::mutex> lock(mutex_);
     sessions_.erase(session);
-    CM_LOG(INFO, "Client left. Total clients: %zu", sessions_.size());
+    R_LOG(INFO, "Client left. Total clients: %zu", sessions_.size());
 }
 
 void WebSocketServer::broadcast(const std::string& message) {
@@ -129,13 +129,13 @@ void WebSocketServer::doAccept(){
         {
             if(!ec){
                 auto remote_ep = socket.remote_endpoint();
-                CM_LOG(INFO, "WebSocket client connected: %s:%d", 
+                R_LOG(INFO, "WebSocket client connected: %s:%d", 
                        remote_ep.address().to_string().c_str(),
                        remote_ep.port());
 
                        std::make_shared<WebSocketSession>(std::move(socket), *this)->start();
             } else {
-                CM_LOG(ERROR, "WebSocket accept error: %s", ec.message().c_str());
+                R_LOG(ERROR, "WebSocket accept error: %s", ec.message().c_str());
             }
 
             // Accept next client
@@ -144,7 +144,7 @@ void WebSocketServer::doAccept(){
 }
 
 void WebSocketServer::handleMessageFromSession(const std::string& message){
-    CM_LOG(INFO, "WebSocketServer handling message from session: %s", message.c_str());
+    R_LOG(INFO, "WebSocketServer handling message from session: %s", message.c_str());
     if (messageHandler_) {
         messageHandler_(message);
     }
@@ -161,7 +161,7 @@ void WebSocketServer::sendInitStateToClient(std::shared_ptr<WebSocketSession> se
 
     std::string message = status_msg.dump();
     session->send(message);
-    CM_LOG(INFO, "Sent initial state to client: %s", message.c_str());
+    R_LOG(INFO, "Sent initial state to client: %s", message.c_str());
 }
 
 void WebSocketServer::updateStateAndBroadcast(const std::string& component, const nlohmann::json& value, const std::string& msgInfo) {
@@ -175,5 +175,5 @@ void WebSocketServer::updateStateAndBroadcast(const std::string& component, cons
 
     std::string message = status_msg.dump();
     broadcast(message);
-    CM_LOG(INFO, "Broadcasted LED state update: %s", message.c_str());
+    R_LOG(INFO, "Broadcasted LED state update: %s", message.c_str());
 }

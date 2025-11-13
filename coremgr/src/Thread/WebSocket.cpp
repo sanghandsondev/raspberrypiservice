@@ -23,31 +23,31 @@ WebSocket::WebSocket(std::shared_ptr<EventQueue> eventQueue)
 WebSocket::~WebSocket() {}
 
 void WebSocket::threadFunction() {
-    CM_LOG(INFO, "WebSocket Thread function started");
+    R_LOG(INFO, "WebSocket Thread function started");
     wsServer_->run();
-    CM_LOG(INFO, "WebSocket Thread function exiting");
+    R_LOG(INFO, "WebSocket Thread function exiting");
 }
 
 void WebSocket::stop(){
     if (runningFlag_){
-        CM_LOG(INFO, "Stopping WebSocket Server...");
+        R_LOG(INFO, "Stopping WebSocket Server...");
         if (wsServer_){
             wsServer_->stop();
-            CM_LOG(INFO, "WebSocket Server stopped.");
+            R_LOG(INFO, "WebSocket Server stopped.");
         }
         ThreadBase::stop();
     }
 }
 
 void WebSocket::handleMessageFromClient(const std::string& message){
-    CM_LOG(INFO, "WebSocket received message from client: %s", message.c_str());
+    R_LOG(INFO, "WebSocket received message from client: %s", message.c_str());
 
     try {
         json jsonData = json::parse(message);
 
         if (jsonData.contains("command")) {
             std::string command = jsonData["command"];
-            CM_LOG(INFO, "Parsed command: %s", command.c_str());
+            R_LOG(INFO, "Parsed command: %s", command.c_str());
 
             // TODO: Tạo một TranslateCommand cho chuyên nghiệp hơn
             if (command == "toggle_led") {
@@ -62,13 +62,13 @@ void WebSocket::handleMessageFromClient(const std::string& message){
             }
 
         } else {
-            CM_LOG(WARN, "Received JSON does not contain 'command' field.");
+            R_LOG(WARN, "Received JSON does not contain 'command' field.");
         }
 
     } catch (json::parse_error& e) {
-        CM_LOG(ERROR, "Failed to parse JSON message: %s. Error: %s", message.c_str(), e.what());
+        R_LOG(ERROR, "Failed to parse JSON message: %s. Error: %s", message.c_str(), e.what());
     } catch (std::exception& e) {
-        CM_LOG(ERROR, "Exception while handling message: %s", e.what());
+        R_LOG(ERROR, "Exception while handling message: %s", e.what());
     }
     
 }

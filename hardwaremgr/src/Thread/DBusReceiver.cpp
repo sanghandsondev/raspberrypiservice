@@ -20,13 +20,13 @@ void DBusReceiver::handleMessage(DBusCommand cmd) {
             DBUS_SENDER()->sendMessageNoti(DBusCommand::TURN_OFF_LED_NOTI, true, "LED turned off");
             break;
         default:
-            HM_LOG(WARN, "DBusReceiver received unknown DBusCommand");
+            R_LOG(WARN, "DBusReceiver received unknown DBusCommand");
             break;
     }
 }
 
 void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) {
     // TODO
-    HM_LOG(INFO, "DBusReceiver handling notification: cmd=%d, isSuccess=%d, msgInfo=%s",
+    R_LOG(INFO, "DBusReceiver handling notification: cmd=%d, isSuccess=%d, msgInfo=%s",
             static_cast<int>(cmd), isSuccess, msgInfo.c_str());
 }

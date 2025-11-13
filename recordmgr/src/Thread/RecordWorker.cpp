@@ -27,7 +27,7 @@ void RecordWorker::startRecording() {
         state_ = State::RECORDING;
         cv_.notify_one();
     } else {
-        RM_LOG(WARN, "Record worker is already recording. Ignoring start request.");
+        R_LOG(WARN, "Record worker is already recording. Ignoring start request.");
         DBUS_SENDER()->sendMessageNoti(DBusCommand::START_RECORD_NOTI, false, "Recording is already in progress.");
     }
 }
@@ -36,15 +36,15 @@ void RecordWorker::stopRecording() {
     if (state_ == State::RECORDING) {
         state_ = State::IDLE;
         // The capture loop in threadFunction will see the state change and stop.
-        RM_LOG(INFO, "Recording stop requested.");
+        R_LOG(INFO, "Recording stop requested.");
     } else {
-        RM_LOG(WARN, "No active recording to stop. Ignoring stop request.");
+        R_LOG(WARN, "No active recording to stop. Ignoring stop request.");
         DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "No recording is in progress.");
     }
 }
 
 void RecordWorker::threadFunction() {
-	RM_LOG(INFO, "RecordWorker thread started, waiting for recording tasks.");
+	R_LOG(INFO, "RecordWorker thread started, waiting for recording tasks.");
 
     while (runningFlag_) {
         // Wait until startRecording() is called
@@ -60,11 +60,11 @@ void RecordWorker::threadFunction() {
         }
 
         // -- Start Recording Session --
-        RM_LOG(INFO, "RecordWorker woken up, starting recording session.");
+        R_LOG(INFO, "RecordWorker woken up, starting recording session.");
         audioBuffer_.clear();
 
         if (!initAlsa()) {
-            RM_LOG(ERROR, "Failed to initialize ALSA, aborting recording session.");
+            R_LOG(ERROR, "Failed to initialize ALSA, aborting recording session.");
             cleanupAlsa();
             DBUS_SENDER()->sendMessageNoti(DBusCommand::START_RECORD_NOTI, false, "ALSA initialization failed");
             state_ = State::IDLE; // Reset state
@@ -77,7 +77,7 @@ void RecordWorker::threadFunction() {
         bool isCaptureError = false;
         while (runningFlag_ && state_ == State::RECORDING) {
             if (!captureOnce()) {
-                RM_LOG(ERROR, "captureOnce failed, breaking capture loop");
+                R_LOG(ERROR, "captureOnce failed, breaking capture loop");
                 isCaptureError = true;
                 break;
             }
@@ -85,76 +85,115 @@ void RecordWorker::threadFunction() {
 
         // -- End Recording Session --
         if (isCaptureError) {
-            RM_LOG(WARN, "Recording stopped due to capture error. No WAV file will be saved.");
+            R_LOG(WARN, "Recording stopped due to capture error. No WAV file will be saved.");
             DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "Recording stopped due to capture error.");
         } else if (audioBuffer_.empty()) {
-            RM_LOG(WARN, "Recording stopped but no audio was captured. No file saved.");
+            R_LOG(WARN, "Recording stopped but no audio was captured. No file saved.");
             DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "No audio data captured.");
         } else {
-            RM_LOG(INFO, "Recording stopped. Saving WAV file.");
+            R_LOG(INFO, "Recording stopped. Saving WAV file.");
             if (!saveWavFile()) {
                 DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "Failed to save WAV file.");
-                RM_LOG(ERROR, "Failed to save WAV file");
+                R_LOG(ERROR, "Failed to save WAV file");
             } else {
                 DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, true, "WAV file saved: " + outputFilePath_);
-                RM_LOG(INFO, "WAV file saved successfully: %s", outputFilePath_.c_str());
+                R_LOG(INFO, "WAV file saved successfully: %s", outputFilePath_.c_str());
             }
         }
 
         cleanupAlsa();
         state_ = State::IDLE; // Ensure state is IDLE before waiting again
-        RM_LOG(INFO, "Recording session finished. Returning to idle state.");
+        R_LOG(INFO, "Recording session finished. Returning to idle state.");
     }
 
-	RM_LOG(INFO, "RecordWorker thread finished");
+	R_LOG(INFO, "RecordWorker thread finished");
+}
+
+std::string RecordWorker::findCaptureDevice() {
+    int card = -1;
+    int err;
+
+    // Iterate over sound cards
+    while (snd_card_next(&card) >= 0 && card >= 0) {
+        snd_ctl_t *ctl_handle;
+        char card_name[32];
+        sprintf(card_name, "hw:%d", card);
+
+        if ((err = snd_ctl_open(&ctl_handle, card_name, 0)) < 0) {
+            R_LOG(WARN, "Cannot open control for card %d: %s", card, snd_strerror(err));
+            continue;
+        }
+
+        int dev = -1;
+        while (snd_ctl_pcm_next_device(ctl_handle, &dev) >= 0 && dev >= 0) {
+            snd_pcm_info_t *pcm_info;
+            snd_pcm_info_alloca(&pcm_info);
+            snd_pcm_info_set_device(pcm_info, dev);
+            snd_pcm_info_set_subdevice(pcm_info, 0);
+            snd_pcm_info_set_stream(pcm_info, SND_PCM_STREAM_CAPTURE);
+
+            if ((err = snd_ctl_pcm_info(ctl_handle, pcm_info)) >= 0) {
+                // Found a capture device
+                std::string device_name = "hw:" + std::to_string(card) + "," + std::to_string(dev);
+                R_LOG(INFO, "Found capture device: %s on card %d", snd_pcm_info_get_name(pcm_info), card);
+                snd_ctl_close(ctl_handle);
+                // Use plughw for better compatibility
+                return "plughw:" + std::to_string(card) + "," + std::to_string(dev);
+            }
+        }
+        snd_ctl_close(ctl_handle);
+    }
+
+    R_LOG(WARN, "No capture device found. Falling back to default from config.");
+    return CONFIG_INSTANCE()->getMicrophoneDevice();
 }
 
 bool RecordWorker::initAlsa() {
 	int err;
 	snd_pcm_hw_params_t* hwParams = nullptr;
-	const std::string device = CONFIG_INSTANCE()->getMicrophoneDevice(); // e.g. "plughw:1,0"
+	const std::string device = findCaptureDevice();
 
 	err = snd_pcm_open(&pcmHandle_, device.c_str(), SND_PCM_STREAM_CAPTURE, 0);
 	if (err < 0) {
-		RM_LOG(ERROR, "snd_pcm_open(%s) failed: %s", device.c_str(), snd_strerror(err));
+		R_LOG(ERROR, "snd_pcm_open(%s) failed: %s", device.c_str(), snd_strerror(err));
 		pcmHandle_ = nullptr;
 		return false;
 	}
 
 	snd_pcm_hw_params_malloc(&hwParams);
 	if ((err = snd_pcm_hw_params_any(pcmHandle_, hwParams)) < 0) {
-		RM_LOG(ERROR, "snd_pcm_hw_params_any failed: %s", snd_strerror(err));
+		R_LOG(ERROR, "snd_pcm_hw_params_any failed: %s", snd_strerror(err));
 		snd_pcm_hw_params_free(hwParams);
 		return false;
 	}
 
 	if ((err = snd_pcm_hw_params_set_access(pcmHandle_, hwParams, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0) {
-		RM_LOG(ERROR, "snd_pcm_hw_params_set_access failed: %s", snd_strerror(err));
+		R_LOG(ERROR, "snd_pcm_hw_params_set_access failed: %s", snd_strerror(err));
 		snd_pcm_hw_params_free(hwParams);
 		return false;
 	}
 
 	if ((err = snd_pcm_hw_params_set_format(pcmHandle_, hwParams, SND_PCM_FORMAT_S16_LE)) < 0) {
-		RM_LOG(ERROR, "snd_pcm_hw_params_set_format failed: %s", snd_strerror(err));
+		R_LOG(ERROR, "snd_pcm_hw_params_set_format failed: %s", snd_strerror(err));
 		snd_pcm_hw_params_free(hwParams);
 		return false;
 	}
 
 	unsigned int rate = CONFIG_INSTANCE()->getSampleRate();
 	if ((err = snd_pcm_hw_params_set_rate_near(pcmHandle_, hwParams, &rate, nullptr)) < 0) {
-		RM_LOG(ERROR, "snd_pcm_hw_params_set_rate_near failed: %s", snd_strerror(err));
+		R_LOG(ERROR, "snd_pcm_hw_params_set_rate_near failed: %s", snd_strerror(err));
 		snd_pcm_hw_params_free(hwParams);
 		return false;
 	}
 
 	if ((err = snd_pcm_hw_params_set_channels(pcmHandle_, hwParams, 1)) < 0) {
-		RM_LOG(ERROR, "snd_pcm_hw_params_set_channels failed: %s", snd_strerror(err));
+		R_LOG(ERROR, "snd_pcm_hw_params_set_channels failed: %s", snd_strerror(err));
 		snd_pcm_hw_params_free(hwParams);
 		return false;
 	}
 
 	if ((err = snd_pcm_hw_params(pcmHandle_, hwParams)) < 0) {
-		RM_LOG(ERROR, "snd_pcm_hw_params failed: %s", snd_strerror(err));
+		R_LOG(ERROR, "snd_pcm_hw_params failed: %s", snd_strerror(err));
 		snd_pcm_hw_params_free(hwParams);
 		return false;
 	}
@@ -162,11 +201,11 @@ bool RecordWorker::initAlsa() {
 	snd_pcm_hw_params_free(hwParams);
 
 	if ((err = snd_pcm_prepare(pcmHandle_)) < 0) {
-		RM_LOG(ERROR, "snd_pcm_prepare failed: %s", snd_strerror(err));
+		R_LOG(ERROR, "snd_pcm_prepare failed: %s", snd_strerror(err));
 		return false;
 	}
 
-	RM_LOG(INFO, "ALSA init OK (device=%s, rate=%u)", device.c_str(), rate);
+	R_LOG(INFO, "ALSA init OK (device=%s, rate=%u)", device.c_str(), rate);
 	return true;
 }
 
@@ -186,14 +225,14 @@ bool RecordWorker::captureOnce() {
 
 	snd_pcm_sframes_t r = snd_pcm_readi(pcmHandle_, buffer.data(), frames);
 	if (r == -EPIPE) {
-		RM_LOG(WARN, "ALSA overrun occurred");
+		R_LOG(WARN, "ALSA overrun occurred");
 		snd_pcm_prepare(pcmHandle_);
 		return true; // continue capturing
 	} else if (r < 0) {
-		RM_LOG(ERROR, "snd_pcm_readi error: %s", snd_strerror(static_cast<int>(r)));
+		R_LOG(ERROR, "snd_pcm_readi error: %s", snd_strerror(static_cast<int>(r)));
 		int rc = snd_pcm_recover(pcmHandle_, r, 0);
 		if (rc < 0) {
-			RM_LOG(ERROR, "snd_pcm_recover failed: %s", snd_strerror(rc));
+			R_LOG(ERROR, "snd_pcm_recover failed: %s", snd_strerror(rc));
 			return false;
 		}
 		return true;
@@ -206,7 +245,7 @@ bool RecordWorker::captureOnce() {
 
 bool RecordWorker::saveWavFile() {
 	if (audioBuffer_.empty()) {
-		RM_LOG(WARN, "No audio captured, skipping WAV save");
+		R_LOG(WARN, "No audio captured, skipping WAV save");
 		return false;
 	}
 
@@ -221,7 +260,7 @@ bool RecordWorker::saveWavFile() {
 
 	std::ofstream out(outputFilePath_, std::ios::binary);
 	if (!out.is_open()) {
-		RM_LOG(ERROR, "Failed to open output file %s", outputFilePath_.c_str());
+		R_LOG(ERROR, "Failed to open output file %s", outputFilePath_.c_str());
 		return false;
 	}
 
@@ -258,7 +297,7 @@ bool RecordWorker::saveWavFile() {
 	out.write(reinterpret_cast<const char*>(audioBuffer_.data()), subchunk2Size);
 	out.close();
 
-	RM_LOG(INFO, "Saved WAV: %s (frames=%zu, bytes=%u)", outputFilePath_.c_str(), audioBuffer_.size(), subchunk2Size);
+	R_LOG(INFO, "Saved WAV: %s (frames=%zu, bytes=%u)", outputFilePath_.c_str(), audioBuffer_.size(), subchunk2Size);
 	return true;
 }
 

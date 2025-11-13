@@ -25,7 +25,7 @@ void MainWorker::setWebSocket(std::shared_ptr<WebSocket> ws) {
 }
 
 void MainWorker::threadFunction() {
-    CM_LOG(INFO, "MainWorker Thread function started");
+    R_LOG(INFO, "MainWorker Thread function started");
 
     while (runningFlag_) {
         if (eventQueue_->hasEvent()) {
@@ -39,7 +39,7 @@ void MainWorker::threadFunction() {
         }
     }
 
-    CM_LOG(INFO, "MainWorker Thread function exiting");
+    R_LOG(INFO, "MainWorker Thread function exiting");
 }
 
 void MainWorker::processEvent(const std::shared_ptr<Event> event) {
@@ -50,40 +50,40 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
     // Process the event based on its type
     switch (event->getEventTypeId()) {
         case EventTypeID::STARTUP:
-            CM_LOG(INFO, "Processing STARTUP event");
+            R_LOG(INFO, "Processing STARTUP event");
             // TODO : blink LED
             // Speaker bip bip
             break;
         case EventTypeID::ONOFF_LED:
-            CM_LOG(INFO, "Processing ONOFF_LED event");
+            R_LOG(INFO, "Processing ONOFF_LED event");
             processOnOffLEDEvent();
             break;
         case EventTypeID::START_RECORD:
-            CM_LOG(INFO, "Processing START_RECORD event");
+            R_LOG(INFO, "Processing START_RECORD event");
             processStartRecordEvent();
             break;
         case EventTypeID::STOP_RECORD:
-            CM_LOG(INFO, "Processing STOP_RECORD event");
+            R_LOG(INFO, "Processing STOP_RECORD event");
             processStopRecordEvent();
             break;
         case EventTypeID::START_RECORD_NOTI:
-            CM_LOG(INFO, "Processing START_RECORD_NOTI event");
+            R_LOG(INFO, "Processing START_RECORD_NOTI event");
             processStartRecordNOTIEvent(event->getPayload());
             break;
         case EventTypeID::STOP_RECORD_NOTI:
-            CM_LOG(INFO, "Processing STOP_RECORD_NOTI event");
+            R_LOG(INFO, "Processing STOP_RECORD_NOTI event");
             processStopRecordNOTIEvent(event->getPayload());
             break;
         case EventTypeID::TURN_ON_LED_NOTI:
-            CM_LOG(INFO, "Processing TURN_ON_LED_NOTI event");
+            R_LOG(INFO, "Processing TURN_ON_LED_NOTI event");
             processTurnOnLEDNOTIEvent(event->getPayload());
             break;
         case EventTypeID::TURN_OFF_LED_NOTI:
-            CM_LOG(INFO, "Processing TURN_OFF_LED_NOTI event");
+            R_LOG(INFO, "Processing TURN_OFF_LED_NOTI event");
             processTurnOffLEDNOTIEvent(event->getPayload());
             break;
         default:
-            CM_LOG(WARN, "MainWorker received unknown event type");
+            R_LOG(WARN, "MainWorker received unknown event type");
             break;
     }
 }

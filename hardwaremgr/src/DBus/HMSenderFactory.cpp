@@ -4,7 +4,7 @@
 DBusMessage* HMSenderFactory::makeMsg(DBusCommand cmd) {
     switch (cmd) {
         default:
-            HM_LOG(ERROR, "SenderFactory makeMsg Error: Unknown DBusCommand");
+            R_LOG(ERROR, "SenderFactory makeMsg Error: Unknown DBusCommand");
             return nullptr;
     }
     
@@ -17,7 +17,7 @@ DBusMessage* HMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
         case DBusCommand::TURN_OFF_LED_NOTI:
             return makeMsgNoti_TurnOffLED(cmd, isSuccess, msgInfo);
         default:
-            HM_LOG(ERROR, "SenderFactory makeMsg Error: Unknown DBusCommand");
+            R_LOG(ERROR, "SenderFactory makeMsg Error: Unknown DBusCommand");
             return nullptr;
     }
 }

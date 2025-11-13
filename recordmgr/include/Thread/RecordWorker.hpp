@@ -37,6 +37,7 @@ class RecordWorker : public ThreadBase {
         std::atomic<State> state_;
 
         // Helpers
+        std::string findCaptureDevice();
         bool initAlsa();
         void cleanupAlsa();
         bool captureOnce();

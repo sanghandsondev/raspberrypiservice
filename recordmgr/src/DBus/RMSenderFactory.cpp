@@ -4,7 +4,7 @@
 DBusMessage* RMSenderFactory::makeMsg(DBusCommand cmd) {
     switch (cmd) {
         default:
-            RM_LOG(ERROR, "SenderFactory makeMsg Error: Unknown DBusCommand");
+            R_LOG(ERROR, "SenderFactory makeMsg Error: Unknown DBusCommand");
             return nullptr;
     }
     
@@ -17,7 +17,7 @@ DBusMessage* RMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
         case DBusCommand::STOP_RECORD_NOTI:
             return makeMsgNoti_StopRecord(cmd, isSuccess, msgInfo);
         default:
-            RM_LOG(ERROR, "RMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
+            R_LOG(ERROR, "RMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
             return nullptr;
     }
     
