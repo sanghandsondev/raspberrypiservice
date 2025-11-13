@@ -38,8 +38,9 @@ bool AudioFilter::applyFilter(const std::string& wavFilePath){
             R_LOG(INFO, "Audio filtering successful.");
             // Đích là file đã lọc
             filteredFilePath_ = (fs::path(outputDir) / ("filtered_" + fileName)).string();
-            // Di chuyển file tạm đã lọc vào vị trí cuối cùng
-            fs::rename(tempFilteredPath, filteredFilePath_);
+            // Dùng copy + remove thay vì rename (vì /tmp và /var/local có thể trên khác filesystem)
+            fs::copy_file(tempFilteredPath, filteredFilePath_, fs::copy_options::overwrite_existing);
+            fs::remove(tempFilteredPath);
             R_LOG(INFO, "Moved filtered file to: %s", filteredFilePath_.c_str());
         } else {
             R_LOG(WARN, "Audio filtering failed with exit code: %d. Using original file.", result);

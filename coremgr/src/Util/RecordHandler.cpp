@@ -69,7 +69,7 @@ void RecordHandler::stopRecordNOTI(std::shared_ptr<Payload> payload){
     }
 
     if (notiPayload->isSuccess() == false) {
-        STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::RECORDING;
+        STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
         webSocket_->getServer()->updateStateAndBroadcast("record", "stopped", notiPayload->getMsgInfo());
     } else {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;

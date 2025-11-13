@@ -43,9 +43,9 @@ class Config {
         inline static const snd_pcm_uframes_t FRAMES_PER_PERIOD = 1024;
         inline static const unsigned int MAX_RECORD_DURATION_SEC = 300; // 5 minutes
 #ifdef RASPBERRY_PI
-        inline static const std::string MICROPHONE_DEVICE = "plughw:1,0"; // card 1 device 0 -> hw:1,0 (use plughw for convenience)
+        inline static const std::string MICROPHONE_DEVICE = "plughw:1,0"; // card 1 device 0
 #else
-        inline static const std::string MICROPHONE_DEVICE = "default"; // For laptops or other systems
+        inline static const std::string MICROPHONE_DEVICE = "plughw:0,0"; // For laptops or other systems
 #endif
         inline static const std::string WAV_OUTPUT_DIR = "/tmp";
         inline static const std::string FILTERED_AUDIO_DIR = "/var/local/recordmanager/audio";

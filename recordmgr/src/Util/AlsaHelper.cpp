@@ -38,7 +38,7 @@ std::string AlsaHelper::findCaptureDevice() {
 
             if ((err = snd_ctl_pcm_info(ctl_handle, pcm_info)) >= 0) {
                 // Found a capture device
-                std::string device_name = "hw:" + std::to_string(card) + "," + std::to_string(dev);
+                // std::string device_name = "hw:" + std::to_string(card) + "," + std::to_string(dev);
                 R_LOG(INFO, "Found capture device: %s on card %d", snd_pcm_info_get_name(pcm_info), card);
                 snd_ctl_close(ctl_handle);
                 // Use plughw for better compatibility

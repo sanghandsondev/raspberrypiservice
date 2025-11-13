@@ -16,6 +16,7 @@ class RMSenderFactory : public ISenderFactory {
     private:        
         DBusMessage* makeMsgNoti_StartRecord(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
         DBusMessage* makeMsgNoti_StopRecord(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
+        DBusMessage* makeMsgNoti_FilterWavFile(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
 
 };
 
