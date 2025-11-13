@@ -8,6 +8,7 @@
 #include "WebSocketServer.hpp"
 #include "HardwareHandler.hpp"
 #include "RecordHandler.hpp"
+#include "DBThreadPool.hpp"
 
 MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue) 
     : ThreadBase("MainWorker"), eventQueue_(eventQueue) {
@@ -22,6 +23,10 @@ void MainWorker::setWebSocket(std::shared_ptr<WebSocket> ws) {
     webSocket_ = ws;
     hardwareHandler_->setWebSocket(ws);
     recordHandler_->setWebSocket(ws);
+}
+
+void MainWorker::setDBThreadPool(std::shared_ptr<DBThreadPool> dbThreadPool) {
+    dbThreadPool_ = dbThreadPool;
 }
 
 void MainWorker::threadFunction() {
@@ -115,5 +120,12 @@ void MainWorker::processStopRecordNOTIEvent(std::shared_ptr<Payload> payload){
 }
 
 void MainWorker::processFilterWavFileNOTIEvent(std::shared_ptr<Payload> payload){ 
-    recordHandler_->filterWavFileNOTI(payload); 
+    recordHandler_->filterWavFileNOTI(payload);
+    // TODO: cần tạo một database handler ở Util để xử lý
+    // CẦN LẤY ĐƯỢC durationSec ở dưới Record và Timestamp lấy ở CoreManager cũng được.
+    // CẦN TẠO một kiểu Msg mới có signature là có struct ... bắn void* data chứ k phải là một string hay một số bất kì
+    dbThreadPool_->insertAudioRecord("test.wav", 10, 1234567890);
 }
+
+// TODO: Ở start up thì lấy ra biến file các bản ghi âm để lưu ở StateView là được (init của session tự lấy để hiển thị)
+// Rồi khi có bản ghi mới thì lại get ra all mới và update -> broadcast cho client luôn.

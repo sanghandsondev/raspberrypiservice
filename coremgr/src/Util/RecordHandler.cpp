@@ -89,6 +89,5 @@ void RecordHandler::filterWavFileNOTI(std::shared_ptr<Payload> payload){
         webSocket_->getServer()->updateStateAndBroadcast("record", "filter_failed", notiPayload->getMsgInfo());
     } else {
         R_LOG(INFO, "Audio filtering succeeded: %s", notiPayload->getMsgInfo().c_str());
-        // TODO: Lưu vào thông tin file vào data base
     }
 }

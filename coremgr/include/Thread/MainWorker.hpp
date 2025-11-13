@@ -13,6 +13,7 @@ class WebSocket;
 class HardwareHandler;
 class RecordHandler;
 class Payload;
+class DBThreadPool;
 
 class MainWorker : public ThreadBase {
     public:
@@ -20,15 +21,17 @@ class MainWorker : public ThreadBase {
         ~MainWorker();
 
         void setWebSocket(std::shared_ptr<WebSocket> ws);
+        void setDBThreadPool(std::shared_ptr<DBThreadPool> dbThreadPool);
 
     private:
         std::shared_ptr<EventQueue> eventQueue_;
-        std::shared_ptr<WebSocket> webSocket_;
         std::shared_ptr<HardwareHandler> hardwareHandler_;
         std::shared_ptr<RecordHandler> recordHandler_;
 
-        void threadFunction() override;
+        std::shared_ptr<WebSocket> webSocket_;
+        std::shared_ptr<DBThreadPool> dbThreadPool_;
 
+        void threadFunction() override;
         void processEvent(const std::shared_ptr<Event> event);
         
         // Hardware request

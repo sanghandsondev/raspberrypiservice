@@ -13,7 +13,7 @@ class AlsaHelper;
 
 class RecordWorker : public ThreadBase {
     public:
-        explicit RecordWorker(std::shared_ptr<class EventQueue> eventQueue);
+        explicit RecordWorker(std::shared_ptr<EventQueue> eventQueue);
         ~RecordWorker();
 
         void startRecording();

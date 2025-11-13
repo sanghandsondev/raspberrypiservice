@@ -5,7 +5,9 @@
 #include "DBusReceiver.hpp"
 #include "WebSocket.hpp"
 #include "WebSocketServer.hpp"
+#include "DBThreadPool.hpp"
 #include "RLogger.hpp"
+#include "Config.hpp"
 #include <csignal>
 #include <atomic>
 #include <condition_variable>
@@ -43,12 +45,15 @@ int main(){
     auto mainWorker = std::make_shared<MainWorker>(eventQueue);
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
     auto webSocketThread = std::make_shared<WebSocket>(eventQueue);
+    auto dbThreadPool = std::make_shared<DBThreadPool>(eventQueue, CONFIG_INSTANCE()->getSQLiteDBWorkerThreads());
 
     mainWorker->setWebSocket(webSocketThread);
+    mainWorker->setDBThreadPool(dbThreadPool);
 
     mainWorker->run();
     dbusReceiver->run();
     webSocketThread->run();
+    dbThreadPool->run();
 
     g_runningFlag = true;
     while(g_runningFlag) {
@@ -67,10 +72,12 @@ int main(){
     mainWorker->stop();
     dbusReceiver->stop();
     webSocketThread->stop();
+    dbThreadPool->stop();
 
     webSocketThread->join();
     mainWorker->join();
     dbusReceiver->join();
+    dbThreadPool->join();
     R_LOG(WARN, "Core Manager exited.");
 
     return 0;

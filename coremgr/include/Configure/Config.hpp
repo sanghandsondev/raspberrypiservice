@@ -23,6 +23,9 @@ class Config : public IConfig{
         const std::string &getWebSocketHost() const { return WEBSOCKET_HOST;}
         unsigned short getWebSocketPort() const { return WEBSOCKET_PORT;}
 
+        const std::string &getSQLiteDBFilePath() const { return SQLiteDBFilePath; }
+        unsigned int getSQLiteDBWorkerThreads() const { return SQLiteDBWorkerThreads; }
+
     private:
         Config() = default;
         ~Config() = default;
@@ -36,6 +39,9 @@ class Config : public IConfig{
 
         inline static const std::string WEBSOCKET_HOST = "0.0.0.0";
         inline static const unsigned short WEBSOCKET_PORT = 9000;   // Listen on all interfaces at port 9000
+
+        inline static const std::string SQLiteDBFilePath = "/var/local/coremanager/coremanager.db";
+        inline static const unsigned int SQLiteDBWorkerThreads = 5; // Number of worker threads for DB operations
 };
 
 #endif // CONFIG_HPP_

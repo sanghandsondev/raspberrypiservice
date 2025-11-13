@@ -1,7 +1,6 @@
 [Unit]
 Description=Hardware Manager Service for Raspberry Pi
 After=coremanager.service
-Requires=coremanager.service
 
 [Service]
 ExecStart=/usr/local/bin/hardwaremanager
@@ -10,7 +9,6 @@ Group=pi
 Restart=always
 RestartSec=5s
 StartLimitBurst=5
-StartLimitIntervalSec=600s
 WatchdogSec=10
 Type=notify
 
