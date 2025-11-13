@@ -2,16 +2,18 @@
 #define RECORD_WORKER_HPP_
 
 #include "ThreadBase.hpp"
-#include <alsa/asoundlib.h>
-#include <vector>
 #include <string>
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <memory>
+
+class EventQueue;
+class AlsaHelper;
 
 class RecordWorker : public ThreadBase {
     public:
-        explicit RecordWorker();
+        explicit RecordWorker(std::shared_ptr<class EventQueue> eventQueue);
         ~RecordWorker();
 
         void startRecording();
@@ -26,22 +28,13 @@ class RecordWorker : public ThreadBase {
 
         void threadFunction() override;
 
-        // ALSA handle
-        snd_pcm_t* pcmHandle_;
-        std::vector<int16_t> audioBuffer_;
-        std::string outputFilePath_;
+        std::shared_ptr<EventQueue> eventQueue_;
+        std::unique_ptr<AlsaHelper> alsaHelper_;
 
         // Thread control
         std::mutex mtx_;
         std::condition_variable cv_;
         std::atomic<State> state_;
-
-        // Helpers
-        std::string findCaptureDevice();
-        bool initAlsa();
-        void cleanupAlsa();
-        bool captureOnce();
-        bool saveWavFile();
 };
 
 #endif // RECORD_WORKER_HPP_

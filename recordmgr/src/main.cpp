@@ -31,7 +31,7 @@ int main(){
 
     std::shared_ptr<EventQueue> eventQueue = std::make_shared<EventQueue>();
 
-    auto recordWorker = std::make_shared<RecordWorker>();
+    auto recordWorker = std::make_shared<RecordWorker>(eventQueue);
     auto mainWorker = std::make_shared<MainWorker>(eventQueue, recordWorker);
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
 

@@ -15,7 +15,7 @@ add_subdirectory(${ROOT_DIR}/../common ${CMAKE_CURRENT_BINARY_DIR}/common)
 # Add source files
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
     ${ROOT_DIR}/src/*.cpp
-)
+    )
 
 # Add executable
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -35,6 +35,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${ROOT_DIR}/include/Thread
     ${ROOT_DIR}/include/DBus
     ${ROOT_DIR}/include/Log
+    ${ROOT_DIR}/include/Util
 )
 
 # Link libraries (if any)
