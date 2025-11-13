@@ -22,12 +22,6 @@ install:
 		$(MAKE) -C $$mod install; \
 	done
 
-cross:
-	@for mod in $(TARGET_MODULES); do \
-		echo "--- Cross-compiling module: $$mod ---"; \
-		$(MAKE) -C $$mod cross; \
-	done
-
 deploy:
 	@for mod in $(TARGET_MODULES); do \
 		echo "--- Deploying module: $$mod ---"; \
@@ -47,4 +41,4 @@ clean:
 		rm -rf build; \
 	fi
 
-.PHONY: all install cross deploy setenv clean
+.PHONY: all install deploy setenv clean
