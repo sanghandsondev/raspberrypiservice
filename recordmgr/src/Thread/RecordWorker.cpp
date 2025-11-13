@@ -73,9 +73,18 @@ void RecordWorker::threadFunction() {
 
 		// Notify that recording has started
         DBUS_SENDER()->sendMessageNoti(DBusCommand::START_RECORD_NOTI, true, "Recording started");
-
+		const auto startTime = std::chrono::steady_clock::now();
+        const auto maxDuration = std::chrono::seconds(CONFIG_INSTANCE()->getMaxRecordDurationSec());
+        bool durationExceeded = false;
         bool isCaptureError = false;
+		
         while (runningFlag_ && state_ == State::RECORDING) {
+			if (std::chrono::steady_clock::now() - startTime > maxDuration) {
+                R_LOG(WARN, "Maximum recording duration reached. Stopping automatically.");
+                durationExceeded = true;
+                break;
+            }
+
             if (!captureOnce()) {
                 R_LOG(ERROR, "captureOnce failed, breaking capture loop");
                 isCaptureError = true;
@@ -87,12 +96,16 @@ void RecordWorker::threadFunction() {
         if (isCaptureError) {
             R_LOG(WARN, "Recording stopped due to capture error. No WAV file will be saved.");
             DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "Recording stopped due to capture error.");
-        } else if (audioBuffer_.empty()) {
-            R_LOG(WARN, "Recording stopped but no audio was captured. No file saved.");
-            DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "No audio data captured.");
         } else {
-            R_LOG(INFO, "Recording stopped. Saving WAV file.");
-            if (!saveWavFile()) {
+			if(durationExceeded) {
+				R_LOG(INFO, "Recording stopped after reaching maximum duration. Saving WAV file...");
+			} else {
+				R_LOG(INFO, "Recording stopped by client. Saving WAV file...");
+			}
+			if (audioBuffer_.empty()) {
+				R_LOG(WARN, "Recording stopped but no audio was captured. No file saved.");
+				DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "No audio data captured.");
+			} else if (!saveWavFile()) {
                 DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_RECORD_NOTI, false, "Failed to save WAV file.");
                 R_LOG(ERROR, "Failed to save WAV file");
             } else {

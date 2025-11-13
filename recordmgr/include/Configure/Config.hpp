@@ -25,6 +25,7 @@ class Config {
         snd_pcm_uframes_t getFramesPerPeriod() const { return FRAMES_PER_PERIOD; }
         const std::string &getMicrophoneDevice() const { return MICROPHONE_DEVICE; }
         const std::string &getWavOutputDir() const { return WAV_OUTPUT_DIR; }
+        unsigned int getMaxRecordDurationSec() const { return MAX_RECORD_DURATION_SEC; }
 
     private:
         Config() = default;
@@ -39,6 +40,7 @@ class Config {
 
         inline static const unsigned int SAMPLE_RATE = 16000;
         inline static const snd_pcm_uframes_t FRAMES_PER_PERIOD = 1024;
+        inline static const unsigned int MAX_RECORD_DURATION_SEC = 300; // 5 minutes
 #ifdef RASPBERRY_PI
         inline static const std::string MICROPHONE_DEVICE = "plughw:1,0"; // card 1 device 0 -> hw:1,0 (use plughw for convenience)
 #else

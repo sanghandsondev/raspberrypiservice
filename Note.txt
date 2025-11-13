@@ -26,7 +26,5 @@ Note: Chưa biết cái nào là best practice
 
 12. Khi start lại Core thì nó phải lấy được data lưu ở một vị trí nào đó trong Pi (có thể là file json. Hỏi AI)
 
-14. Tách ALSA helper riêng ra khỏi RecordWorker. Phức tạp quá thì thôi.
-Vì còn phải kết hợp với phát hiện thiết bị ghi âm nữa
-
-15. Cần phải có udev gì đó xử lý bên Hardware để cập nhật lại USB Device cho Record chứ
+15. Cần có xử lý Timer Timeout ở CoreManager, tức nó phải nhận NOTI sau mấy giây ko thì nó sẽ tự động trả về App status false
+và kill thằng service đó (Để nó start lại)
