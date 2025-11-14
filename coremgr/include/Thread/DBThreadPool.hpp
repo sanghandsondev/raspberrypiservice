@@ -22,7 +22,7 @@ class DBThreadPool : public ThreadBase {
         void stop() override;
         void enqueueTask(std::function<void()> task);
         
-        void insertAudioRecord(const std::string& filePath, int durationSec, long timestamp);
+        void insertAudioRecord(const std::string& filePath);
 
     private:
         void threadFunction() override;

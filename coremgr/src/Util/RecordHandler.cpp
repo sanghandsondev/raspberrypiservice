@@ -6,6 +6,7 @@
 #include "WebSocketServer.hpp"
 #include "WebSocket.hpp"
 #include "Event.hpp"
+#include "DBThreadPool.hpp"
 
 void RecordHandler::startRecord(){
     RecordState currentState = STATE_VIEW_INSTANCE()->RECORD_STATE;
@@ -89,5 +90,7 @@ void RecordHandler::filterWavFileNOTI(std::shared_ptr<Payload> payload){
         webSocket_->getServer()->updateStateAndBroadcast("record", "filter_failed", notiPayload->getMsgInfo());
     } else {
         R_LOG(INFO, "Audio filtering succeeded: %s", notiPayload->getMsgInfo().c_str());
+        // Insert record into database
+        dbThreadPool_->insertAudioRecord(notiPayload->getMsgInfo());
     }
 }

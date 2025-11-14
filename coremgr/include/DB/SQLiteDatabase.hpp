@@ -8,8 +8,6 @@
 struct AudioRecord {
     int id;
     std::string filePath;
-    int durationSec;
-    long timestamp;
 };
 
 class SQLiteDatabase {

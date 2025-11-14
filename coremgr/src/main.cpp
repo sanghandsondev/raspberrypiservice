@@ -47,6 +47,7 @@ int main(){
     auto webSocketThread = std::make_shared<WebSocket>(eventQueue);
     auto dbThreadPool = std::make_shared<DBThreadPool>(eventQueue, CONFIG_INSTANCE()->getSQLiteDBWorkerThreads());
 
+    // TIÊM PHỤ THUỘC (DIPENDENCY INJECTION)
     mainWorker->setWebSocket(webSocketThread);
     mainWorker->setDBThreadPool(dbThreadPool);
 

@@ -44,12 +44,8 @@ bool SQLiteDatabase::initializeSchema() {
         CREATE TABLE IF NOT EXISTS audio_records (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             file_path TEXT NOT NULL UNIQUE,
-            durationSec INTEGER NOT NULL,
-            timestamp INTEGER NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
-
-        CREATE INDEX IF NOT EXISTS idx_timestamp ON audio_records(timestamp);
     )";
 
     return executeSQL(createTableSQL);
@@ -83,8 +79,8 @@ sqlite3_stmt* SQLiteDatabase::prepareStatement(const std::string& sql) {
 
 bool SQLiteDatabase::insertAudioRecord(const AudioRecord &record) {
     const std::string insertSQL = R"(
-        INSERT INTO audio_records (file_path, durationSec, timestamp)
-        VALUES (?, ?, ?);
+        INSERT INTO audio_records (file_path)
+        VALUES (?);
     )";
 
     sqlite3_stmt* stmt = prepareStatement(insertSQL);
@@ -94,8 +90,6 @@ bool SQLiteDatabase::insertAudioRecord(const AudioRecord &record) {
 
     // Bind parameters
     sqlite3_bind_text(stmt, 1, record.filePath.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 2, record.durationSec);
-    sqlite3_bind_int64(stmt, 3, record.timestamp);
 
     int rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -112,7 +106,7 @@ bool SQLiteDatabase::insertAudioRecord(const AudioRecord &record) {
 std::vector<AudioRecord> SQLiteDatabase::getAllRecords() {
     std::vector<AudioRecord> records;
     const std::string querySQL = R"(
-        SELECT id, file_path, durationSec, timestamp FROM audio_records ORDER BY timestamp DESC LIMIT 100;
+        SELECT id, file_path, created_at FROM audio_records ORDER BY created_at DESC LIMIT 100;
     )";
 
     sqlite3_stmt* stmt = prepareStatement(querySQL);
@@ -124,8 +118,6 @@ std::vector<AudioRecord> SQLiteDatabase::getAllRecords() {
         AudioRecord record;
         record.id = sqlite3_column_int(stmt, 0);
         record.filePath = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        record.durationSec = sqlite3_column_int(stmt, 2);
-        record.timestamp = sqlite3_column_int64(stmt, 3);
 
         records.push_back(record);
     }

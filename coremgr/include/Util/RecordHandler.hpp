@@ -5,15 +5,15 @@
 
 class WebSocket;
 class Payload;
+class DBThreadPool;
 
 class RecordHandler {
     public:
         explicit RecordHandler() = default;
         ~RecordHandler() = default;
 
-        void setWebSocket(std::shared_ptr<WebSocket> ws){
-            webSocket_ = ws;
-        };
+        void setWebSocket(std::shared_ptr<WebSocket> ws){ webSocket_ = ws; };
+        void setDBThreadPool(std::shared_ptr<DBThreadPool> dbThreadPool){ dbThreadPool_ = dbThreadPool; };
 
         void startRecord();
         void stopRecord();
@@ -24,6 +24,7 @@ class RecordHandler {
     
     private:
         std::shared_ptr<WebSocket> webSocket_;
+        std::shared_ptr<DBThreadPool> dbThreadPool_;
 };
 
 #endif // RECORD_HANDLER_HPP_

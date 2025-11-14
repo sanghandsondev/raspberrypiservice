@@ -14,6 +14,7 @@ class HardwareHandler;
 class RecordHandler;
 class Payload;
 class DBThreadPool;
+class SQLiteDBHandler;
 
 class MainWorker : public ThreadBase {
     public:
@@ -27,6 +28,7 @@ class MainWorker : public ThreadBase {
         std::shared_ptr<EventQueue> eventQueue_;
         std::shared_ptr<HardwareHandler> hardwareHandler_;
         std::shared_ptr<RecordHandler> recordHandler_;
+        std::shared_ptr<SQLiteDBHandler> sqliteDBHandler_;
 
         std::shared_ptr<WebSocket> webSocket_;
         std::shared_ptr<DBThreadPool> dbThreadPool_;

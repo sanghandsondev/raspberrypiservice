@@ -51,12 +51,10 @@ void DBThreadPool::enqueueTask(std::function<void()> task) {
     cv_.notify_one();
 }
 
-void DBThreadPool::insertAudioRecord(const std::string& filePath, int durationSec, long timestamp) {
-    auto task = [this, filePath, durationSec, timestamp]() {
+void DBThreadPool::insertAudioRecord(const std::string& filePath) {
+    auto task = [this, filePath]() {
         AudioRecord record;
         record.filePath = filePath;
-        record.durationSec = durationSec;
-        record.timestamp = timestamp;
 
         std::lock_guard<std::mutex> dbLock(dbMutex_);
         if (!database_->insertAudioRecord(record)) {

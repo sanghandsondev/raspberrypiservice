@@ -9,24 +9,29 @@
 #include "HardwareHandler.hpp"
 #include "RecordHandler.hpp"
 #include "DBThreadPool.hpp"
+#include "SQLiteDBHandler.hpp"
 
 MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue) 
     : ThreadBase("MainWorker"), eventQueue_(eventQueue) {
     hardwareHandler_ = std::make_shared<HardwareHandler>();
     recordHandler_ = std::make_shared<RecordHandler>();
+    sqliteDBHandler_ = std::make_shared<SQLiteDBHandler>();
 }
 
 MainWorker::~MainWorker() {}
 
 void MainWorker::setWebSocket(std::shared_ptr<WebSocket> ws) {
-    // TIÊM PHỤ THUỘC
+    // TIÊM PHỤ THUỘC (DIPENDENCY INJECTION)
     webSocket_ = ws;
     hardwareHandler_->setWebSocket(ws);
     recordHandler_->setWebSocket(ws);
 }
 
 void MainWorker::setDBThreadPool(std::shared_ptr<DBThreadPool> dbThreadPool) {
+    // TIÊM PHỤ THUỘC (DIPENDENCY INJECTION)
     dbThreadPool_ = dbThreadPool;
+    sqliteDBHandler_->setDBThreadPool(dbThreadPool);
+    recordHandler_->setDBThreadPool(dbThreadPool);
 }
 
 void MainWorker::threadFunction() {
@@ -124,7 +129,7 @@ void MainWorker::processFilterWavFileNOTIEvent(std::shared_ptr<Payload> payload)
     // TODO: cần tạo một database handler ở Util để xử lý
     // CẦN LẤY ĐƯỢC durationSec ở dưới Record và Timestamp lấy ở CoreManager cũng được.
     // CẦN TẠO một kiểu Msg mới có signature là có struct ... bắn void* data chứ k phải là một string hay một số bất kì
-    dbThreadPool_->insertAudioRecord("test.wav", 10, 1234567890);
+    // dbThreadPool_->insertAudioRecord("test.wav", 10, 1234567890);
 }
 
 // TODO: Ở start up thì lấy ra biến file các bản ghi âm để lưu ở StateView là được (init của session tự lấy để hiển thị)
