@@ -3,12 +3,6 @@
 + NÂNG CAO: quá bao nhiêu MB thì qua log mới dù ko restart Pi
 + NÂNG CAO: Giải nén file
 
-5. Viết RecordManager (ALSA API để ghi âm)
-mpv ten_file.wav
-ffplay ten_file.wav
-aplay ten_file.wav (Của ALSA thì phải)
-Note: Chưa biết cái nào là best practice
-
 7. Unit test dùng gg test (Có CmakeList riêng)
 - Cho thằng coremgr là được
 - Xài GMOCK + CmakeList cho nó chuẩn chuyên nghiệp.
@@ -22,46 +16,12 @@ Note: Chưa biết cái nào là best practice
 
 9. Xài queue cho HardwareMânger
 
-10. Lọc tạp âm (sau khi ghi âm = 1 thread khác của RecordManager)
-Sau đó bắn NOTI cho CoreManager để CoreManager lưu vào Database + gửi lên web
-
 15. Cần có xử lý Timer Timeout ở CoreManager, tức nó phải nhận NOTI sau mấy giây ko thì nó sẽ tự động trả về App status false
 và kill thằng service đó (Để nó start lại)
 
-===============================================================
-tức là tôi cần viết một daemon C++ để liên tục kiểm tra rằng tôi có đang kết nối (pair) với Loa nào không. Kiểu có thể xác định đó là output loa chứ ko phải pair với phone, chuột PC, ... Sau đó sẽ update thông tin chính xác là Loa tới một daemon C++ khác (ví dụ AudioManager) để được phép phát audio file ra loa qua bluetooth.
-//////
+16. Sửa lại updateBroadcast cho chuẩn để bắn data lên. Sửa ở cả html js để nhận msg cho chuẩn. Xử lý chuẩn.
+// TODO ở cả khi insert và get (sau này remove cũng get rồi bắn lên web)
 
-Đúng vậy — bạn hoàn toàn có thể viết một daemon C++ để giám sát các thiết bị Bluetooth đang kết nối, lọc ra thiết bị là loa (audio sink), và gửi thông tin đó đến một daemon khác như AudioManager. Tuy nhiên, để làm điều này đúng cách, bạn nên sử dụng D-Bus API của BlueZ.
-
-🧠 Tổng quan kiến trúc
-BlueZ là Bluetooth stack chính thức trên Linux.
-
-bluetoothd là daemon chính của BlueZ, cung cấp API qua D-Bus.
-
-Bạn sẽ viết một daemon C++:
-
-Kết nối D-Bus system bus.
-
-Theo dõi các thiết bị Bluetooth thông qua org.bluez.Adapter1, org.bluez.Device1, org.bluez.MediaControl1, v.v.
-
-Lọc các thiết bị có Class hoặc UUID tương ứng với audio sink (ví dụ: 0000110b-0000-1000-8000-00805f9b34fb là A2DP Sink).
-
-Khi phát hiện thiết bị loa được kết nối, gửi thông tin đến AudioManager (qua socket, D-Bus, hoặc shared memory tùy bạn thiết kế).
-
-Lắng nghe signal PropertiesChanged trên interface org.bluez.Device1.
-
-Kiểm tra thuộc tính:
-
-Connected = true
-
-UUIDs chứa A2DP Sink hoặc AudioSink UUID
-
-Alias hoặc Name chứa từ khóa như "Speaker", "JBL", "Bose"...
-
-🧪 Gợi ý kiểm thử
-Dùng bluetoothctl để pair và connect loa thủ công.
-
-Chạy daemon của bạn song song để xem log có phát hiện đúng thiết bị không.
-
-Dùng pactl list sinks để kiểm tra thiết bị audio đầu ra tương ứng.
+17. Viết AudioManager riêng cho việc phát âm thanh (detect card device loa để phát)
+Cứ có th nào request chơi file audio thì spawn một thread / một process (CÁI NÀY QUAN TRỌNG, CẦN HỎI)
+BỞI có thể cho chúng nó chơi âm thanh đè lên nhau được mà (Tức nhiều process / nhiều thread chạy đồng thời)

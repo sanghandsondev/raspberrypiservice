@@ -56,17 +56,9 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
     }
 }
 
-void MainWorker::processStartRecordEvent() {
-    if (recordWorker_) {
-        recordWorker_->startRecording();
-    }
-}
+void MainWorker::processStartRecordEvent() { recordWorker_->startRecording();}
 
-void MainWorker::processStopRecordEvent() {
-    if (recordWorker_) {
-        recordWorker_->stopRecording();
-    }
-}
+void MainWorker::processStopRecordEvent() { recordWorker_->stopRecording(); }
 
 void MainWorker::processFilterWavFileEvent(std::shared_ptr<Payload> payload) {
     std::shared_ptr<WavPayload> wavPayload = std::dynamic_pointer_cast<WavPayload>(payload);

@@ -4,11 +4,8 @@
 #include <string>
 #include <sqlite3.h>
 #include <vector>
-
-struct AudioRecord {
-    int id;
-    std::string filePath;
-};
+#include <mutex> // Thêm header mutex
+#include "Schema.hpp"
 
 class SQLiteDatabase {
     public:
@@ -28,6 +25,7 @@ class SQLiteDatabase {
     private:
         std::string dbFilePath_;
         struct sqlite3 *db_; // Forward declaration of sqlite3
+        mutable std::mutex dbMutex_; // Thêm mutex
 
         bool executeSQL(const std::string& sql);
         sqlite3_stmt* prepareStatement(const std::string& sql);

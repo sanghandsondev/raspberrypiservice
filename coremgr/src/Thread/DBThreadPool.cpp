@@ -51,22 +51,6 @@ void DBThreadPool::enqueueTask(std::function<void()> task) {
     cv_.notify_one();
 }
 
-void DBThreadPool::insertAudioRecord(const std::string& filePath) {
-    auto task = [this, filePath]() {
-        AudioRecord record;
-        record.filePath = filePath;
-
-        std::lock_guard<std::mutex> dbLock(dbMutex_);
-        if (!database_->insertAudioRecord(record)) {
-            R_LOG(ERROR, "DBThreadPool: Failed to insert audio record into database");
-        } else {
-            R_LOG(INFO, "DBThreadPool: Audio record inserted successfully: %s", filePath.c_str());
-        }
-    };
-
-    enqueueTask(task);
-}
-
 void DBThreadPool::threadFunction() {
     R_LOG(INFO, "DBThreadPool worker thread started");
 
@@ -96,6 +80,34 @@ void DBThreadPool::threadFunction() {
 
     R_LOG(INFO, "DBThreadPool worker thread exiting");
 }
+
+void DBThreadPool::insertAudioRecord(const std::string& filePath) {
+    auto task = [this, filePath]() {
+        AudioRecord record;
+        record.filePath = filePath;
+
+        std::lock_guard<std::mutex> dbLock(dbMutex_);
+        if (!database_->insertAudioRecord(record)) {
+            R_LOG(ERROR, "DBThreadPool: Failed to insert audio record into database");
+        } else {
+            R_LOG(INFO, "DBThreadPool: Audio record inserted successfully: %s", filePath.c_str());
+        }
+    };
+
+    enqueueTask(task);
+}
+
+void DBThreadPool::getAllAudioRecords(std::vector<AudioRecord>& outRecords) {
+    auto task = [this, &outRecords]() {
+        std::lock_guard<std::mutex> dbLock(dbMutex_);
+        outRecords = database_->getAllRecords();
+        R_LOG(INFO, "DBThreadPool: Retrieved %zu audio records from database", outRecords.size());
+    };
+
+    enqueueTask(task);
+}
+
+
 
 
 

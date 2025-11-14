@@ -11,6 +11,7 @@ SQLiteDatabase::~SQLiteDatabase() {
 }
 
 bool SQLiteDatabase::open() {
+    std::lock_guard<std::mutex> lock(dbMutex_);
     try{
         fs::path dbPath(dbFilePath_);
         fs::create_directories(dbPath.parent_path());
@@ -32,6 +33,7 @@ bool SQLiteDatabase::open() {
 }
 
 void SQLiteDatabase::close() {
+    std::lock_guard<std::mutex> lock(dbMutex_);
     if (db_) {
         sqlite3_close(db_);
         db_ = nullptr;
@@ -78,6 +80,8 @@ sqlite3_stmt* SQLiteDatabase::prepareStatement(const std::string& sql) {
 }
 
 bool SQLiteDatabase::insertAudioRecord(const AudioRecord &record) {
+    std::lock_guard<std::mutex> lock(dbMutex_);
+
     const std::string insertSQL = R"(
         INSERT INTO audio_records (file_path)
         VALUES (?);
@@ -104,6 +108,8 @@ bool SQLiteDatabase::insertAudioRecord(const AudioRecord &record) {
 }
 
 std::vector<AudioRecord> SQLiteDatabase::getAllRecords() {
+    std::lock_guard<std::mutex> lock(dbMutex_);
+    
     std::vector<AudioRecord> records;
     const std::string querySQL = R"(
         SELECT id, file_path, created_at FROM audio_records ORDER BY created_at DESC LIMIT 100;

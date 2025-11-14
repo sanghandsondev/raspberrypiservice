@@ -35,22 +35,6 @@ class MainWorker : public ThreadBase {
 
         void threadFunction() override;
         void processEvent(const std::shared_ptr<Event> event);
-        
-        // Hardware request
-        void processOnOffLEDEvent();
-
-        // Record request
-        void processStartRecordEvent();
-        void processStopRecordEvent();
-
-        // Hardware notification
-        void processTurnOnLEDNOTIEvent(std::shared_ptr<Payload>);
-        void processTurnOffLEDNOTIEvent(std::shared_ptr<Payload>);
-
-        // Record notification
-        void processStartRecordNOTIEvent(std::shared_ptr<Payload>);
-        void processStopRecordNOTIEvent(std::shared_ptr<Payload>);
-        void processFilterWavFileNOTIEvent(std::shared_ptr<Payload>);
 };
 
 #endif // MAIN_WORKER_HPP_

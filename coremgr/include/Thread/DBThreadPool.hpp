@@ -10,6 +10,8 @@
 #include <thread>
 #include <queue>
 #include <functional>
+#include "Schema.hpp"
+#include <vector>
 
 class SQLiteDatabase;
 class EventQueue;
@@ -23,7 +25,7 @@ class DBThreadPool : public ThreadBase {
         void enqueueTask(std::function<void()> task);
         
         void insertAudioRecord(const std::string& filePath);
-
+        void getAllAudioRecords(std::vector<AudioRecord>& outRecords);
     private:
         void threadFunction() override;
         

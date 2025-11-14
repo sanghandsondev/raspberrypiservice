@@ -92,5 +92,11 @@ void RecordHandler::filterWavFileNOTI(std::shared_ptr<Payload> payload){
         R_LOG(INFO, "Audio filtering succeeded: %s", notiPayload->getMsgInfo().c_str());
         // Insert record into database
         dbThreadPool_->insertAudioRecord(notiPayload->getMsgInfo());
+
+        // Retrieve updated list of audio records
+        std::vector<AudioRecord> vec;
+        dbThreadPool_->getAllAudioRecords(vec);
+        R_LOG(INFO, "SQLiteDBHandler: Retrieved %zu audio records from database", vec.size());
+        // webSocket_->getServer()->updateStateAndBroadcast(); // TODO
     }
 }

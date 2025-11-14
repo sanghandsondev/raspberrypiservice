@@ -40,7 +40,6 @@ int main(){
     sd_notify(0, "READY=1");
     
     std::shared_ptr<EventQueue> eventQueue = std::make_shared<EventQueue>();
-    startUpCoreMgr(eventQueue);
 
     auto mainWorker = std::make_shared<MainWorker>(eventQueue);
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
@@ -55,6 +54,8 @@ int main(){
     dbusReceiver->run();
     webSocketThread->run();
     dbThreadPool->run();
+
+    startUpCoreMgr(eventQueue);
 
     g_runningFlag = true;
     while(g_runningFlag) {
