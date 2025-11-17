@@ -7,6 +7,7 @@
 #include "WebSocket.hpp"
 #include "Event.hpp"
 #include "DBThreadPool.hpp"
+#include "json.hpp"     // nlohmann::json
 
 void RecordHandler::startRecord(){
     RecordState currentState = STATE_VIEW_INSTANCE()->RECORD_STATE;
@@ -87,7 +88,7 @@ void RecordHandler::filterWavFileNOTI(std::shared_ptr<Payload> payload){
 
     if (notiPayload->isSuccess() == false) {
         R_LOG(ERROR, "Audio filtering failed: %s", notiPayload->getMsgInfo().c_str());
-        webSocket_->getServer()->updateStateAndBroadcast("record", "filter_failed", notiPayload->getMsgInfo());
+        webSocket_->getServer()->updateStateAndBroadcast("record_filter", "fail", notiPayload->getMsgInfo());
     } else {
         R_LOG(INFO, "Audio filtering succeeded: %s", notiPayload->getMsgInfo().c_str());
         // Insert record into database
@@ -97,6 +98,15 @@ void RecordHandler::filterWavFileNOTI(std::shared_ptr<Payload> payload){
         std::vector<AudioRecord> vec;
         dbThreadPool_->getAllAudioRecords(vec);
         R_LOG(INFO, "SQLiteDBHandler: Retrieved %zu audio records from database", vec.size());
-        // webSocket_->getServer()->updateStateAndBroadcast(); // TODO
+
+        // Broadcast updated record list
+        nlohmann::json jsonVec = nlohmann::json::array();
+        for (const auto& record : vec) {
+            nlohmann::json recordJson;
+            recordJson["id"] = record.id;
+            recordJson["file_path"] = record.filePath;
+            jsonVec.push_back(recordJson);
+        }
+        webSocket_->getServer()->updateStateAndBroadcast("record_list", jsonVec);
     }
 }

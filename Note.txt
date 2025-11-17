@@ -1,27 +1,36 @@
-2. Viết Logger chung cho toàn bộ bên ngoài
+1. Viết Logger chung cho toàn bộ bên ngoài
 + ghi log vào 1 file (mỗi lần restart Pi là 1 file khác nhau, còn restart app thì ko)
 + NÂNG CAO: quá bao nhiêu MB thì qua log mới dù ko restart Pi
 + NÂNG CAO: Giải nén file
 
-7. Unit test dùng gg test (Có CmakeList riêng)
+2. Unit test dùng gg test (Có CmakeList riêng)
 - Cho thằng coremgr là được
 - Xài GMOCK + CmakeList cho nó chuẩn chuyên nghiệp.
 
-8. Viết CloundManager nhận tín hiệu từ CoreManager
--CoreManager nhận tín hiệu từ HardwareManager. 
--Mỗi 5s bắn cho CoreManager một phát
--Nếu mà nhiệt độ / tình trạng CPU / ... của Pi 4 ko chênh lệch quá bao nhiêu % đó thì sẽ ko
-    gửi đến CloundManager. 
-- Còn ko thì update lên CloudManager
+3. HardwareManager mỗi 5s gửi nhiệt độ, tình trạng CPU, .. trạng thái của Pi 4. 
+- Nếu chênh lệch quá 5% so với state cũ thì update + bắn tới CloundManager
+PHAT TRIỂN MSG DBUS ĐỂ NHẬN DATA LÀ MỘT VECTOR KIỂU Array[16]=50 --> 16 là nhiệt độ (Enum) và ta sẽ biết được là nhiệt độ = 50 độ
+- Data khả năng sẽ truyền kiểu vector [key]=value : tạo một enum key để toàn bộ nhận diện được type(key). Cái nào = -1 thì ko update. Còn value != -1 thì set type = value tương ứng
 
-9. Xài queue cho HardwareMânger
+4. CloundManager, HardwareMânger -> queue
 
-15. Cần có xử lý Timer Timeout ở CoreManager, tức nó phải nhận NOTI sau mấy giây ko thì nó sẽ tự động trả về App status false
+18. BluetoothManager
+
+5. Cần có xử lý Timer Timeout ở CoreManager, tức nó phải nhận NOTI sau mấy giây ko thì nó sẽ tự động trả về App status false
 và kill thằng service đó (Để nó start lại)
 
-16. Sửa lại updateBroadcast cho chuẩn để bắn data lên. Sửa ở cả html js để nhận msg cho chuẩn. Xử lý chuẩn.
-// TODO ở cả khi insert và get (sau này remove cũng get rồi bắn lên web)
+16. Mỗi lần load init page web thì sẽ request get list record
 
 17. Viết AudioManager riêng cho việc phát âm thanh (detect card device loa để phát)
 Cứ có th nào request chơi file audio thì spawn một thread / một process (CÁI NÀY QUAN TRỌNG, CẦN HỎI)
 BỞI có thể cho chúng nó chơi âm thanh đè lên nhau được mà (Tức nhiều process / nhiều thread chạy đồng thời)
+
+
+=====================
+
+Setup Environment VSCode để code QT QML (QT6)
+Thử một màn hình đơn giản (1 nút bấm)
+Build như nào đó để hiển thị được trên màn hình Pi 4
+OK --> phát triển luôn cái QT App đó (bên trái có hiển thị các icon chức năng.... giống IVI)
+Vẫn sử dụng WebSocket
+Viết lại giao tiếp giữa QT App và ấy ấy cho chuẩn
