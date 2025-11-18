@@ -50,16 +50,37 @@ void WebSocket::handleMessageFromClient(const std::string& message){
             R_LOG(INFO, "Parsed command: %s", command.c_str());
 
             // TODO: Tạo một TranslateCommand cho chuyên nghiệp hơn
-            if (command == "toggle_led") {
-                auto event = std::make_shared<Event>(EventTypeID::ONOFF_LED);
-                eventQueue_->pushEvent(event);
-            } else if (command == "start_record") { 
-                auto event = std::make_shared<Event>(EventTypeID::START_RECORD);
-                eventQueue_->pushEvent(event);
-            } else if (command == "stop_record") {
-                auto event = std::make_shared<Event>(EventTypeID::STOP_RECORD);
-                eventQueue_->pushEvent(event);
+            switch(command){
+                case "toggle_led": {
+                    auto event = std::make_shared<Event>(EventTypeID::ONOFF_LED);
+                    eventQueue_->pushEvent(event);
+                    break;
+                }
+                case "start_record": {
+                    auto event = std::make_shared<Event>(EventTypeID::START_RECORD);
+                    eventQueue_->pushEvent(event);
+                    break;
+                }
+                case "stop_record": {
+                    auto event = std::make_shared<Event>(EventTypeID::STOP_RECORD);
+                    eventQueue_->pushEvent(event);
+                    break;
+                }
+                default:
+                    R_LOG(WARN, "Unknown command received: %s", command.c_str());
+                    break;
             }
+
+            // if (command == "toggle_led") {
+            //     auto event = std::make_shared<Event>(EventTypeID::ONOFF_LED);
+            //     eventQueue_->pushEvent(event);
+            // } else if (command == "start_record") { 
+            //     auto event = std::make_shared<Event>(EventTypeID::START_RECORD);
+            //     eventQueue_->pushEvent(event);
+            // } else if (command == "stop_record") {
+            //     auto event = std::make_shared<Event>(EventTypeID::STOP_RECORD);
+            //     eventQueue_->pushEvent(event);
+            // }
 
         } else {
             R_LOG(WARN, "Received JSON does not contain 'command' field.");
