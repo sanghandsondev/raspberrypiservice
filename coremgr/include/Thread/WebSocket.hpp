@@ -6,7 +6,7 @@
 
 class EventQueue;
 class WebSocketServer;
-
+class Event;
 
 class WebSocket : public ThreadBase {
     public:

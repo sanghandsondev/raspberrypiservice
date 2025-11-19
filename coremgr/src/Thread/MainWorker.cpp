@@ -82,12 +82,6 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::STOP_RECORD_NOTI:
             recordHandler_->stopRecordNOTI(payload);
             break;
-        // case EventTypeID::TURN_ON_LED_NOTI:
-        //     hardwareHandler_->turnOnLEDNOTI(payload);
-        //     break;
-        // case EventTypeID::TURN_OFF_LED_NOTI:
-        //     hardwareHandler_->turnOffLEDNOTI(payload);
-        //     break;
         case EventTypeID::FILTER_WAV_FILE_NOTI:
             recordHandler_->filterWavFileNOTI(payload);
             break;

@@ -47,7 +47,7 @@ void WebSocket::handleMessageFromClient(const std::string& message){
 
         if (jsonData.contains("command")) {
             std::string commandStr = jsonData["command"];
-            R_LOG(INFO, "Parsed command: %s", command.c_str());
+            R_LOG(INFO, "Parsed command: %s", commandStr.c_str());
 
             auto event = translateMsg(commandStr);
             if (event) {

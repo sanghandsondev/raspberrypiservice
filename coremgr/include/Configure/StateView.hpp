@@ -5,12 +5,6 @@
 
 #define STATE_VIEW_INSTANCE() StateView::getInstance()
 
-// enum class LEDState {
-//     OFF = 0,
-//     ON,
-//     PROCESSING
-// };
-
 enum class RecordState {
     STOPPED = 0,
     RECORDING,
@@ -27,7 +21,6 @@ class StateView {
         StateView &operator=(const StateView &) = delete;
 
         // View Properties
-        inline static LEDState LED_STATE = LEDState::OFF;
         inline static RecordState RECORD_STATE = RecordState::STOPPED;
 
     private:

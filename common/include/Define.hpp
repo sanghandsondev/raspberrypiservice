@@ -5,11 +5,6 @@ enum class DBusCommand {
     NONE = 0,
 
     // Hardware
-    // TURN_ON_LED = 1,
-    // TURN_OFF_LED,
-
-    // TURN_ON_LED_NOTI,
-    // TURN_OFF_LED_NOTI,
 
     // Record
     START_RECORD,

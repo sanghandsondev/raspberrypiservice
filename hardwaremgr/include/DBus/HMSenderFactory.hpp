@@ -14,9 +14,7 @@ class HMSenderFactory : public ISenderFactory {
         DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) override;
 
     private:
-                              
-        // DBusMessage* makeMsgNoti_TurnOnLED(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
-        // DBusMessage* makeMsgNoti_TurnOffLED(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
+
 
 };
 

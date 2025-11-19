@@ -46,7 +46,7 @@ class WavPayload : public Payload {
 // TODO
 class RemoveRecordPayload : public Payload {
     
-}
+};
 
 class Event {
     public:

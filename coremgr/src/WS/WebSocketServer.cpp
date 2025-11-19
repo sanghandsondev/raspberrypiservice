@@ -155,7 +155,6 @@ void WebSocketServer::sendInitStateToClient(std::shared_ptr<WebSocketSession> se
     json status_msg;
     status_msg["type"] = "initial_status";
     status_msg["state"] = {
-        {"led", (STATE_VIEW_INSTANCE()->LED_STATE == LEDState::ON ? "on" : "off")},
         {"record", (STATE_VIEW_INSTANCE()->RECORD_STATE == RecordState::RECORDING ? "recording" : "stopped")}
     };
 
@@ -175,5 +174,5 @@ void WebSocketServer::updateStateAndBroadcast(const std::string& component, cons
 
     std::string message = status_msg.dump();
     broadcast(message);
-    R_LOG(INFO, "Broadcasted LED state update: %s", message.c_str());
+    R_LOG(INFO, "Broadcasted state update: %s", message.c_str());
 }

@@ -11,14 +11,7 @@ DBusReceiver::DBusReceiver()
 
 void DBusReceiver::handleMessage(DBusCommand cmd) {
     switch (cmd) {
-        // case DBusCommand::TURN_ON_LED:
-        //     // TODO : Xử lý sự kiện START_RECORD
-        //     DBUS_SENDER()->sendMessageNoti(DBusCommand::TURN_ON_LED_NOTI, true, "LED turned on");
-        //     break;
-        // case DBusCommand::TURN_OFF_LED:
-        //     // TODO : Xử lý sự kiện STOP_RECORD
-        //     DBUS_SENDER()->sendMessageNoti(DBusCommand::TURN_OFF_LED_NOTI, true, "LED turned off");
-        //     break;
+
         default:
             R_LOG(WARN, "DBusReceiver received unknown DBusCommand");
             break;
