@@ -15,10 +15,10 @@ class HardwareHandler {
             webSocket_ = ws;
         };
 
-        void onOffLED();
+        // void onOffLED();
 
-        void turnOnLEDNOTI(std::shared_ptr<Payload>);
-        void turnOffLEDNOTI(std::shared_ptr<Payload>);
+        // void turnOnLEDNOTI(std::shared_ptr<Payload>);
+        // void turnOffLEDNOTI(std::shared_ptr<Payload>);
     
     private:
         std::shared_ptr<WebSocket> webSocket_;

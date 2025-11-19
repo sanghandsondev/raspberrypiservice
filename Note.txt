@@ -28,9 +28,14 @@ BỞI có thể cho chúng nó chơi âm thanh đè lên nhau được mà (Tứ
 
 =====================
 
-Setup Environment VSCode để code QT QML (QT6)
-Thử một màn hình đơn giản (1 nút bấm)
-Build như nào đó để hiển thị được trên màn hình Pi 4
-OK --> phát triển luôn cái QT App đó (bên trái có hiển thị các icon chức năng.... giống IVI)
-Vẫn sử dụng WebSocket
-Viết lại giao tiếp giữa QT App và ấy ấy cho chuẩn
+BẮT BUỘC PHÍA DƯỚI COREMANAGER Service sẽ implement lại nhiều
+            Nhớ bên trong TranslateMsg phải tạo dược Payload tương ứng với các request riêng. Giả sử với Start Record thì ko cần payload
+            Nhưng với Remove Record là phải có RemoveRecordPayload chứa Id của thằng cần remove. Truyền xuống dưới tận RecordManager cơ mà. 
+
+SAU ĐÓ: Là viết lại format cho việc gửi MSg lên cho WebSocketClient (QTApp/HTML WEb) với 3 field chính ở trên (status, msg, data)
+
+CUỐI CÙNG: DBUS data recevice, cần xử lý cực kì chính xác cho thằng này
+
+XÓA chức năng bật tắt LED
+
+https://wiki.qt.io/Cross-Compile_Qt_6_for_Raspberry_Pi

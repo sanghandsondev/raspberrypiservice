@@ -5,11 +5,11 @@
 
 #define STATE_VIEW_INSTANCE() StateView::getInstance()
 
-enum class LEDState {
-    OFF = 0,
-    ON,
-    PROCESSING
-};
+// enum class LEDState {
+//     OFF = 0,
+//     ON,
+//     PROCESSING
+// };
 
 enum class RecordState {
     STOPPED = 0,

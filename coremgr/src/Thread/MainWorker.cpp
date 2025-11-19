@@ -67,14 +67,14 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             sqliteDBHandler_->getAllAudioRecords();
             // TODO: bip bip speaker by hardwareHandler_->()
             break;
-        case EventTypeID::ONOFF_LED:
-            hardwareHandler_->onOffLED();
-            break;
         case EventTypeID::START_RECORD:
             recordHandler_->startRecord();
             break;
         case EventTypeID::STOP_RECORD:
-            recordHandler_->stopRecord();
+            // recordHandler_->stopRecord();
+            break;
+        case EventTypeID::CANCEL_RECORD:
+            // recordHandler_->cancelRecord();
             break;
         case EventTypeID::START_RECORD_NOTI:
             recordHandler_->startRecordNOTI(payload);
@@ -82,12 +82,12 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::STOP_RECORD_NOTI:
             recordHandler_->stopRecordNOTI(payload);
             break;
-        case EventTypeID::TURN_ON_LED_NOTI:
-            hardwareHandler_->turnOnLEDNOTI(payload);
-            break;
-        case EventTypeID::TURN_OFF_LED_NOTI:
-            hardwareHandler_->turnOffLEDNOTI(payload);
-            break;
+        // case EventTypeID::TURN_ON_LED_NOTI:
+        //     hardwareHandler_->turnOnLEDNOTI(payload);
+        //     break;
+        // case EventTypeID::TURN_OFF_LED_NOTI:
+        //     hardwareHandler_->turnOffLEDNOTI(payload);
+        //     break;
         case EventTypeID::FILTER_WAV_FILE_NOTI:
             recordHandler_->filterWavFileNOTI(payload);
             break;

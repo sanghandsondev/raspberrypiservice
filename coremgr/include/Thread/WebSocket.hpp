@@ -21,6 +21,7 @@ class WebSocket : public ThreadBase {
         std::unique_ptr<WebSocketServer> wsServer_;
 
         void handleMessageFromClient(const std::string& message);
+        std::shared_ptr<Event> translateMsg(const std::string& message);
 
         void threadFunction() override;
 };

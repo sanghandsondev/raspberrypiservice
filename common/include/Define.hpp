@@ -5,18 +5,22 @@ enum class DBusCommand {
     NONE = 0,
 
     // Hardware
-    TURN_ON_LED = 1,
-    TURN_OFF_LED,
+    // TURN_ON_LED = 1,
+    // TURN_OFF_LED,
 
-    TURN_ON_LED_NOTI,
-    TURN_OFF_LED_NOTI,
+    // TURN_ON_LED_NOTI,
+    // TURN_OFF_LED_NOTI,
 
     // Record
     START_RECORD,
     STOP_RECORD,
+    CANCEL_RECORD,
+    REMOVE_RECORD,
 
     START_RECORD_NOTI,
     STOP_RECORD_NOTI,
+    CANCEL_RECORD_NOTI,
+    REMOVE_RECORD_NOTI,
     FILTER_WAV_FILE_NOTI,
 
     MAX

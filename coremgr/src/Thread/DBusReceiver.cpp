@@ -28,20 +28,20 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const std:
             static_cast<int>(cmd), isSuccess, msgInfo.c_str());
     switch (cmd) {
         // From Hardware Manager Service
-        case DBusCommand::TURN_ON_LED_NOTI: {
-            R_LOG(INFO, "Dispatching TURN_ON_LED_NOTI from DBus");
-            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, msgInfo);
-            auto event = std::make_shared<Event>(EventTypeID::TURN_ON_LED_NOTI, payload);
-            eventQueue_->pushEvent(event);
-            break;
-        }
-        case DBusCommand::TURN_OFF_LED_NOTI: {
-            R_LOG(INFO, "Dispatching TURN_OFF_LED_NOTI from DBus");
-            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, msgInfo);
-            auto event = std::make_shared<Event>(EventTypeID::TURN_OFF_LED_NOTI, payload);
-            eventQueue_->pushEvent(event);
-            break;
-        }
+        // case DBusCommand::TURN_ON_LED_NOTI: {
+        //     R_LOG(INFO, "Dispatching TURN_ON_LED_NOTI from DBus");
+        //     std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, msgInfo);
+        //     auto event = std::make_shared<Event>(EventTypeID::TURN_ON_LED_NOTI, payload);
+        //     eventQueue_->pushEvent(event);
+        //     break;
+        // }
+        // case DBusCommand::TURN_OFF_LED_NOTI: {
+        //     R_LOG(INFO, "Dispatching TURN_OFF_LED_NOTI from DBus");
+        //     std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, msgInfo);
+        //     auto event = std::make_shared<Event>(EventTypeID::TURN_OFF_LED_NOTI, payload);
+        //     eventQueue_->pushEvent(event);
+        //     break;
+        // }
 
         // From Record Manager Service
         case DBusCommand::START_RECORD_NOTI: {

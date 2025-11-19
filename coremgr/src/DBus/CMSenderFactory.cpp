@@ -3,10 +3,10 @@
 
 DBusMessage* CMSenderFactory::makeMsg(DBusCommand cmd) {
     switch (cmd) {
-        case DBusCommand::TURN_ON_LED:
-            return makeMsg_TurnOnLed(cmd);
-        case DBusCommand::TURN_OFF_LED:
-            return makeMsg_TurnOffLed(cmd);
+        // case DBusCommand::TURN_ON_LED:
+        //     return makeMsg_TurnOnLed(cmd);
+        // case DBusCommand::TURN_OFF_LED:
+        //     return makeMsg_TurnOffLed(cmd);
         case DBusCommand::START_RECORD:
             return makeMsg_StartRecord(cmd);
         case DBusCommand::STOP_RECORD:
@@ -28,21 +28,21 @@ DBusMessage* CMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
 }
 
 // Specific message creation functions
-DBusMessage* CMSenderFactory::makeMsg_TurnOnLed(DBusCommand cmd) {
-    const char* objectPath = "/com/example/hardwaremanager";
-    const char* interfaceName = "com.example.hardwaremanager.interface";
-    const char* signalName = "HardwareSignal";
+// DBusMessage* CMSenderFactory::makeMsg_TurnOnLed(DBusCommand cmd) {
+//     const char* objectPath = "/com/example/hardwaremanager";
+//     const char* interfaceName = "com.example.hardwaremanager.interface";
+//     const char* signalName = "HardwareSignal";
 
-    return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
-}
+//     return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
+// }
 
-DBusMessage* CMSenderFactory::makeMsg_TurnOffLed(DBusCommand cmd) {
-    const char* objectPath = "/com/example/hardwaremanager";
-    const char* interfaceName = "com.example.hardwaremanager.interface";
-    const char* signalName = "HardwareSignal";
+// DBusMessage* CMSenderFactory::makeMsg_TurnOffLed(DBusCommand cmd) {
+//     const char* objectPath = "/com/example/hardwaremanager";
+//     const char* interfaceName = "com.example.hardwaremanager.interface";
+//     const char* signalName = "HardwareSignal";
 
-    return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
-}
+//     return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
+// }
 
 DBusMessage* CMSenderFactory::makeMsg_StartRecord(DBusCommand cmd) {
     const char* objectPath = "/com/example/recordmanager";

@@ -46,42 +46,13 @@ void WebSocket::handleMessageFromClient(const std::string& message){
         json jsonData = json::parse(message);
 
         if (jsonData.contains("command")) {
-            std::string command = jsonData["command"];
+            std::string commandStr = jsonData["command"];
             R_LOG(INFO, "Parsed command: %s", command.c_str());
 
-            // TODO: Tạo một TranslateCommand cho chuyên nghiệp hơn
-            switch(command){
-                case "toggle_led": {
-                    auto event = std::make_shared<Event>(EventTypeID::ONOFF_LED);
-                    eventQueue_->pushEvent(event);
-                    break;
-                }
-                case "start_record": {
-                    auto event = std::make_shared<Event>(EventTypeID::START_RECORD);
-                    eventQueue_->pushEvent(event);
-                    break;
-                }
-                case "stop_record": {
-                    auto event = std::make_shared<Event>(EventTypeID::STOP_RECORD);
-                    eventQueue_->pushEvent(event);
-                    break;
-                }
-                default:
-                    R_LOG(WARN, "Unknown command received: %s", command.c_str());
-                    break;
+            auto event = translateMsg(commandStr);
+            if (event) {
+                eventQueue_->pushEvent(event);
             }
-
-            // if (command == "toggle_led") {
-            //     auto event = std::make_shared<Event>(EventTypeID::ONOFF_LED);
-            //     eventQueue_->pushEvent(event);
-            // } else if (command == "start_record") { 
-            //     auto event = std::make_shared<Event>(EventTypeID::START_RECORD);
-            //     eventQueue_->pushEvent(event);
-            // } else if (command == "stop_record") {
-            //     auto event = std::make_shared<Event>(EventTypeID::STOP_RECORD);
-            //     eventQueue_->pushEvent(event);
-            // }
-
         } else {
             R_LOG(WARN, "Received JSON does not contain 'command' field.");
         }
@@ -92,4 +63,20 @@ void WebSocket::handleMessageFromClient(const std::string& message){
         R_LOG(ERROR, "Exception while handling message: %s", e.what());
     }
     
+}
+
+std::shared_ptr<Event> WebSocket::translateMsg(const std::string& message){
+    std::shared_ptr<Event> event = nullptr;
+    if (message == "start_record") {
+        event = std::make_shared<Event>(EventTypeID::START_RECORD);
+    }
+    else if (message == "stop_record") {
+        event = std::make_shared<Event>(EventTypeID::STOP_RECORD);
+    }
+    else if (message == "cancel_record") {
+        event = std::make_shared<Event>(EventTypeID::CANCEL_RECORD);
+    } else {
+        R_LOG(WARN, "Unknown command received: %s", message.c_str());
+    }
+    return event;
 }

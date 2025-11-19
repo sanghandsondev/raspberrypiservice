@@ -30,6 +30,7 @@ class NotiPayload : public Payload {
         std::string msgInfo_;
 };
 
+// TODO
 class WavPayload : public Payload {
     public:
         explicit WavPayload(const std::string &filePath = "") : filePath_(filePath) {}
@@ -41,6 +42,11 @@ class WavPayload : public Payload {
     private:
         std::string filePath_;
 };
+
+// TODO
+class RemoveRecordPayload : public Payload {
+    
+}
 
 class Event {
     public:
