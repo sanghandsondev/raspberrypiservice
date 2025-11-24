@@ -18,8 +18,6 @@ void DBusReceiver::handleMessage(DBusCommand cmd) {
     }
 }
 
-void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) {
+void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     // TODO
-    R_LOG(INFO, "DBusReceiver handling notification: cmd=%d, isSuccess=%d, msgInfo=%s",
-            static_cast<int>(cmd), isSuccess, msgInfo.c_str());
 }

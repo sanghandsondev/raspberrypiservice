@@ -4,6 +4,7 @@
 #include "EventTypeId.hpp"
 #include "RecordWorker.hpp"
 #include "DBusSender.hpp"
+#include "DBusData.hpp"
 #include "RLogger.hpp"
 #include "AudioFilter.hpp"
 #include <thread>
@@ -45,6 +46,10 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             R_LOG(INFO, "Processing STOP_RECORD event");
             processStopRecordEvent();
             break;
+        case EventTypeID::CANCEL_RECORD:
+            R_LOG(INFO, "Processing CANCEL_RECORD event");
+            processCancelRecordEvent();
+            break;
         case EventTypeID::FILTER_WAV_FILE:
             R_LOG(INFO, "Processing FILTER_WAV_FILE event");
             processFilterWavFileEvent(event->getPayload());
@@ -60,6 +65,8 @@ void MainWorker::processStartRecordEvent() { recordWorker_->startRecording();}
 
 void MainWorker::processStopRecordEvent() { recordWorker_->stopRecording(); }
 
+void MainWorker::processCancelRecordEvent() { recordWorker_->cancelRecording(); }
+
 void MainWorker::processFilterWavFileEvent(std::shared_ptr<Payload> payload) {
     std::shared_ptr<WavPayload> wavPayload = std::dynamic_pointer_cast<WavPayload>(payload);
     if (!wavPayload) {
@@ -67,6 +74,7 @@ void MainWorker::processFilterWavFileEvent(std::shared_ptr<Payload> payload) {
         return;
     }
     std::string wavFilePath = wavPayload->getFilePath();
+    int durationSec = wavPayload->getDurationSec();
     R_LOG(INFO, "Received WAV file for filtering: %s", wavFilePath.c_str());
 
     if(wavFilePath == "") {
@@ -74,18 +82,22 @@ void MainWorker::processFilterWavFileEvent(std::shared_ptr<Payload> payload) {
         return;
     }
 
-    std::thread([wavFilePath]() {
+    std::thread([wavFilePath, durationSec]() {
         R_LOG(INFO, "Starting filtering process for WAV file: %s", wavFilePath.c_str());
 
         AudioFilter filter;
         bool ret = filter.applyFilter(wavFilePath);
+        DBusDataInfo dataInfo;
         if (!ret) {
             // Failed to apply filter
             R_LOG(ERROR, "Failed to applying filter on WAV file: %s", wavFilePath.c_str());
-            DBUS_SENDER()->sendMessageNoti(DBusCommand::FILTER_WAV_FILE_NOTI, false, "Audio filtering failed. Cannot save audio file.");
+            dataInfo.data[DBUS_DATA_MESSAGE] = "FAILED to save WAV file.";
+            DBUS_SENDER()->sendMessageNoti(DBusCommand::FILTER_WAV_FILE_NOTI, false, dataInfo);
         } else {
             R_LOG(INFO, "Successfully applied to applying filter on WAV file: %s", wavFilePath.c_str());
-            DBUS_SENDER()->sendMessageNoti(DBusCommand::FILTER_WAV_FILE_NOTI, true, filter.getFilteredFilePath().c_str());
+            dataInfo.data[DBUS_DATA_WAV_FILE_PATH] = filter.getFilteredFilePath();
+            dataInfo.data[DBUS_DATA_WAV_FILE_DURATION_SEC] = std::to_string(durationSec);
+            DBUS_SENDER()->sendMessageNoti(DBusCommand::FILTER_WAV_FILE_NOTI, true, dataInfo);
         }
 
         R_LOG(INFO, "Completed filtering process for WAV file: %s", wavFilePath.c_str());

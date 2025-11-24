@@ -4,6 +4,7 @@
 #include <dbus/dbus.h>
 #include "Define.hpp"
 #include "ISenderFactory.hpp"
+#include "DBusData.hpp"
 
 class RMSenderFactory : public ISenderFactory {
     public:
@@ -11,12 +12,13 @@ class RMSenderFactory : public ISenderFactory {
         ~RMSenderFactory() override = default;
 
         DBusMessage* makeMsg(DBusCommand cmd) override;
-        DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) override;
+        DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) override;
 
     private:        
-        DBusMessage* makeMsgNoti_StartRecord(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
-        DBusMessage* makeMsgNoti_StopRecord(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
-        DBusMessage* makeMsgNoti_FilterWavFile(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
+        DBusMessage* makeMsgNoti_StartRecord(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_StopRecord(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_CancelRecord(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_FilterWavFile(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
 
 };
 

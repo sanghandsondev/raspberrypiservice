@@ -26,6 +26,7 @@ class MainWorker : public ThreadBase {
 
         void processStartRecordEvent();
         void processStopRecordEvent();
+        void processCancelRecordEvent();
         void processFilterWavFileEvent(std::shared_ptr<Payload>);
 };
 

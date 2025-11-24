@@ -6,6 +6,7 @@
 #include <dbus/dbus.h>
 #include <memory>
 #include <string>
+#include "DBusData.hpp"
 
 class DBusClient;
 
@@ -17,7 +18,7 @@ public:
 protected:
     void threadFunction() override;
     virtual void handleMessage(DBusCommand cmd) = 0;
-    virtual void handleMessageNoti(DBusCommand cmd, bool isSuccess, const std::string& msg) = 0;
+    virtual void handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo& msg) = 0;
 
 private:
     void dispatchMessage(DBusMessage* msg);

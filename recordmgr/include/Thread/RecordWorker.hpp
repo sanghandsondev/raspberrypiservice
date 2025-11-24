@@ -18,6 +18,7 @@ class RecordWorker : public ThreadBase {
 
         void startRecording();
         void stopRecording();
+        void cancelRecording();
         void stop() override;
 
     private:
@@ -35,6 +36,7 @@ class RecordWorker : public ThreadBase {
         std::mutex mtx_;
         std::condition_variable cv_;
         std::atomic<State> state_;
+        std::atomic<bool> cancelRequested_;
 };
 
 #endif // RECORD_WORKER_HPP_

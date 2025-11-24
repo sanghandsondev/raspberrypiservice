@@ -4,13 +4,14 @@
 #include "ISenderFactory.hpp"
 #include <dbus/dbus.h>
 #include <memory>
+#include "DBusData.hpp"
 
 class DBusSenderBase {
     public:
         explicit DBusSenderBase();
         virtual ~DBusSenderBase();
         bool sendMessage(DBusCommand cmd);
-        bool sendMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo);
+        bool sendMessageNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &dataInfo);
 
     protected:
         DBusConnection* conn_;

@@ -4,6 +4,7 @@
 #include <dbus/dbus.h>
 #include "Define.hpp"
 #include "ISenderFactory.hpp"
+#include "DBusData.hpp"
 
 class HMSenderFactory : public ISenderFactory {
     public:
@@ -11,7 +12,7 @@ class HMSenderFactory : public ISenderFactory {
         ~HMSenderFactory() override = default;
 
         DBusMessage* makeMsg(DBusCommand cmd) override;
-        DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) override;
+        DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) override;
 
     private:
 

@@ -33,19 +33,31 @@ class NotiPayload : public Payload {
 // TODO
 class WavPayload : public Payload {
     public:
-        explicit WavPayload(const std::string &filePath = "") : filePath_(filePath) {}
+        explicit WavPayload(const std::string &filePath, int durationSec = 0) : filePath_(filePath), durationSec_(durationSec) {}
 
         std::string getFilePath() const {
             return filePath_;
         }
 
+        int getDurationSec() const {
+            return durationSec_;
+        }
+
     private:
         std::string filePath_;
+        int durationSec_;
 };
 
 // TODO
 class RemoveRecordPayload : public Payload {
-    
+    public:
+        explicit RemoveRecordPayload(int recordId) : recordId_(recordId) {}
+
+        int getRecordId() const {
+            return recordId_;
+        }
+    private:
+        int recordId_;
 };
 
 class Event {

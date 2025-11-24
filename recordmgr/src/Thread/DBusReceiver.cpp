@@ -22,14 +22,16 @@ void DBusReceiver::handleMessage(DBusCommand cmd) {
             R_LOG(INFO, "DBusReceiver: Received STOP_RECORD command. Pushing event.");
             eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::STOP_RECORD));
             break;
+        case DBusCommand::CANCEL_RECORD:
+            R_LOG(INFO, "DBusReceiver: Received CANCEL_RECORD command. Pushing event.");
+            eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::CANCEL_RECORD));
+            break;
         default:
             R_LOG(WARN, "DBusReceiver received unknown DBusCommand");
             break;
     }
 }
 
-void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) {
+void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     // TODO
-    R_LOG(INFO, "DBusReceiver handling notification: cmd=%d, isSuccess=%d, msgInfo=%s",
-            static_cast<int>(cmd), isSuccess, msgInfo.c_str());
 }

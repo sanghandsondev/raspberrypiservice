@@ -74,8 +74,8 @@ bool DBusSenderBase::sendMessage(DBusCommand cmd) {
     return result;
 }
 
-bool DBusSenderBase::sendMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) {
-    DBusMessage* msg = msgMaker->makeMsgNoti(cmd, isSuccess, msgInfo);
+bool DBusSenderBase::sendMessageNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &dataInfo) {
+    DBusMessage* msg = msgMaker->makeMsgNoti(cmd, isSuccess, dataInfo);
     if (msg == nullptr) {
         CMN_LOG(ERROR, "DBusSenderBase sendMessageNoti Error: Message creation failed");
         return false;

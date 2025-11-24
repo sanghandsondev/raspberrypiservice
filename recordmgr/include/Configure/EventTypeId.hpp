@@ -9,7 +9,6 @@ enum class EventTypeID {
     START_RECORD,
     STOP_RECORD,
     CANCEL_RECORD,
-    REMOVE_RECORD,
 
     FILTER_WAV_FILE,
 
