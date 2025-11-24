@@ -46,6 +46,7 @@ bool SQLiteDatabase::initializeSchema() {
         CREATE TABLE IF NOT EXISTS audio_records (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             file_path TEXT NOT NULL UNIQUE,
+            duration_sec INTEGER NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     )";
@@ -83,8 +84,8 @@ bool SQLiteDatabase::insertAudioRecord(const AudioRecord &record) {
     std::lock_guard<std::mutex> lock(dbMutex_);
 
     const std::string insertSQL = R"(
-        INSERT INTO audio_records (file_path)
-        VALUES (?);
+        INSERT INTO audio_records (file_path, duration_sec)
+        VALUES (?, ?);
     )";
 
     sqlite3_stmt* stmt = prepareStatement(insertSQL);
@@ -94,6 +95,7 @@ bool SQLiteDatabase::insertAudioRecord(const AudioRecord &record) {
 
     // Bind parameters
     sqlite3_bind_text(stmt, 1, record.filePath.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, record.durationSec);
 
     int rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -112,7 +114,7 @@ std::vector<AudioRecord> SQLiteDatabase::getAllRecords() {
     
     std::vector<AudioRecord> records;
     const std::string querySQL = R"(
-        SELECT id, file_path, created_at FROM audio_records ORDER BY created_at DESC LIMIT 100;
+        SELECT id, file_path, duration_sec FROM audio_records ORDER BY created_at DESC LIMIT 100;
     )";
 
     sqlite3_stmt* stmt = prepareStatement(querySQL);
@@ -124,6 +126,7 @@ std::vector<AudioRecord> SQLiteDatabase::getAllRecords() {
         AudioRecord record;
         record.id = sqlite3_column_int(stmt, 0);
         record.filePath = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        record.durationSec = sqlite3_column_int(stmt, 2);
         
         records.push_back(record);
     }

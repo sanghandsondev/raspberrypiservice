@@ -7,6 +7,7 @@
 struct AudioRecord {
     int id;
     std::string filePath;
+    int durationSec;
     // std::string createdAt;
 };
 

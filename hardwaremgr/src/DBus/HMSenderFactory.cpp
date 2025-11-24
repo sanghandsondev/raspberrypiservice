@@ -11,13 +11,7 @@ DBusMessage* HMSenderFactory::makeMsg(DBusCommand cmd) {
 }
 
 DBusMessage* HMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
-    R_LOG(INFO, "HMSenderFactory makeMsgNoti called with cmd: %d, isSuccess: %d, msgInfo: %s",
-            static_cast<int>(cmd), isSuccess, msgInfo.c_str());
-    switch (cmd) {
-        default:
-            R_LOG(ERROR, "SenderFactory makeMsg Error: Unknown DBusCommand");
-            return nullptr;
-    }
+    // TODO
 }
 
 // Specific message creation functions

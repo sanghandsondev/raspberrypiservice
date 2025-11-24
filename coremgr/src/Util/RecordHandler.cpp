@@ -127,23 +127,5 @@ void RecordHandler::filterWavFileNOTI(std::shared_ptr<Payload> payload){
     } else {
         R_LOG(INFO, "Audio save succeeded: %s", notiPayload->getMsgInfo().c_str());
         webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "filter_wav_file_noti", {});
-
-        // // Insert record into database
-        // dbThreadPool_->insertAudioRecord(notiPayload->getMsgInfo());
-
-        // // Retrieve updated list of audio records
-        // std::vector<AudioRecord> vec;
-        // dbThreadPool_->getAllAudioRecords(vec);
-        // R_LOG(INFO, "SQLiteDBHandler: Retrieved %zu audio records from database", vec.size());
-
-        // // Broadcast updated record list
-        // nlohmann::json jsonVec = nlohmann::json::array();
-        // for (const auto& record : vec) {
-        //     nlohmann::json recordJson;
-        //     recordJson["id"] = record.id;
-        //     recordJson["file_path"] = record.filePath;
-        //     jsonVec.push_back(recordJson);
-        // }
-        // webSocket_->getServer()->updateStateAndBroadcast("record_list", jsonVec);
     }
 }

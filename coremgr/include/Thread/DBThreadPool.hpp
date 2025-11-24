@@ -24,7 +24,7 @@ class DBThreadPool : public ThreadBase {
         void stop() override;
         void enqueueTask(std::function<void()> task);
         
-        void insertAudioRecord(const std::string& filePath);
+        void insertAudioRecord(const std::string& filePath, int durationSec);
         void getAllAudioRecords(std::vector<AudioRecord>& outRecords);
     private:
         void threadFunction() override;

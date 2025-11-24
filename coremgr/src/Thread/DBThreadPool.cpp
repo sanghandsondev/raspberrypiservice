@@ -81,10 +81,11 @@ void DBThreadPool::threadFunction() {
     R_LOG(INFO, "DBThreadPool worker thread exiting");
 }
 
-void DBThreadPool::insertAudioRecord(const std::string& filePath) {
-    auto task = [this, filePath]() {
+void DBThreadPool::insertAudioRecord(const std::string& filePath, int durationSec) {
+    auto task = [this, filePath, durationSec]() {
         AudioRecord record;
         record.filePath = filePath;
+        record.durationSec = durationSec;
 
         std::lock_guard<std::mutex> dbLock(dbMutex_);
         if (!database_->insertAudioRecord(record)) {

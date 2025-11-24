@@ -28,4 +28,5 @@ BỞI có thể cho chúng nó chơi âm thanh đè lên nhau được mà (Tứ
 
 =====================
 
-TODO: Đnag xử lý dở phần tạo Insert cho record mới ở CoreManager
+TODO: Chưa xử lý được phần Blocking/Nonblocking với database 
+-> CÓ khi méo xài Enqueue task nữa
