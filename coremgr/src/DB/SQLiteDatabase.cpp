@@ -124,11 +124,44 @@ std::vector<AudioRecord> SQLiteDatabase::getAllRecords() {
         AudioRecord record;
         record.id = sqlite3_column_int(stmt, 0);
         record.filePath = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-
+        
         records.push_back(record);
     }
 
     sqlite3_finalize(stmt);
     R_LOG(INFO, "SQLiteDatabase: Retrieved %zu audio records from database", records.size());
     return records;
+}
+
+bool SQLiteDatabase::removeAudioRecord(int recordId) {
+    // std::lock_guard<std::mutex> lock(dbMutex_);
+
+    // const std::string deleteSQL = R"(
+    //     DELETE FROM audio_records WHERE id = ?;
+    // )";
+
+    // sqlite3_stmt* stmt = prepareStatement(deleteSQL);
+    // if (!stmt) {
+    //     return false;
+    // }
+
+    // sqlite3_bind_int(stmt, 1, recordId);
+
+    // int rc = sqlite3_step(stmt);
+    // if (rc != SQLITE_DONE) {
+    //     R_LOG(ERROR, "SQLiteDatabase: Failed to delete audio record with id %d: %s", recordId, sqlite3_errmsg(db_));
+    //     sqlite3_finalize(stmt);
+    //     return false;
+    // }
+
+    // int changes = sqlite3_changes(db_);
+    // sqlite3_finalize(stmt);
+
+    // if (changes == 0) {
+    //     R_LOG(WARN, "SQLiteDatabase: No record found with id %d to delete.", recordId);
+    //     return false; // Or true, depending on if "not found" is an error
+    // }
+
+    // R_LOG(INFO, "SQLiteDatabase: Audio record with id %d deleted successfully.", recordId);
+    return true;
 }

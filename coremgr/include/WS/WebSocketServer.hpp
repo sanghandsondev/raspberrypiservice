@@ -40,7 +40,8 @@ public:
     void join(std::shared_ptr<WebSocketSession> session);
     void leave(std::shared_ptr<WebSocketSession> session);
     
-    void updateStateAndBroadcast(const std::string& component, const nlohmann::json& value, const std::string& msgInfo = "");
+    void updateStateAndBroadcast(const std::string& status, const std::string& msgInfo, 
+        const std::string& component, const std::string& msgData, const nlohmann::json& data);
     void handleMessageFromSession(const std::string& message);
     
 private:

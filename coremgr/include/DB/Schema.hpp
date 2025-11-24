@@ -7,6 +7,7 @@
 struct AudioRecord {
     int id;
     std::string filePath;
+    // std::string createdAt;
 };
 
 #endif // SCHEMA_HPP_

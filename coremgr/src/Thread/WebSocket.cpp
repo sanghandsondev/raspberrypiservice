@@ -3,11 +3,9 @@
 #include "WebSocketServer.hpp"
 #include "RLogger.hpp"
 #include "Config.hpp"
-#include "json.hpp"
 #include "Event.hpp"
 #include "EventTypeId.hpp"
-
-using json = nlohmann::json;
+#include "JsonHelper.hpp"
 
 WebSocket::WebSocket(std::shared_ptr<EventQueue> eventQueue) 
         : ThreadBase("WebSocket"), eventQueue_(eventQueue){
@@ -43,13 +41,15 @@ void WebSocket::handleMessageFromClient(const std::string& message){
     R_LOG(INFO, "WebSocket received message from client: %s", message.c_str());
 
     try {
-        json jsonData = json::parse(message);
+        json jsonMsg = json::parse(message);
 
-        if (jsonData.contains("command")) {
-            std::string commandStr = jsonData["command"];
+        if (jsonMsg.contains("command")) {
+            std::string commandStr = jsonMsg["command"];
+            json jsonData = jsonMsg.value("data", json::object());
+            
             R_LOG(INFO, "Parsed command: %s", commandStr.c_str());
 
-            auto event = translateMsg(commandStr);
+            auto event = translateMsg(commandStr, jsonData);
             if (event) {
                 eventQueue_->pushEvent(event);
             }
@@ -65,18 +65,57 @@ void WebSocket::handleMessageFromClient(const std::string& message){
     
 }
 
-std::shared_ptr<Event> WebSocket::translateMsg(const std::string& message){
+namespace {
+    enum class CommandType {
+        START_RECORD,
+        STOP_RECORD,
+        CANCEL_RECORD,
+        REMOVE_RECORD,
+        GET_ALL_RECORD,
+        UNKNOWN
+    };
+
+    CommandType stringToCommand(const std::string& commandStr) {
+        if (commandStr == "start_record") return CommandType::START_RECORD;
+        if (commandStr == "stop_record") return CommandType::STOP_RECORD;
+        if (commandStr == "cancel_record") return CommandType::CANCEL_RECORD;
+        if (commandStr == "remove_record") return CommandType::REMOVE_RECORD;
+        if (commandStr == "get_all_record") return CommandType::GET_ALL_RECORD;
+        return CommandType::UNKNOWN;
+    }
+}
+
+std::shared_ptr<Event> WebSocket::translateMsg(const std::string& message, const json& data){
     std::shared_ptr<Event> event = nullptr;
-    if (message == "start_record") {
-        event = std::make_shared<Event>(EventTypeID::START_RECORD);
-    }
-    else if (message == "stop_record") {
-        event = std::make_shared<Event>(EventTypeID::STOP_RECORD);
-    }
-    else if (message == "cancel_record") {
-        event = std::make_shared<Event>(EventTypeID::CANCEL_RECORD);
-    } else {
-        R_LOG(WARN, "Unknown command received: %s", message.c_str());
+    CommandType cmd = stringToCommand(message);
+
+    switch(cmd) {
+        case CommandType::START_RECORD:
+            event = std::make_shared<Event>(EventTypeID::START_RECORD);
+            break;
+        case CommandType::STOP_RECORD:
+            event = std::make_shared<Event>(EventTypeID::STOP_RECORD);
+            break;
+        case CommandType::CANCEL_RECORD:
+            event = std::make_shared<Event>(EventTypeID::CANCEL_RECORD);
+            break;
+        case CommandType::REMOVE_RECORD:
+        {
+            // { "id": 1234567890 }
+            auto recordIdOpt = JSON_HELPER_INSTANCE()->getIntField(data, "id");
+            if (recordIdOpt) {
+                std::shared_ptr<Payload> payload = std::make_shared<RemoveRecordPayload>(*recordIdOpt);
+                event = std::make_shared<Event>(EventTypeID::REMOVE_RECORD, payload);
+            }
+            break;
+        }
+        case CommandType::GET_ALL_RECORD:
+            event = std::make_shared<Event>(EventTypeID::GET_ALL_RECORD);
+            break;
+        case CommandType::UNKNOWN:
+        default:
+            R_LOG(WARN, "Unknown command received: %s", message.c_str());
+            break;
     }
     return event;
 }

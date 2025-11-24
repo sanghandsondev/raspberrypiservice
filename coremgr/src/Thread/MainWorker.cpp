@@ -64,17 +64,25 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
     // Process the event based on its type
     switch (event->getEventTypeId()) {
         case EventTypeID::STARTUP:
-            sqliteDBHandler_->getAllAudioRecords();
             // TODO: bip bip speaker by hardwareHandler_->()
             break;
         case EventTypeID::START_RECORD:
             recordHandler_->startRecord();
             break;
         case EventTypeID::STOP_RECORD:
-            // recordHandler_->stopRecord();
+            recordHandler_->stopRecord();
             break;
         case EventTypeID::CANCEL_RECORD:
-            // recordHandler_->cancelRecord();
+            recordHandler_->cancelRecord();
+            break;
+        case EventTypeID::REMOVE_RECORD:
+            // sqliteDBHandler_->removeAudioRecord(payload);
+            break;
+        case EventTypeID::GET_ALL_RECORD:
+            sqliteDBHandler_->getAllAudioRecords();
+            break;
+        case EventTypeID::INSERT_WAV_FILE:
+            sqliteDBHandler_->insertAudioRecord(payload);
             break;
         case EventTypeID::START_RECORD_NOTI:
             recordHandler_->startRecordNOTI(payload);
@@ -82,9 +90,13 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::STOP_RECORD_NOTI:
             recordHandler_->stopRecordNOTI(payload);
             break;
+        case EventTypeID::CANCEL_RECORD_NOTI:
+            recordHandler_->cancelRecordNOTI(payload);
+            break;
         case EventTypeID::FILTER_WAV_FILE_NOTI:
             recordHandler_->filterWavFileNOTI(payload);
             break;
+        
         default:
             R_LOG(WARN, "MainWorker received unknown event type");
             break;

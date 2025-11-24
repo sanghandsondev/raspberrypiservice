@@ -6,6 +6,7 @@
 
 class WebSocket;
 class DBThreadPool;
+class Payload;
 
 class SQLiteDBHandler {
     public:
@@ -16,7 +17,8 @@ class SQLiteDBHandler {
         void setDBThreadPool(std::shared_ptr<DBThreadPool> dbThreadPool);
 
         // Additional database operations can be added here
-        void insertAudioRecord(const std::string& filePath);
+        void insertAudioRecord(std::shared_ptr<Payload>);    // TODO
+        void removeAudioRecord();
         void getAllAudioRecords();
 
     private:

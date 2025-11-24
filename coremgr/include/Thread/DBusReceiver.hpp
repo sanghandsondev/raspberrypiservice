@@ -4,6 +4,7 @@
 #include "DBusReceiverBase.hpp"
 #include <dbus/dbus.h>
 #include <memory>
+#include "DBusData.hpp"
 
 class EventQueue;
 
@@ -16,7 +17,7 @@ class DBusReceiver : public DBusReceiverBase {
         std::shared_ptr<EventQueue> eventQueue_;
 
         void handleMessage(DBusCommand cmd) override;
-        void handleMessageNoti(DBusCommand cmd, bool isSuccess, const std::string &msgInfo) override;
+        void handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) override;
 };
 
 #endif // DBUS_RECEIVER_HPP_

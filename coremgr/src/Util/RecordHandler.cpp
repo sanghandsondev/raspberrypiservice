@@ -47,6 +47,25 @@ void RecordHandler::stopRecord(){
     }
 }
 
+void RecordHandler::cancelRecord(){
+    RecordState currentState = STATE_VIEW_INSTANCE()->RECORD_STATE;
+    switch (currentState) {
+        case RecordState::RECORDING:
+            STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::PROCESSING;
+            DBUS_SENDER()->sendMessage(DBusCommand::CANCEL_RECORD);
+            break;
+        case RecordState::STOPPED:
+            R_LOG(WARN, "Received CANCEL_RECORD event while already STOPPED. No Action taken.");
+            break;
+        case RecordState::PROCESSING:
+            R_LOG(WARN, "Received CANCEL_RECORD event while PROCESSING. No Action taken.");
+            break;
+        default:
+            R_LOG(WARN, "Received CANCEL_RECORD event in invalid state");
+            break;
+    }
+}
+
 void RecordHandler::startRecordNOTI(std::shared_ptr<Payload> payload){
     std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
     if (notiPayload == nullptr) {
@@ -56,10 +75,10 @@ void RecordHandler::startRecordNOTI(std::shared_ptr<Payload> payload){
 
     if (notiPayload->isSuccess() == false) {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
-        webSocket_->getServer()->updateStateAndBroadcast("record", "stopped", notiPayload->getMsgInfo());
+        webSocket_->getServer()->updateStateAndBroadcast("fail", notiPayload->getMsgInfo(), "Record", "start_record_noti", {"record", "stopped"});
     } else {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::RECORDING;
-        webSocket_->getServer()->updateStateAndBroadcast("record", "recording");
+        webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "start_record_noti", {"record", "recording"});
     }
 }
 
@@ -72,10 +91,26 @@ void RecordHandler::stopRecordNOTI(std::shared_ptr<Payload> payload){
 
     if (notiPayload->isSuccess() == false) {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
-        webSocket_->getServer()->updateStateAndBroadcast("record", "stopped", notiPayload->getMsgInfo());
+        webSocket_->getServer()->updateStateAndBroadcast("fail", notiPayload->getMsgInfo(), "Record", "stop_record_noti", {"record", "stopped"});
     } else {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
-        webSocket_->getServer()->updateStateAndBroadcast("record", "stopped");
+        webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "stop_record_noti", {"record", "stopped"});
+    }
+}
+
+void RecordHandler::cancelRecordNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "CANCEL_RECORD_NOTI payload is not of type NotiPayload");
+        return;
+    }
+
+    if (notiPayload->isSuccess() == false) {
+        STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
+        webSocket_->getServer()->updateStateAndBroadcast("fail", notiPayload->getMsgInfo(), "Record", "cancel_record_noti", {"record", "stopped"});
+    } else {
+        STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
+        webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "cancel_record_noti", {"record", "stopped"});
     }
 }
 
@@ -88,25 +123,27 @@ void RecordHandler::filterWavFileNOTI(std::shared_ptr<Payload> payload){
 
     if (notiPayload->isSuccess() == false) {
         R_LOG(ERROR, "Audio filtering failed: %s", notiPayload->getMsgInfo().c_str());
-        webSocket_->getServer()->updateStateAndBroadcast("record_filter", "fail", notiPayload->getMsgInfo());
+        webSocket_->getServer()->updateStateAndBroadcast("fail", notiPayload->getMsgInfo(), "Record", "filter_wav_file_noti", {});
     } else {
-        R_LOG(INFO, "Audio filtering succeeded: %s", notiPayload->getMsgInfo().c_str());
-        // Insert record into database
-        dbThreadPool_->insertAudioRecord(notiPayload->getMsgInfo());
+        R_LOG(INFO, "Audio save succeeded: %s", notiPayload->getMsgInfo().c_str());
+        webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "filter_wav_file_noti", {});
 
-        // Retrieve updated list of audio records
-        std::vector<AudioRecord> vec;
-        dbThreadPool_->getAllAudioRecords(vec);
-        R_LOG(INFO, "SQLiteDBHandler: Retrieved %zu audio records from database", vec.size());
+        // // Insert record into database
+        // dbThreadPool_->insertAudioRecord(notiPayload->getMsgInfo());
 
-        // Broadcast updated record list
-        nlohmann::json jsonVec = nlohmann::json::array();
-        for (const auto& record : vec) {
-            nlohmann::json recordJson;
-            recordJson["id"] = record.id;
-            recordJson["file_path"] = record.filePath;
-            jsonVec.push_back(recordJson);
-        }
-        webSocket_->getServer()->updateStateAndBroadcast("record_list", jsonVec);
+        // // Retrieve updated list of audio records
+        // std::vector<AudioRecord> vec;
+        // dbThreadPool_->getAllAudioRecords(vec);
+        // R_LOG(INFO, "SQLiteDBHandler: Retrieved %zu audio records from database", vec.size());
+
+        // // Broadcast updated record list
+        // nlohmann::json jsonVec = nlohmann::json::array();
+        // for (const auto& record : vec) {
+        //     nlohmann::json recordJson;
+        //     recordJson["id"] = record.id;
+        //     recordJson["file_path"] = record.filePath;
+        //     jsonVec.push_back(recordJson);
+        // }
+        // webSocket_->getServer()->updateStateAndBroadcast("record_list", jsonVec);
     }
 }

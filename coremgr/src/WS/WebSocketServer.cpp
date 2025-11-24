@@ -151,26 +151,41 @@ void WebSocketServer::handleMessageFromSession(const std::string& message){
 }
 
 void WebSocketServer::sendInitStateToClient(std::shared_ptr<WebSocketSession> session){
-    // TODO: Tạo JSON factory gì đó sau đó nếu được
     json status_msg;
-    status_msg["type"] = "initial_status";
-    status_msg["state"] = {
+    json jsonData;
+    status_msg["status"] = "success";
+    status_msg["msg"] = "initial_state";
+    jsonData["component"] = "Record";
+    jsonData["msg"] = "initial_state";
+    jsonData["data"] = {
         {"record", (STATE_VIEW_INSTANCE()->RECORD_STATE == RecordState::RECORDING ? "recording" : "stopped")}
     };
-
+    status_msg["data"] = jsonData;
     std::string message = status_msg.dump();
     session->send(message);
     R_LOG(INFO, "Sent initial state to client: %s", message.c_str());
 }
 
-void WebSocketServer::updateStateAndBroadcast(const std::string& component, const nlohmann::json& value, const std::string& msgInfo) {
+void WebSocketServer::updateStateAndBroadcast(const std::string& status, const std::string& msgInfo, 
+    const std::string& component, const std::string& msgData, const nlohmann::json& data) {
     std::lock_guard<std::mutex> lock(mutex_);
     
+    // status: "success/fail"
+    // msg: "abc"
+    // data: {
+    //     component: "Record/Settings/..."
+    //     msg: "update_list_record/start_record_noti/..."
+    //     data: {...}
+    // }
+
     json status_msg;
-    status_msg["type"] = "update_status";
-    status_msg["component"] = component;
-    status_msg["value"] = value;
+    status_msg["status"] = status;
     status_msg["msg"] = msgInfo;
+    json jsonData;
+    jsonData["component"] = component;
+    jsonData["msg"] = msgData;
+    jsonData["data"] = data;
+    status_msg["data"] = jsonData;
 
     std::string message = status_msg.dump();
     broadcast(message);

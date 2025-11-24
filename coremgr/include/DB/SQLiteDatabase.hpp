@@ -21,6 +21,7 @@ class SQLiteDatabase {
         // QUERY operations
         bool insertAudioRecord(const AudioRecord &record);
         std::vector<AudioRecord> getAllRecords();
+        bool removeAudioRecord(int recordId);
 
     private:
         std::string dbFilePath_;

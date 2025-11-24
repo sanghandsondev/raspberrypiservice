@@ -17,9 +17,11 @@ class RecordHandler {
 
         void startRecord();
         void stopRecord();
+        void cancelRecord();
 
         void startRecordNOTI(std::shared_ptr<Payload>);
         void stopRecordNOTI(std::shared_ptr<Payload>);
+        void cancelRecordNOTI(std::shared_ptr<Payload>);
         void filterWavFileNOTI(std::shared_ptr<Payload>);
     
     private:

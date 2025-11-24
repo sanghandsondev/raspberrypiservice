@@ -3,10 +3,13 @@
 
 #include <memory>
 #include "ThreadBase.hpp"
+#include "json.hpp"
 
 class EventQueue;
 class WebSocketServer;
 class Event;
+
+using json = nlohmann::json;
 
 class WebSocket : public ThreadBase {
     public:
@@ -21,7 +24,7 @@ class WebSocket : public ThreadBase {
         std::unique_ptr<WebSocketServer> wsServer_;
 
         void handleMessageFromClient(const std::string& message);
-        std::shared_ptr<Event> translateMsg(const std::string& message);
+        std::shared_ptr<Event> translateMsg(const std::string& message, const nlohmann::json& data);
 
         void threadFunction() override;
 };
