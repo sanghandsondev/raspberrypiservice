@@ -19,14 +19,8 @@ PHAT TRIỂN MSG DBUS ĐỂ NHẬN DATA LÀ MỘT VECTOR KIỂU Array[16]=50 -->
 5. Cần có xử lý Timer Timeout ở CoreManager, tức nó phải nhận NOTI sau mấy giây ko thì nó sẽ tự động trả về App status false
 và kill thằng service đó (Để nó start lại)
 
-16. Mỗi lần load init page web thì sẽ request get list record
-
 17. Viết AudioManager riêng cho việc phát âm thanh (detect card device loa để phát)
 Cứ có th nào request chơi file audio thì spawn một thread / một process (CÁI NÀY QUAN TRỌNG, CẦN HỎI)
 BỞI có thể cho chúng nó chơi âm thanh đè lên nhau được mà (Tức nhiều process / nhiều thread chạy đồng thời)
 
-
-=====================
-
-TODO: Chưa xử lý được phần Blocking/Nonblocking với database 
--> CÓ khi méo xài Enqueue task nữa
+18. GStreamer, Camera, Capture, ... OpenCV...
