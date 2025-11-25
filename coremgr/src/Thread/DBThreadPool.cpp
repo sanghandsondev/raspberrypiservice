@@ -3,6 +3,8 @@
 #include "EventQueue.hpp"
 #include "RLogger.hpp"
 #include "Config.hpp"
+#include <functional>
+#include <future>
 
 DBThreadPool::DBThreadPool(std::shared_ptr<EventQueue> eventQueue, int numWorkers) 
     : ThreadBase("DBThreadPool"), eventQueue_(eventQueue) {
@@ -35,7 +37,10 @@ DBThreadPool::~DBThreadPool() {
 }
 
 void DBThreadPool::stop() {
-    ThreadBase::stop();
+    {
+        std::lock_guard<std::mutex> lock(taskMutex_);
+        runningFlag_ = false;
+    }
     cv_.notify_all(); // Wake up all worker threads to exit
 }
 
@@ -81,31 +86,55 @@ void DBThreadPool::threadFunction() {
     R_LOG(INFO, "DBThreadPool worker thread exiting");
 }
 
-void DBThreadPool::insertAudioRecord(const std::string& filePath, int durationSec) {
-    auto task = [this, filePath, durationSec]() {
+std::future<AudioRecord> DBThreadPool::insertAudioRecord(const std::string& filePath, int durationSec) {
+    auto task = std::make_shared<std::packaged_task<AudioRecord()>>([this, filePath, durationSec]() {
         AudioRecord record;
         record.filePath = filePath;
         record.durationSec = durationSec;
 
         std::lock_guard<std::mutex> dbLock(dbMutex_);
-        if (!database_->insertAudioRecord(record)) {
+        AudioRecord newRecord = database_->insertAudioRecord(record);
+        if (newRecord.id == -1) {
             R_LOG(ERROR, "DBThreadPool: Failed to insert audio record into database");
         } else {
             R_LOG(INFO, "DBThreadPool: Audio record inserted successfully: %s", filePath.c_str());
         }
-    };
+        return newRecord;
+    });
 
-    enqueueTask(task);
+    auto future = task->get_future();
+    enqueueTask([task](){ (*task)(); });
+    return future;
 }
 
-void DBThreadPool::getAllAudioRecords(std::vector<AudioRecord>& outRecords) {
-    auto task = [this, &outRecords]() {
+std::future<std::vector<AudioRecord>> DBThreadPool::getAllAudioRecords() {
+    auto task = std::make_shared<std::packaged_task<std::vector<AudioRecord>()>>([this]() {
         std::lock_guard<std::mutex> dbLock(dbMutex_);
-        outRecords = database_->getAllRecords();
-        R_LOG(INFO, "DBThreadPool: Retrieved %zu audio records from database", outRecords.size());
-    };
+        auto records = database_->getAllRecords();
+        R_LOG(INFO, "DBThreadPool: Retrieved %zu audio records from database", records.size());
+        return records;
+    });
 
-    enqueueTask(task);
+    auto future = task->get_future();
+    enqueueTask([task](){ (*task)(); });
+    return future;
+}
+
+std::future<bool> DBThreadPool::removeAudioRecord(int recordId) {
+    auto task = std::make_shared<std::packaged_task<bool()>>([this, recordId]() {
+        std::lock_guard<std::mutex> dbLock(dbMutex_);
+        if (!database_->removeAudioRecord(recordId)) {
+            R_LOG(ERROR, "DBThreadPool: Failed to remove audio record with id %d", recordId);
+            return false;
+        } else {
+            R_LOG(INFO, "DBThreadPool: Audio record with id %d removed successfully", recordId);
+            return true;
+        }
+    });
+
+    auto future = task->get_future();
+    enqueueTask([task](){ (*task)(); });
+    return future;
 }
 
 

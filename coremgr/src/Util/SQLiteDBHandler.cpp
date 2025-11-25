@@ -4,6 +4,7 @@
 #include "WebSocket.hpp"
 #include "WebSocketServer.hpp"
 #include <vector>
+#include <future>
 #include "Schema.hpp"
 #include "json.hpp"     // nlohmann::json
 #include "Event.hpp"
@@ -19,10 +20,8 @@ void SQLiteDBHandler::getAllAudioRecords() {
     }
 
     // Retrieve updated list of audio records
-    std::vector<AudioRecord> vec;
-    // TODO: Currently not blocking; in real implementation, consider using futures or callbacks
-    // to handle async results properly.
-    dbThreadPool_->getAllAudioRecords(vec);
+    auto future = dbThreadPool_->getAllAudioRecords();
+    std::vector<AudioRecord> vec = future.get(); // Blocking call
     R_LOG(INFO, "SQLiteDBHandler: Retrieved %zu audio records from database", vec.size());
 
     // Broadcast updated record list
@@ -34,7 +33,7 @@ void SQLiteDBHandler::getAllAudioRecords() {
         recordJson["duration_sec"] = record.durationSec;
         jsonVec.push_back(recordJson);
     }
-    webSocket_->getServer()->updateStateAndBroadcast("success", "Fetched audio records", "Record", "update_list_record", {{"records", jsonVec}});
+    webSocket_->getServer()->updateStateAndBroadcast("success", "Fetched audio records", "Record", "get_all_record_noti", {{"records", jsonVec}});
 }
 
 void SQLiteDBHandler::insertAudioRecord(std::shared_ptr<Payload> payload){
@@ -52,8 +51,45 @@ void SQLiteDBHandler::insertAudioRecord(std::shared_ptr<Payload> payload){
         return;
     }
 
-    // TODO: How to handle async result properly should be considered in real implementation ?
-    // For now, we just enqueue the task.
-    dbThreadPool_->insertAudioRecord(filePath, durationSec);
-    getAllAudioRecords();
+    auto future = dbThreadPool_->insertAudioRecord(filePath, durationSec);
+    AudioRecord newRecord = future.get(); // Blocking call
+
+    if (newRecord.id != -1) {
+        R_LOG(INFO, "Successfully inserted audio record with id %d.", newRecord.id);
+        nlohmann::json recordJson;
+        recordJson["id"] = newRecord.id;
+        recordJson["file_path"] = newRecord.filePath;
+        recordJson["duration_sec"] = newRecord.durationSec;
+        webSocket_->getServer()->updateStateAndBroadcast("success", "Record inserted successfully", "Record", "insert_record_noti", {{"record", recordJson}});
+    } else {
+        R_LOG(ERROR, "Failed to insert audio record.");
+        webSocket_->getServer()->updateStateAndBroadcast("fail", "Failed to insert record to DB", "Record", "insert_record_noti", {});
+    }
+}
+
+void SQLiteDBHandler::removeAudioRecord(std::shared_ptr<Payload> payload) {
+    std::shared_ptr<RemoveRecordPayload> removePayload = std::dynamic_pointer_cast<RemoveRecordPayload>(payload);
+    if (removePayload == nullptr) {
+        R_LOG(ERROR, "No valid payload for removing audio record");
+        return;
+    }
+
+    int recordId = removePayload->getRecordId();
+
+    if (dbThreadPool_ == nullptr) {
+        R_LOG(ERROR, "DBThreadPool is not set in SQLiteDBHandler");
+        return;
+    }
+
+    auto future = dbThreadPool_->removeAudioRecord(recordId);
+    bool success = future.get(); // Blocking call
+
+    if (success) {
+        R_LOG(INFO, "Successfully removed audio record with id %d, now fetching updated list.", recordId);
+        webSocket_->getServer()->updateStateAndBroadcast("success", "Record removed successfully", "Record", "remove_record_noti", {{"id", recordId}});
+    } else {
+        R_LOG(ERROR, "Failed to remove audio record with id %d.", recordId);
+        // Optionally, notify client about the failure
+        webSocket_->getServer()->updateStateAndBroadcast("fail", "Failed to remove record", "Record", "remove_record_noti", {{"id", recordId}});
+    }
 }

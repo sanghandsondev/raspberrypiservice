@@ -76,9 +76,9 @@ int main(){
     webSocketThread->stop();
     dbThreadPool->stop();
 
-    webSocketThread->join();
     mainWorker->join();
     dbusReceiver->join();
+    webSocketThread->join();
     dbThreadPool->join();
     R_LOG(WARN, "Core Manager exited.");
 

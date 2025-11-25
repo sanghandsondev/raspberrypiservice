@@ -19,7 +19,7 @@ class SQLiteDatabase {
         bool initializeSchema();
 
         // QUERY operations
-        bool insertAudioRecord(const AudioRecord &record);
+        AudioRecord insertAudioRecord(const AudioRecord &record);
         std::vector<AudioRecord> getAllRecords();
         bool removeAudioRecord(int recordId);
 

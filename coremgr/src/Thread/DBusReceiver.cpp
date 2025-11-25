@@ -55,11 +55,13 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
             auto event = std::make_shared<Event>(EventTypeID::FILTER_WAV_FILE_NOTI, payload);
             
-            std::shared_ptr<Payload> payload2 = std::make_shared<WavPayload>(dataInfo.data[DBUS_DATA_WAV_FILE_PATH], 
-                                                   std::stoi(dataInfo.data[DBUS_DATA_WAV_FILE_DURATION_SEC]));
-            auto event2 = std::make_shared<Event>(EventTypeID::INSERT_WAV_FILE, payload2);
+            if (isSuccess) {
+                std::shared_ptr<Payload> payload2 = std::make_shared<WavPayload>(dataInfo.data[DBUS_DATA_WAV_FILE_PATH], 
+                                                    std::stoi(dataInfo.data[DBUS_DATA_WAV_FILE_DURATION_SEC]));
+                auto event2 = std::make_shared<Event>(EventTypeID::INSERT_WAV_FILE, payload2);
+                eventQueue_->pushEvent(event2);
+            }
             eventQueue_->pushEvent(event);
-            eventQueue_->pushEvent(event2);
             break;
         }
 

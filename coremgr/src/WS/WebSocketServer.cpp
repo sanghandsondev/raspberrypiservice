@@ -174,7 +174,7 @@ void WebSocketServer::updateStateAndBroadcast(const std::string& status, const s
     // msg: "abc"
     // data: {
     //     component: "Record/Settings/..."
-    //     msg: "update_list_record/start_record_noti/..."
+    //     msg: "update_list_record/start_record_noti/remove_record_success/..."
     //     data: {...}
     // }
 

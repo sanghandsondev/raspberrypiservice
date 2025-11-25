@@ -76,7 +76,7 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             recordHandler_->cancelRecord();
             break;
         case EventTypeID::REMOVE_RECORD:
-            // sqliteDBHandler_->removeAudioRecord(payload);
+            sqliteDBHandler_->removeAudioRecord(payload);
             break;
         case EventTypeID::GET_ALL_RECORD:
             sqliteDBHandler_->getAllAudioRecords();

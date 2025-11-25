@@ -17,8 +17,8 @@ class SQLiteDBHandler {
         void setDBThreadPool(std::shared_ptr<DBThreadPool> dbThreadPool);
 
         // Additional database operations can be added here
-        void insertAudioRecord(std::shared_ptr<Payload>);    // TODO
-        void removeAudioRecord();
+        void insertAudioRecord(std::shared_ptr<Payload>);
+        void removeAudioRecord(std::shared_ptr<Payload>);
         void getAllAudioRecords();
 
     private:
