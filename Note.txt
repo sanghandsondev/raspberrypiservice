@@ -24,3 +24,11 @@ Cứ có th nào request chơi file audio thì spawn một thread / một proces
 BỞI có thể cho chúng nó chơi âm thanh đè lên nhau được mà (Tức nhiều process / nhiều thread chạy đồng thời)
 
 18. GStreamer, Camera, Capture, ... OpenCV...
+
+////////////// DEBUG
+Start record -> Stop record là lại bị lỗi như vậy. Kiểm tra. 
+Remove hay cancel có bị làm sao đâu. Có thể là thằng cancel đang làm hỏng luồng gì đó.
+
+Nov 26 21:59:55 raspberrypi coremanager[14895]: coremanager: /home/sang/raspberrypi/sysroot/usr/include/boost/beast/websocket/detail/soft_mutex.hpp:89: bool boost::beast::websocket::detail::soft_mutex::try_lock(const T*) [with T = boost::beast::websocket::stream<boost::asio::basic_stream_socket<boost::asio::ip::tcp> >::write_some_op<WebSocketSession::send(const std::string&)::<lambda(boost::beast::error_code, std::size_t)>, boost::asio::const_buffers_1>]: Assertion `id_ != T::id' failed.
+Nov 26 21:59:55 raspberrypi systemd[1]: coremanager.service: Main process exited, code=killed, status=6/ABRT
+Nov 26 21:59:55 raspberrypi systemd[1]: coremanager.service: Failed with result 'signal'.
