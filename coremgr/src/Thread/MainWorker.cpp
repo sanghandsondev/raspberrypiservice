@@ -66,6 +66,12 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::STARTUP:
             // TODO: bip bip speaker by hardwareHandler_->()
             break;
+        // Hardware
+        case EventTypeID::UPDATE_TEMPERATURE_NOTI:
+            hardwareHandler_->updateTemperatureNOTI(payload);
+            break;
+
+        // Record
         case EventTypeID::START_RECORD:
             recordHandler_->startRecord();
             break;

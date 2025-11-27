@@ -11,9 +11,9 @@ class HardwareHandler {
         explicit HardwareHandler() = default;
         ~HardwareHandler() = default;
 
-        void setWebSocket(std::shared_ptr<WebSocket> ws){
-            webSocket_ = ws;
-        };
+        void setWebSocket(std::shared_ptr<WebSocket> ws){ webSocket_ = ws; }
+
+        void updateTemperatureNOTI(std::shared_ptr<Payload>);
     
     private:
         std::shared_ptr<WebSocket> webSocket_;

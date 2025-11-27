@@ -22,6 +22,7 @@ class StateView {
 
         // View Properties
         inline static RecordState RECORD_STATE = RecordState::STOPPED;
+        inline static int CURRENT_TEMPERATURE = 0;
 
     private:
         StateView() = default;

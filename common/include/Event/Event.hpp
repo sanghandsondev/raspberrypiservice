@@ -17,45 +17,46 @@ class NotiPayload : public Payload {
         explicit NotiPayload(bool isSuccess = false, const std::string &msgInfo = "")
             : isSuccess_(isSuccess), msgInfo_(msgInfo) {}
 
-        bool isSuccess() const {
-            return isSuccess_;
-        }
-
-        std::string getMsgInfo() const {
-            return msgInfo_;
-        }
+        bool isSuccess() const { return isSuccess_; }
+        std::string getMsgInfo() const { return msgInfo_; }
 
     private:
         bool isSuccess_;
         std::string msgInfo_;
 };
 
-// TODO
+// Hardware
+class NotiTemperaturePayload : public Payload {
+    public:
+        explicit NotiTemperaturePayload(bool isSuccess = false, float temperatureValue = 0.0f) : temperatureValue_(temperatureValue) {}
+
+        bool isSuccess() const { return isSuccess_; }
+        float getTemperatureValue() const { return temperatureValue_; }
+
+    private:
+        bool isSuccess_;
+        float temperatureValue_;
+};
+
+// Record
 class WavPayload : public Payload {
     public:
         explicit WavPayload(const std::string &filePath, int durationSec = 0) : filePath_(filePath), durationSec_(durationSec) {}
 
-        std::string getFilePath() const {
-            return filePath_;
-        }
-
-        int getDurationSec() const {
-            return durationSec_;
-        }
+        std::string getFilePath() const { return filePath_; }
+        int getDurationSec() const { return durationSec_; }
 
     private:
         std::string filePath_;
         int durationSec_;
 };
 
-// TODO
 class RemoveRecordPayload : public Payload {
     public:
         explicit RemoveRecordPayload(int recordId) : recordId_(recordId) {}
 
-        int getRecordId() const {
-            return recordId_;
-        }
+        int getRecordId() const { return recordId_ ; }
+        
     private:
         int recordId_;
 };

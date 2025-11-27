@@ -15,7 +15,7 @@ class HMSenderFactory : public ISenderFactory {
         DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) override;
 
     private:
-
+        DBusMessage* makeMsgNoti_UpdateTemperature(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
 
 };
 

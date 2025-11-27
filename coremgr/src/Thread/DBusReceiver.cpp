@@ -27,6 +27,15 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
     R_LOG(INFO, "DBusReceiver handling notification: cmd=%d, isSuccess=%d, msgInfo=%s",
             static_cast<int>(cmd), isSuccess, dataInfo.data[DBUS_DATA_MESSAGE].c_str());
     switch (cmd) {
+        // From Hardware Manager Service
+        case DBusCommand::UPDATE_TEMPERATURE_NOTI: {
+            R_LOG(INFO, "Dispatching UPDATE_TEMPERATURE_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiTemperaturePayload>(isSuccess, 
+                                                std::stof(dataInfo.data[DBUS_DATA_TEMPERATURE_VALUE]));
+            auto event = std::make_shared<Event>(EventTypeID::UPDATE_TEMPERATURE_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
 
         // From Record Manager Service
         case DBusCommand::START_RECORD_NOTI: {

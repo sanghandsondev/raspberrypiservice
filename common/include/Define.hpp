@@ -5,6 +5,7 @@ enum class DBusCommand {
     NONE = 0,
 
     // Hardware
+    UPDATE_TEMPERATURE_NOTI,
 
     // Record
     START_RECORD,
@@ -14,7 +15,6 @@ enum class DBusCommand {
     START_RECORD_NOTI,
     STOP_RECORD_NOTI,
     CANCEL_RECORD_NOTI,
-
     FILTER_WAV_FILE_NOTI,
 
     MAX

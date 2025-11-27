@@ -8,6 +8,10 @@
 enum DBusDataType{
     DBUS_DATA_MESSAGE = 0,
 
+    // Hardware
+    DBUS_DATA_TEMPERATURE_VALUE,
+
+    // Record
     DBUS_DATA_WAV_FILE_PATH,
     DBUS_DATA_WAV_FILE_DURATION_SEC,
 

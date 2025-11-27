@@ -1,5 +1,7 @@
 #include "DBusReceiver.hpp"
 #include "RLogger.hpp"
+#include "EventQueue.hpp"
+#include "MainWorker.hpp"
 #include <csignal>
 #include <atomic>
 #include <condition_variable>
@@ -26,8 +28,12 @@ int main(){
     
     sd_notify(0, "READY=1");
 
-    auto dbusReceiver = std::make_shared<DBusReceiver>();
+    std::shared_ptr<EventQueue> eventQueue = std::make_shared<EventQueue>();
 
+    auto mainWorker = std::make_shared<MainWorker>(eventQueue);
+    auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
+
+    mainWorker->run();
     dbusReceiver->run();
 
     g_runningFlag = true;
@@ -44,8 +50,10 @@ int main(){
     }
 
     R_LOG(WARN, "Shutdown signal received, stopping threads...");
+    mainWorker->stop();
     dbusReceiver->stop();
 
+    mainWorker->join();
     dbusReceiver->join();
     R_LOG(WARN, "Hardware Manager exited.");
 

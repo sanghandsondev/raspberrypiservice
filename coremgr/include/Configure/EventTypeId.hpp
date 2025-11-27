@@ -7,6 +7,10 @@ enum class EventTypeID {
     NONE = 0,
     STARTUP,
 
+    // Hardware
+    UPDATE_TEMPERATURE_NOTI,
+
+    // Record
     START_RECORD,
     STOP_RECORD,
     CANCEL_RECORD,
