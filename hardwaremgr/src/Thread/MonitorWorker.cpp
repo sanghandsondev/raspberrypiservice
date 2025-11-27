@@ -25,7 +25,7 @@ void MonitorWorker::threadFunction() {
         info[DBUS_DATA_TEMPERATURE_VALUE] = std::to_string(temperature);
 
         if (ret) {
-            R_LOG(INFO, "Current Temperature: %d °C", temperature);
+            R_LOG(INFO, "Current Temperature: %.2f °C", temperature);
             DBUS_SENDER()->sendMessageNoti(DBusCommand::UPDATE_TEMPERATURE_NOTI, true, info);
         } else {
             R_LOG(ERROR, "Failed to read temperature from sensor, ");

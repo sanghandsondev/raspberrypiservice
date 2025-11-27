@@ -20,6 +20,9 @@ class Config {
         const std::string &getInterfaceName() const { return HARDWAREMGR_INTERFACE_NAME;}
         const std::string &getSignalName() const { return HARDWAREMGR_SIGNAL_NAME;}
 
+        const std::string &getW1DevicesPath() const { return W1_DEVICES_PATH; } 
+        const std::string &getW1SensorPrefix() const { return W1_SENSOR_PREFIX; }
+
     private:
         Config() = default;
         ~Config() = default;
@@ -30,6 +33,13 @@ class Config {
         inline static const std::string HARDWAREMGR_OBJECT_PATH = "/com/example/hardwaremanager";
         inline static const std::string HARDWAREMGR_INTERFACE_NAME = "com.example.hardwaremanager.interface";
         inline static const std::string HARDWAREMGR_SIGNAL_NAME = "HardwareSignal";
+
+        // 1-Wire sensor configuration: https://pinout.xyz/pinout/1_wire
+        // /boot/firmware/config.txt add the line:
+        // dtoverlay=w1-gpio
+        // or dtoverlay=w1-gpio,gpiopin=4
+        inline static const std::string W1_DEVICES_PATH = "/sys/bus/w1/devices/";
+        inline static const std::string W1_SENSOR_PREFIX = "28-"; // DS18B20 family code
 };
 
 #endif // CONFIG_HPP_
