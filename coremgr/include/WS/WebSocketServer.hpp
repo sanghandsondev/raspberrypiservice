@@ -7,6 +7,7 @@
 #include <set>
 #include <mutex>
 #include <functional>   // std::function
+#include <queue>
 #include "json.hpp"     // nlohmann::json
 
 class WebSocketServer;
@@ -21,10 +22,14 @@ public:
 private:
     void doAccept();
     void doRead();
+    void doWrite();
 
     boost::beast::websocket::stream<boost::asio::ip::tcp::socket> ws_;
     boost::beast::flat_buffer buffer_;
     WebSocketServer& server_;
+    std::mutex queue_mutex_;
+    std::queue<std::string> message_queue_;
+    bool writing_ = false;
 };
 
 using MessageHandler = std::function<void(const std::string&)>;

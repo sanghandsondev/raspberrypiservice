@@ -11,7 +11,7 @@ using json = nlohmann::json;
 // ================== Session =====================
 
 WebSocketSession::WebSocketSession(tcp::socket socket, WebSocketServer& server)
-    : ws_(std::move(socket)), server_(server) {}
+    : ws_(std::move(socket)), server_(server), writing_(false) {}
 
 void WebSocketSession::start(){
     ws_.set_option(websocket::stream_base::decorator(
@@ -35,14 +35,43 @@ void WebSocketSession::doAccept(){
 }
 
 void WebSocketSession::send(const std::string& message) {
-    // Gửi tin nhắn đi (bất đồng bộ)
+    std::lock_guard<std::mutex> lock(queue_mutex_);
+    message_queue_.push(message);
+
+    // If not already writing, start the write loop
+    if (!writing_) {
+        writing_ = true;
+        // Post the write operation to the strand
+        asio::post(ws_.get_executor(), std::bind(&WebSocketSession::doWrite, shared_from_this()));
+    }
+}
+
+void WebSocketSession::doWrite() {
+    // The write loop is started, and we're in the strand.
+    // No need to lock queue_mutex_ here because access is serialized by the strand.
+    
+    // Send the next message in the queue
     ws_.async_write(
-        asio::buffer(message),
+        asio::buffer(message_queue_.front()),
         [self = shared_from_this()](beast::error_code ec, std::size_t /*bytes_transferred*/) {
+            // Always pop the message from the queue after the write operation completes.
+            std::lock_guard<std::mutex> lock(self->queue_mutex_);
+            self->message_queue_.pop();
+
             if (ec) {
                 R_LOG(ERROR, "WebSocket write error: %s", ec.message().c_str());
-                // Nếu có lỗi, xóa session khỏi server
                 self->server_.leave(self);
+                self->writing_ = false; // Stop writing on error
+                return;
+            }
+
+            // If there are more messages, continue writing
+            if (!self->message_queue_.empty()) {
+                // Post the next write operation.
+                asio::post(self->ws_.get_executor(), std::bind(&WebSocketSession::doWrite, self));
+            } else {
+                // No more messages to send
+                self->writing_ = false;
             }
         });
 }
