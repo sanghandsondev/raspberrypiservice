@@ -180,19 +180,19 @@ void WebSocketServer::handleMessageFromSession(const std::string& message){
 }
 
 void WebSocketServer::sendInitStateToClient(std::shared_ptr<WebSocketSession> session){
-    json status_msg;
-    json jsonData;
-    status_msg["status"] = "success";
-    status_msg["msg"] = "initial_state";
-    jsonData["component"] = "Record";
-    jsonData["msg"] = "initial_state";
-    jsonData["data"] = {
-        {"record", (STATE_VIEW_INSTANCE()->RECORD_STATE == RecordState::RECORDING ? "recording" : "stopped")}
-    };
-    status_msg["data"] = jsonData;
-    std::string message = status_msg.dump();
-    session->send(message);
-    R_LOG(INFO, "Sent initial state to client: %s", message.c_str());
+    // json status_msg;
+    // json jsonData;
+    // status_msg["status"] = "success";
+    // status_msg["msg"] = "initial_state";
+    // jsonData["component"] = "Record";
+    // jsonData["msg"] = "initial_state";
+    // jsonData["data"] = {
+    //     {"record", (STATE_VIEW_INSTANCE()->RECORD_STATE == RecordState::RECORDING ? "recording" : "stopped")}
+    // };
+    // status_msg["data"] = jsonData;
+    // std::string message = status_msg.dump();
+    // session->send(message);
+    // R_LOG(INFO, "Sent initial state to client: %s", message.c_str());
 }
 
 void WebSocketServer::updateStateAndBroadcast(const std::string& status, const std::string& msgInfo, 

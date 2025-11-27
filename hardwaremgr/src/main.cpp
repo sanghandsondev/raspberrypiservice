@@ -2,6 +2,7 @@
 #include "RLogger.hpp"
 #include "EventQueue.hpp"
 #include "MainWorker.hpp"
+#include "MonitorWorker.hpp"
 #include <csignal>
 #include <atomic>
 #include <condition_variable>
@@ -32,9 +33,11 @@ int main(){
 
     auto mainWorker = std::make_shared<MainWorker>(eventQueue);
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
+    auto monitorWorker = std::make_shared<MonitorWorker>(eventQueue);
 
     mainWorker->run();
     dbusReceiver->run();
+    monitorWorker->run();
 
     g_runningFlag = true;
     while(g_runningFlag) {
@@ -52,9 +55,11 @@ int main(){
     R_LOG(WARN, "Shutdown signal received, stopping threads...");
     mainWorker->stop();
     dbusReceiver->stop();
+    monitorWorker->stop();
 
     mainWorker->join();
     dbusReceiver->join();
+    monitorWorker->join();
     R_LOG(WARN, "Hardware Manager exited.");
 
     return 0;

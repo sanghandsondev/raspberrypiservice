@@ -16,7 +16,7 @@ void HardwareHandler::updateTemperatureNOTI(std::shared_ptr<Payload> payload){
         R_LOG(ERROR, "Cannot update temperature: Notification indicates failure. Check Hardware Manager Service.");
         webSocket_->getServer()->updateStateAndBroadcast("fail", 
             "Failed to update temperature from Hardware Manager Service. Check sensor connection.",
-            "Header", "update_temperature_noti", {"temperature", "0.0"});
+            "Header", "update_temperature_noti", {{"temperature", 0}});
         return;
     }
 
@@ -28,9 +28,10 @@ void HardwareHandler::updateTemperatureNOTI(std::shared_ptr<Payload> payload){
 
     if (currentTemperature != nextTemperature) {
         STATE_VIEW_INSTANCE()->CURRENT_TEMPERATURE = nextTemperature;
+
         webSocket_->getServer()->updateStateAndBroadcast("success", 
             "Temperature updated successfully from Hardware Manager Service.",
-            "Header", "update_temperature_noti", {"temperature", std::to_string(nextTemperature)});
+            "Header", "update_temperature_noti", {{"temperature", nextTemperature}});
     } else {
         R_LOG(INFO, "Temperature change is less than 1 degree. No update broadcasted.");
     }

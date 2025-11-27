@@ -28,7 +28,8 @@ class NotiPayload : public Payload {
 // Hardware
 class NotiTemperaturePayload : public Payload {
     public:
-        explicit NotiTemperaturePayload(bool isSuccess = false, float temperatureValue = 0.0f) : temperatureValue_(temperatureValue) {}
+        explicit NotiTemperaturePayload(bool isSuccess, float temperatureValue) 
+            : isSuccess_(isSuccess), temperatureValue_(temperatureValue) {}
 
         bool isSuccess() const { return isSuccess_; }
         float getTemperatureValue() const { return temperatureValue_; }
