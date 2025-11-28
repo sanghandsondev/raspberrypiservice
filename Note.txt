@@ -7,14 +7,9 @@
 - Cho thằng coremgr là được
 - Xài GMOCK + CmakeList cho nó chuẩn chuyên nghiệp.
 
-3. HardwareManager mỗi 5s gửi nhiệt độ, tình trạng CPU, .. trạng thái của Pi 4. 
-- Nếu chênh lệch quá 5% so với state cũ thì update + bắn tới CloundManager
-PHAT TRIỂN MSG DBUS ĐỂ NHẬN DATA LÀ MỘT VECTOR KIỂU Array[16]=50 --> 16 là nhiệt độ (Enum) và ta sẽ biết được là nhiệt độ = 50 độ
-- Data khả năng sẽ truyền kiểu vector [key]=value : tạo một enum key để toàn bộ nhận diện được type(key). Cái nào = -1 thì ko update. Còn value != -1 thì set type = value tương ứng
-
-4. CloundManager, HardwareMânger -> queue
-
 18. BluetoothManager
+
+CloudManager
 
 5. Cần có xử lý Timer Timeout ở CoreManager, tức nó phải nhận NOTI sau mấy giây ko thì nó sẽ tự động trả về App status false
 và kill thằng service đó (Để nó start lại)
@@ -24,6 +19,3 @@ Cứ có th nào request chơi file audio thì spawn một thread / một proces
 BỞI có thể cho chúng nó chơi âm thanh đè lên nhau được mà (Tức nhiều process / nhiều thread chạy đồng thời)
 
 18. GStreamer, Camera, Capture, ... OpenCV...
-
-////////////// DEBUG
-TODO: Xử lý initial state (gửi mỗi component một noti) -> Lưu ý nhiệt độ

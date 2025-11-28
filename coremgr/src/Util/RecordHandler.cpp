@@ -75,10 +75,10 @@ void RecordHandler::startRecordNOTI(std::shared_ptr<Payload> payload){
 
     if (notiPayload->isSuccess() == false) {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
-        webSocket_->getServer()->updateStateAndBroadcast("fail", notiPayload->getMsgInfo(), "Record", "start_record_noti", {"record", "stopped"});
+        webSocket_->getServer()->updateStateAndBroadcast("fail", notiPayload->getMsgInfo(), "Record", "start_record_noti", {});
     } else {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::RECORDING;
-        webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "start_record_noti", {"record", "recording"});
+        webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "start_record_noti", {});
     }
 }
 
@@ -91,10 +91,10 @@ void RecordHandler::stopRecordNOTI(std::shared_ptr<Payload> payload){
 
     if (notiPayload->isSuccess() == false) {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
-        webSocket_->getServer()->updateStateAndBroadcast("fail", notiPayload->getMsgInfo(), "Record", "stop_record_noti", {"record", "stopped"});
+        webSocket_->getServer()->updateStateAndBroadcast("fail", notiPayload->getMsgInfo(), "Record", "stop_record_noti", {});
     } else {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
-        webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "stop_record_noti", {"record", "stopped"});
+        webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "stop_record_noti", {});
     }
 }
 
@@ -107,10 +107,10 @@ void RecordHandler::cancelRecordNOTI(std::shared_ptr<Payload> payload){
 
     if (notiPayload->isSuccess() == false) {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
-        webSocket_->getServer()->updateStateAndBroadcast("fail", notiPayload->getMsgInfo(), "Record", "cancel_record_noti", {"record", "stopped"});
+        webSocket_->getServer()->updateStateAndBroadcast("fail", notiPayload->getMsgInfo(), "Record", "cancel_record_noti", {});
     } else {
         STATE_VIEW_INSTANCE()->RECORD_STATE = RecordState::STOPPED;
-        webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "cancel_record_noti", {"record", "stopped"});
+        webSocket_->getServer()->updateStateAndBroadcast("success", notiPayload->getMsgInfo(), "Record", "cancel_record_noti", {});
     }
 }
 

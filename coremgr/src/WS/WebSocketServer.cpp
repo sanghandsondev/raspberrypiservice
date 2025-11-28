@@ -180,19 +180,31 @@ void WebSocketServer::handleMessageFromSession(const std::string& message){
 }
 
 void WebSocketServer::sendInitStateToClient(std::shared_ptr<WebSocketSession> session){
-    // json status_msg;
-    // json jsonData;
-    // status_msg["status"] = "success";
-    // status_msg["msg"] = "initial_state";
-    // jsonData["component"] = "Record";
-    // jsonData["msg"] = "initial_state";
-    // jsonData["data"] = {
-    //     {"record", (STATE_VIEW_INSTANCE()->RECORD_STATE == RecordState::RECORDING ? "recording" : "stopped")}
-    // };
-    // status_msg["data"] = jsonData;
-    // std::string message = status_msg.dump();
-    // session->send(message);
-    // R_LOG(INFO, "Sent initial state to client: %s", message.c_str());
+    json status_msg;
+
+    // Send current temperature
+    status_msg["status"] = "success";
+    status_msg["msg"] = "";
+    json jsonData;
+    jsonData["component"] = "Header";
+    jsonData["msg"] = "update_temperature_noti";
+    jsonData["data"] = {
+        {"temperature", STATE_VIEW_INSTANCE()->CURRENT_TEMPERATURE}
+    };
+    status_msg["data"] = jsonData;
+    std::string message = status_msg.dump();
+    session->send(message);
+
+    // Send current record state
+    jsonData["msg"] = "initial_state";
+    jsonData["component"] = "Record";
+    jsonData["data"] = {
+        {"is_recording", STATE_VIEW_INSTANCE()->RECORD_STATE == RecordState::RECORDING ? true : false}
+    };
+    status_msg["data"] = jsonData;
+    message = status_msg.dump();
+    session->send(message);
+    
 }
 
 void WebSocketServer::updateStateAndBroadcast(const std::string& status, const std::string& msgInfo, 
