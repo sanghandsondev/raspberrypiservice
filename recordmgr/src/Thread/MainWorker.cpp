@@ -8,6 +8,7 @@
 #include "RLogger.hpp"
 #include "AudioFilter.hpp"
 #include <thread>
+#include <filesystem>
 
 MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<RecordWorker> recordWorker) 
     : ThreadBase("MainWorker"), eventQueue_(eventQueue), recordWorker_(recordWorker) {
@@ -98,6 +99,16 @@ void MainWorker::processFilterWavFileEvent(std::shared_ptr<Payload> payload) {
             dataInfo.data[DBUS_DATA_WAV_FILE_PATH] = filter.getFilteredFilePath();
             dataInfo.data[DBUS_DATA_WAV_FILE_DURATION_SEC] = std::to_string(durationSec);
             DBUS_SENDER()->sendMessageNoti(DBusCommand::FILTER_WAV_FILE_NOTI, true, dataInfo);
+        }
+
+        // Xóa file wav nguồn (/tmp/record_...) sau khi đã xử lý xong
+        try {
+            if (std::filesystem::exists(wavFilePath)) {
+                std::filesystem::remove(wavFilePath);
+                R_LOG(INFO, "Removed source WAV file: %s", wavFilePath.c_str());
+            }
+        } catch (const std::filesystem::filesystem_error& e) {
+            R_LOG(ERROR, "Failed to remove source WAV file %s: %s", wavFilePath.c_str(), e.what());
         }
 
         R_LOG(INFO, "Completed filtering process for WAV file: %s", wavFilePath.c_str());
