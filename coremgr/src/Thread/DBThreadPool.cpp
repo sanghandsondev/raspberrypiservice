@@ -120,16 +120,16 @@ std::future<std::vector<AudioRecord>> DBThreadPool::getAllAudioRecords() {
     return future;
 }
 
-std::future<bool> DBThreadPool::removeAudioRecord(int recordId) {
-    auto task = std::make_shared<std::packaged_task<bool()>>([this, recordId]() {
+std::future<std::string> DBThreadPool::removeAudioRecord(int recordId) {
+    auto task = std::make_shared<std::packaged_task<std::string()>>([this, recordId]() {
         std::lock_guard<std::mutex> dbLock(dbMutex_);
-        if (!database_->removeAudioRecord(recordId)) {
-            R_LOG(ERROR, "DBThreadPool: Failed to remove audio record with id %d", recordId);
-            return false;
+        std::string filePath = database_->removeAudioRecord(recordId);
+        if (filePath.empty()) {
+            R_LOG(ERROR, "DBThreadPool: Failed to remove audio record with id %d or record not found.", recordId);
         } else {
-            R_LOG(INFO, "DBThreadPool: Audio record with id %d removed successfully", recordId);
-            return true;
+            R_LOG(INFO, "DBThreadPool: Audio record with id %d removed successfully. File path: %s", recordId, filePath.c_str());
         }
+        return filePath;
     });
 
     auto future = task->get_future();

@@ -8,6 +8,7 @@
 #include "Schema.hpp"
 #include "json.hpp"     // nlohmann::json
 #include "Event.hpp"
+#include <filesystem>
 
 void SQLiteDBHandler::setDBThreadPool(std::shared_ptr<DBThreadPool> dbThreadPool) {
     dbThreadPool_ = dbThreadPool;
@@ -82,14 +83,30 @@ void SQLiteDBHandler::removeAudioRecord(std::shared_ptr<Payload> payload) {
     }
 
     auto future = dbThreadPool_->removeAudioRecord(recordId);
-    bool success = future.get(); // Blocking call
+    std::string filePath = future.get(); // Blocking call
 
-    if (success) {
-        R_LOG(INFO, "Successfully removed audio record with id %d, now fetching updated list.", recordId);
+    if (!filePath.empty()) {
+        R_LOG(INFO, "Successfully removed audio record with id %d from DB, now deleting file.", recordId);
+
+        // Now delete the actual file
+        try {
+            if (std::filesystem::exists(filePath)) {
+                if (std::filesystem::remove(filePath)) {
+                    R_LOG(INFO, "Successfully deleted file: %s", filePath.c_str());
+                } else {
+                    R_LOG(ERROR, "Failed to delete file: %s", filePath.c_str());
+                }
+            } else {
+                R_LOG(WARN, "File to delete does not exist: %s", filePath.c_str());
+            }
+        } catch (const std::filesystem::filesystem_error& e) {
+            R_LOG(ERROR, "Filesystem error while deleting file %s: %s", filePath.c_str(), e.what());
+        }
+
         webSocket_->getServer()->updateStateAndBroadcast("success", "Record removed successfully", "Record", "remove_record_noti", {{"id", recordId}});
     } else {
-        R_LOG(ERROR, "Failed to remove audio record with id %d.", recordId);
+        R_LOG(ERROR, "Failed to remove audio record with id %d from DB.", recordId);
         // Optionally, notify client about the failure
-        webSocket_->getServer()->updateStateAndBroadcast("fail", "Failed to remove record", "Record", "remove_record_noti", {{"id", recordId}});
+        webSocket_->getServer()->updateStateAndBroadcast("fail", "Failed to remove record from DB", "Record", "remove_record_noti", {{"id", recordId}});
     }
 }

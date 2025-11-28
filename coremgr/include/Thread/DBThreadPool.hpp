@@ -25,7 +25,7 @@ public:
 
     std::future<AudioRecord> insertAudioRecord(const std::string& filePath, int durationSec);
     std::future<std::vector<AudioRecord>> getAllAudioRecords();
-    std::future<bool> removeAudioRecord(int recordId);
+    std::future<std::string> removeAudioRecord(int recordId);
 
 protected:
     void threadFunction() override;
