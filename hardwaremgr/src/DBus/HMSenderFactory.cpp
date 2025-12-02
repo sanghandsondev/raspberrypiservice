@@ -16,6 +16,8 @@ DBusMessage* HMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
             return makeMsgNoti_UpdateTemperature(cmd, isSuccess, msgInfo);
         case DBusCommand::START_SCAN_BTDEVICE_NOTI:
             return makeMsgNoti_StartScanBTDevice(cmd, isSuccess, msgInfo);
+        case DBusCommand::STOP_SCAN_BTDEVICE_NOTI:
+            return makeMsgNoti_StopScanBTDevice(cmd, isSuccess, msgInfo);
         case DBusCommand::PAIRED_BTDEVICE_FOUND_NOTI:
             return makeMsgNoti_PairedBTDeviceFound(cmd, isSuccess, msgInfo);
         case DBusCommand::SCANNING_BTDEVICE_FOUND_NOTI:
@@ -36,6 +38,14 @@ DBusMessage* HMSenderFactory::makeMsgNoti_UpdateTemperature(DBusCommand cmd, boo
 }
 
 DBusMessage* HMSenderFactory::makeMsgNoti_StartScanBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_StopScanBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/coremanager";
     const char* interfaceName = "com.example.coremanager.interface";
     const char* signalName = "CoreSignal";

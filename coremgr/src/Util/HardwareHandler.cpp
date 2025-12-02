@@ -23,6 +23,23 @@ void HardwareHandler::startScanBTDevice(){
     }
 }
 
+void HardwareHandler::stopScanBTDevice(){
+    ScanningBTDeviceState currentState = STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE;
+    switch (currentState) {
+        case ScanningBTDeviceState::SCANNING:
+            DBUS_SENDER()->sendMessage(DBusCommand::STOP_SCAN_BTDEVICE);
+            STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::IDLE;
+            R_LOG(INFO, "Stopped scanning for Bluetooth devices.");
+            break;
+        case ScanningBTDeviceState::IDLE:
+            R_LOG(WARN, "Received STOP_SCAN_BTDEVICE event while already IDLE. No Action taken.");
+            break;
+        default:
+            R_LOG(WARN, "Received STOP_SCAN_BTDEVICE event in invalid state");
+            break;
+    }
+}
+
 void HardwareHandler::startScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
     std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
     if (notiPayload == nullptr) {
@@ -35,6 +52,20 @@ void HardwareHandler::startScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
 
         webSocket_->getServer()->updateStateAndBroadcast("fail", 
             notiPayload->getMsgInfo(), "Settings", "start_scan_btdevice_noti", {});
+    }
+}
+
+void HardwareHandler::stopScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "STOP_SCAN_BTDEVICE_NOTI payload is not of type NotiPayload");
+        return;
+    }
+    if (!notiPayload->isSuccess()) {
+        R_LOG(ERROR, "Bluetooth device scan stop failed: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(), "Settings", "stop_scan_btdevice_noti", {});
     }
 }
 

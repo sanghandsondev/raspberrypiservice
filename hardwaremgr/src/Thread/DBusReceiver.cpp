@@ -19,6 +19,10 @@ void DBusReceiver::handleMessage(DBusCommand cmd) {
             R_LOG(INFO, "DBusReceiver: Received START_SCAN_BTDEVICE command. Pushing event.");
             eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::START_SCAN_BTDEVICE));
             break;
+        case DBusCommand::STOP_SCAN_BTDEVICE:
+            R_LOG(INFO, "DBusReceiver: Received STOP_SCAN_BTDEVICE command. Pushing event.");
+            eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::STOP_SCAN_BTDEVICE));
+            break;
         default:
             R_LOG(WARN, "DBusReceiver received unknown DBusCommand");
             break;

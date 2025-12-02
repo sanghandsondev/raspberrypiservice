@@ -69,6 +69,7 @@ namespace {
     enum class CommandType {
         // Hardware
         START_SCAN_BTDEVICE,
+        STOP_SCAN_BTDEVICE,
 
         // Record
         START_RECORD,
@@ -82,6 +83,7 @@ namespace {
     CommandType stringToCommand(const std::string& commandStr) {
         // Hardware
         if(commandStr == "start_scan_btdevice") return CommandType::START_SCAN_BTDEVICE;
+        if(commandStr == "stop_scan_btdevice") return CommandType::STOP_SCAN_BTDEVICE;
 
         // Record
         if (commandStr == "start_record") return CommandType::START_RECORD;
@@ -101,6 +103,9 @@ std::shared_ptr<Event> WebSocket::translateMsg(const std::string& message, const
         // Hardware
         case CommandType::START_SCAN_BTDEVICE:
             event = std::make_shared<Event>(EventTypeID::START_SCAN_BTDEVICE);
+            break;
+        case CommandType::STOP_SCAN_BTDEVICE:
+            event = std::make_shared<Event>(EventTypeID::STOP_SCAN_BTDEVICE);
             break;
 
         // Record

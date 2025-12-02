@@ -25,6 +25,7 @@ class MainWorker : public ThreadBase {
         void processEvent(const std::shared_ptr<Event> event);
 
         void processStartScanBTDeviceEvent();
+        void processStopScanBTDeviceEvent();
 };
 
 #endif // MAIN_WORKER_HPP_

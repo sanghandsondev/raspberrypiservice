@@ -11,6 +11,11 @@
 
 18. GStreamer, Camera, Capture, ... OpenCV...
 
+//
+Phân loại ICON bluetooth device
+
+Thêm nhận biết thiết bị đã pair hay chưa (tính sau)
+
 // ---------------------------
 sudo apt update
 sudo apt install -y bluez pi-bluetooth bluetooth

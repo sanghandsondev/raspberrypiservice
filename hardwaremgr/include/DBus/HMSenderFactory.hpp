@@ -17,6 +17,7 @@ class HMSenderFactory : public ISenderFactory {
     private:
         DBusMessage* makeMsgNoti_UpdateTemperature(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_StartScanBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_StopScanBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_PairedBTDeviceFound(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_ScanningBTDeviceFound(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
 

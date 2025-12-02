@@ -40,6 +40,10 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             R_LOG(INFO, "Processing START_SCAN_BTDEVICE event");
             processStartScanBTDeviceEvent();
             break;
+        case EventTypeID::STOP_SCAN_BTDEVICE:
+            R_LOG(INFO, "Processing STOP_SCAN_BTDEVICE event");
+            processStopScanBTDeviceEvent();
+            break;
         
         default:
             R_LOG(WARN, "MainWorker received unknown EventTypeID");
@@ -53,4 +57,12 @@ void MainWorker::processStartScanBTDeviceEvent() {
         return;
     }
     bluezDBus_->startDiscovery();
+}
+
+void MainWorker::processStopScanBTDeviceEvent() {
+    if (!bluezDBus_) {
+        R_LOG(ERROR, "BluezDBus is not initialized in MainWorker");
+        return;
+    }
+    bluezDBus_->stopDiscovery();
 }

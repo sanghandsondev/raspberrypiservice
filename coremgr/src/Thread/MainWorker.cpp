@@ -70,11 +70,17 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::START_SCAN_BTDEVICE:
             hardwareHandler_->startScanBTDevice();
             break;
+        case EventTypeID::STOP_SCAN_BTDEVICE:
+            hardwareHandler_->stopScanBTDevice();
+            break;
         case EventTypeID::UPDATE_TEMPERATURE_NOTI:
             hardwareHandler_->updateTemperatureNOTI(payload);
             break;
         case EventTypeID::START_SCAN_BTDEVICE_NOTI:
             hardwareHandler_->startScanBTDeviceNOTI(payload);
+            break;
+        case EventTypeID::STOP_SCAN_BTDEVICE_NOTI:
+            hardwareHandler_->stopScanBTDeviceNOTI(payload);
             break;
         case EventTypeID::PAIRED_BTDEVICE_FOUND_NOTI:
             hardwareHandler_->pairedBTDeviceFoundNOTI(payload);

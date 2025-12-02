@@ -43,6 +43,13 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             eventQueue_->pushEvent(event);
             break;
         }
+        case DBusCommand::STOP_SCAN_BTDEVICE_NOTI: {
+            R_LOG(INFO, "Dispatching STOP_SCAN_BTDEVICE_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::STOP_SCAN_BTDEVICE_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
         case DBusCommand::PAIRED_BTDEVICE_FOUND_NOTI: {
             R_LOG(INFO, "Dispatching PAIRED_BTDEVICE_FOUND_NOTI from DBus");
             std::shared_ptr<Payload> payload = std::make_shared<BluetoothDevicePayload>(

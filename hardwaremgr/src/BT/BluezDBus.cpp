@@ -86,6 +86,7 @@ void BluezDBus::startDiscovery() {
 }
 
 void BluezDBus::stopDiscovery() {
+    DBusDataInfo info;
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getBluezServiceName().c_str(),
         adapterPath_.c_str(),
@@ -94,6 +95,8 @@ void BluezDBus::stopDiscovery() {
     );
     if (msg == nullptr) {
         R_LOG(ERROR, "Failed to create D-Bus message for StopDiscovery");
+        info[DBUS_DATA_MESSAGE] = "Failed to create D-Bus message for StopDiscovery";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_SCAN_BTDEVICE_NOTI, false, info);
         return;
     }
 
@@ -106,6 +109,8 @@ void BluezDBus::stopDiscovery() {
         dbus_error_free(&err);
     } else if (reply != nullptr) {
         R_LOG(INFO, "Successfully called StopDiscovery.");
+        info[DBUS_DATA_MESSAGE] = "Bluetooth discovery stopped.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_SCAN_BTDEVICE_NOTI, true, info);
         dbus_message_unref(reply);
     } else {
         R_LOG(WARN, "StopDiscovery call sent, but no reply received (or not expected).");
