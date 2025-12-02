@@ -51,6 +51,7 @@ void BluezDBus::addMatchRule(const std::string& rule) {
 }
 
 void BluezDBus::startDiscovery() {
+    R_LOG(INFO, "Starting Bluetooth device discovery...");
     DBusDataInfo info;
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getBluezServiceName().c_str(),
@@ -72,6 +73,7 @@ void BluezDBus::startDiscovery() {
     if (dbus_error_is_set(&err)) {
         R_LOG(ERROR, "Error calling StartDiscovery: %s", err.message);
         info[DBUS_DATA_MESSAGE] = std::string("Error starting Bluetooth discovery: ") + err.message;
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::START_SCAN_BTDEVICE_NOTI, false, info);
         dbus_error_free(&err);
     } else if (reply != nullptr) {
         R_LOG(INFO, "Successfully called StartDiscovery.");
@@ -86,6 +88,7 @@ void BluezDBus::startDiscovery() {
 }
 
 void BluezDBus::stopDiscovery() {
+    R_LOG(INFO, "Stopping Bluetooth device discovery...");
     DBusDataInfo info;
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getBluezServiceName().c_str(),
@@ -106,6 +109,8 @@ void BluezDBus::stopDiscovery() {
 
     if (dbus_error_is_set(&err)) {
         R_LOG(ERROR, "Error calling StopDiscovery: %s", err.message);
+        info[DBUS_DATA_MESSAGE] = std::string("Error stopping Bluetooth discovery: ") + err.message;
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_SCAN_BTDEVICE_NOTI, false, info);
         dbus_error_free(&err);
     } else if (reply != nullptr) {
         R_LOG(INFO, "Successfully called StopDiscovery.");

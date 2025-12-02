@@ -75,7 +75,11 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
     } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(), "PropertiesChanged")) {
         R_LOG(DEBUG, "BluetoothWorker: Received PropertiesChanged signal.");
         handlePropertiesChanged(msg);
+    } else {
+        // TODO: Handle other signals if needed
+        R_LOG(DEBUG, "BluetoothWorker: Received unhandled D-Bus message.");
     }
+
 }
 
 void BluetoothWorker::handleInterfacesAdded(DBusMessage* msg) {
