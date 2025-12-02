@@ -4,10 +4,11 @@
 #include "EventTypeId.hpp"
 #include "RLogger.hpp"
 #include "DBusSender.hpp"
+#include "BluezDBus.hpp"
 #include <thread>
 
-MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue) : ThreadBase("MainWorker"), 
-    eventQueue_(eventQueue) {
+MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus) : ThreadBase("MainWorker"), 
+    eventQueue_(eventQueue), bluezDBus_(bluezDBus) {
 }
 
 void MainWorker::threadFunction() {
@@ -35,13 +36,21 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
 
     // Process the event based on its type
     switch (event->getEventTypeId()) {
-        // case EventTypeID::UPDATE_TEMPERATURE:
-        //     R_LOG(INFO, "Processing UPDATE_TEMPERATURE event");
-        //     processUpdateTemperatureEvent(event->getPayload());
-        //     break;
+        case EventTypeID::START_SCAN_BTDEVICE:
+            R_LOG(INFO, "Processing START_SCAN_BTDEVICE event");
+            processStartScanBTDeviceEvent();
+            break;
         
         default:
             R_LOG(WARN, "MainWorker received unknown EventTypeID");
             break;
     }
+}
+
+void MainWorker::processStartScanBTDeviceEvent() {
+    if (!bluezDBus_) {
+        R_LOG(ERROR, "BluezDBus is not initialized in MainWorker");
+        return;
+    }
+    bluezDBus_->startDiscovery();
 }

@@ -7,15 +7,31 @@
 - Cho thằng coremgr là được
 - Xài GMOCK + CmakeList cho nó chuẩn chuyên nghiệp.
 
-18. BluetoothManager
-
-CloudManager
-
-5. Cần có xử lý Timer Timeout ở CoreManager, tức nó phải nhận NOTI sau mấy giây ko thì nó sẽ tự động trả về App status false
-và kill thằng service đó (Để nó start lại)
-
-17. Viết AudioManager riêng cho việc phát âm thanh (detect card device loa để phát)
-Cứ có th nào request chơi file audio thì spawn một thread / một process (CÁI NÀY QUAN TRỌNG, CẦN HỎI)
-BỞI có thể cho chúng nó chơi âm thanh đè lên nhau được mà (Tức nhiều process / nhiều thread chạy đồng thời)
+3. CloudManager
 
 18. GStreamer, Camera, Capture, ... OpenCV...
+
+// ---------------------------
+sudo apt update
+sudo apt install -y bluez pi-bluetooth bluetooth
+
+sudo systemctl enable bluetooth.service
+sudo systemctl start bluetooth.service
+sudo systemctl status bluetooth.service
+
+bluetoothctl
+Agent registered
+[bluetooth]# 
+
+Đảm bảo ở /boot/firmware/config.txt
+dtoverlay=...
+
+// Cấu hình quyền cho User
+sudo usermod -a -G bluetooth pi
+sudo reboot
+
+// sudo nano /etc/bluetooth/main.config
+AutoEnable=true
+DiscoverableTimeout = 180
+
+https://specifications.freedesktop.org/icon-naming/latest/

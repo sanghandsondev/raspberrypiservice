@@ -67,6 +67,10 @@ void WebSocket::handleMessageFromClient(const std::string& message){
 
 namespace {
     enum class CommandType {
+        // Hardware
+        START_SCAN_BTDEVICE,
+
+        // Record
         START_RECORD,
         STOP_RECORD,
         CANCEL_RECORD,
@@ -76,6 +80,10 @@ namespace {
     };
 
     CommandType stringToCommand(const std::string& commandStr) {
+        // Hardware
+        if(commandStr == "start_scan_btdevice") return CommandType::START_SCAN_BTDEVICE;
+
+        // Record
         if (commandStr == "start_record") return CommandType::START_RECORD;
         if (commandStr == "stop_record") return CommandType::STOP_RECORD;
         if (commandStr == "cancel_record") return CommandType::CANCEL_RECORD;
@@ -90,6 +98,12 @@ std::shared_ptr<Event> WebSocket::translateMsg(const std::string& message, const
     CommandType cmd = stringToCommand(message);
 
     switch(cmd) {
+        // Hardware
+        case CommandType::START_SCAN_BTDEVICE:
+            event = std::make_shared<Event>(EventTypeID::START_SCAN_BTDEVICE);
+            break;
+
+        // Record
         case CommandType::START_RECORD:
             event = std::make_shared<Event>(EventTypeID::START_RECORD);
             break;

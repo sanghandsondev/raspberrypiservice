@@ -36,6 +36,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${ROOT_DIR}/include/DBus
     ${ROOT_DIR}/include/Log
     ${ROOT_DIR}/include/Model
+    ${ROOT_DIR}/include/BT
 )
 
 # Link libraries (if any)

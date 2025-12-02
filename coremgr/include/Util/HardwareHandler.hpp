@@ -13,7 +13,12 @@ class HardwareHandler {
 
         void setWebSocket(std::shared_ptr<WebSocket> ws){ webSocket_ = ws; }
 
+        void startScanBTDevice();
+
         void updateTemperatureNOTI(std::shared_ptr<Payload>);
+        void startScanBTDeviceNOTI(std::shared_ptr<Payload>);
+        void pairedBTDeviceFoundNOTI(std::shared_ptr<Payload>);
+        void scanningBTDeviceFoundNOTI(std::shared_ptr<Payload>);
     
     private:
         std::shared_ptr<WebSocket> webSocket_;

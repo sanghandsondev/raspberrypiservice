@@ -2,6 +2,9 @@
 #include "RLogger.hpp"
 #include "Config.hpp"
 #include "DBusSender.hpp"   // TODO: Remove later if not used
+#include "EventQueue.hpp"
+#include "EventTypeId.hpp"
+#include "Event.hpp"
 
 DBusReceiver::DBusReceiver(std::shared_ptr<EventQueue> eventQueue) 
     : DBusReceiverBase(CONFIG_INSTANCE()->getServiceName(),
@@ -11,9 +14,11 @@ DBusReceiver::DBusReceiver(std::shared_ptr<EventQueue> eventQueue)
                         eventQueue_(eventQueue) {}
 
 void DBusReceiver::handleMessage(DBusCommand cmd) {
-    // Request from other services
     switch (cmd) {
-
+        case DBusCommand::START_SCAN_BTDEVICE:
+            R_LOG(INFO, "DBusReceiver: Received START_SCAN_BTDEVICE command. Pushing event.");
+            eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::START_SCAN_BTDEVICE));
+            break;
         default:
             R_LOG(WARN, "DBusReceiver received unknown DBusCommand");
             break;

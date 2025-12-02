@@ -4,7 +4,7 @@
 #include <memory>
 #include "ThreadBase.hpp"
 
-#define INTERNAL_MONITOR_TEMPERATURE_TIMEOUT_MS  30000  // 30 seconds
+#define INTERNAL_MONITOR_TEMPERATURE_TIMEOUT_MS  (5000)  // 5 seconds
 
 class EventQueue;
 class Event;

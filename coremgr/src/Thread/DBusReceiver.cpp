@@ -36,6 +36,39 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             eventQueue_->pushEvent(event);
             break;
         }
+        case DBusCommand::START_SCAN_BTDEVICE_NOTI: {
+            R_LOG(INFO, "Dispatching START_SCAN_BTDEVICE_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::START_SCAN_BTDEVICE_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::PAIRED_BTDEVICE_FOUND_NOTI: {
+            R_LOG(INFO, "Dispatching PAIRED_BTDEVICE_FOUND_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<BluetoothDevicePayload>(
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_NAME],
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS],
+                                                std::stoi(dataInfo.data[DBUS_DATA_BT_DEVICE_RSSI]),
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_PAIRED] == "true",
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_CONNECTED] == "true",
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_ICON]);
+            auto event = std::make_shared<Event>(EventTypeID::PAIRED_BTDEVICE_FOUND_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::SCANNING_BTDEVICE_FOUND_NOTI: {
+            R_LOG(INFO, "Dispatching SCANNING_BTDEVICE_FOUND_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<BluetoothDevicePayload>(
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_NAME],
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS],
+                                                std::stoi(dataInfo.data[DBUS_DATA_BT_DEVICE_RSSI]),
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_PAIRED] == "true",
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_CONNECTED] == "true",
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_ICON]);
+            auto event = std::make_shared<Event>(EventTypeID::SCANNING_BTDEVICE_FOUND_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
 
         // From Record Manager Service
         case DBusCommand::START_RECORD_NOTI: {

@@ -15,6 +15,8 @@ class CMSenderFactory : public ISenderFactory {
         DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) override;
 
     private:
+        DBusMessage* makeMsg_StartScanBTDevice(DBusCommand cmd);
+
         DBusMessage* makeMsg_StartRecord(DBusCommand cmd);
         DBusMessage* makeMsg_StopRecord(DBusCommand cmd);
         DBusMessage* makeMsg_CancelRecord(DBusCommand cmd);

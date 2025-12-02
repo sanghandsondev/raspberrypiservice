@@ -11,6 +11,11 @@ enum class RecordState {
     PROCESSING
 };
 
+enum class ScanningBTDeviceState {
+    IDLE = 0,
+    SCANNING
+};
+
 class StateView {
     public:
         static StateView *getInstance() {
@@ -23,6 +28,7 @@ class StateView {
         // View Properties
         inline static RecordState RECORD_STATE = RecordState::STOPPED;
         inline static int CURRENT_TEMPERATURE = 0;
+        inline static ScanningBTDeviceState SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::IDLE;
 
     private:
         StateView() = default;

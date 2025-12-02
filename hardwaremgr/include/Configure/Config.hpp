@@ -23,6 +23,12 @@ class Config {
         const std::string &getW1DevicesPath() const { return W1_DEVICES_PATH; } 
         const std::string &getW1SensorPrefix() const { return W1_SENSOR_PREFIX; }
 
+        const std::string &getBluezServiceName() const { return BLUEZ_SERVICE_NAME; }
+        const std::string &getBluezAdapterInterface() const { return BLUEZ_ADAPTER_INTERFACE; }
+        const std::string &getBluezDeviceInterface() const { return BLUEZ_DEVICE_INTERFACE; }
+        const std::string &getDBusObjectManagerInterface() const { return DBUS_OBJECT_MANAGER_INTERFACE; }
+        const std::string &getDBusPropertiesInterface() const { return DBUS_PROPERTIES_INTERFACE; }
+
     private:
         Config() = default;
         ~Config() = default;
@@ -33,6 +39,13 @@ class Config {
         inline static const std::string HARDWAREMGR_OBJECT_PATH = "/com/example/hardwaremanager";
         inline static const std::string HARDWAREMGR_INTERFACE_NAME = "com.example.hardwaremanager.interface";
         inline static const std::string HARDWAREMGR_SIGNAL_NAME = "HardwareSignal";
+
+        // BlueZ D-Bus configuration
+        inline static const std::string BLUEZ_SERVICE_NAME = "org.bluez";
+        inline static const std::string BLUEZ_ADAPTER_INTERFACE = "org.bluez.Adapter1";
+        inline static const std::string BLUEZ_DEVICE_INTERFACE = "org.bluez.Device1";
+        inline static const std::string DBUS_OBJECT_MANAGER_INTERFACE = "org.freedesktop.DBus.ObjectManager";
+        inline static const std::string DBUS_PROPERTIES_INTERFACE = "org.freedesktop.DBus.Properties";
 
         // 1-Wire sensor configuration: https://pinout.xyz/pinout/1_wire
         // /boot/firmware/config.txt add the line:

@@ -8,7 +8,12 @@ enum class EventTypeID {
     STARTUP,
 
     // Hardware
+    START_SCAN_BTDEVICE,
+    
     UPDATE_TEMPERATURE_NOTI,
+    START_SCAN_BTDEVICE_NOTI,
+    PAIRED_BTDEVICE_FOUND_NOTI,
+    SCANNING_BTDEVICE_FOUND_NOTI,
 
     // Record
     START_RECORD,

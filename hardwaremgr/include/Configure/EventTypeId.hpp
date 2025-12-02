@@ -6,7 +6,8 @@
 enum class EventTypeID {
     NONE = 0,
     
-    // UPDATE_TEMPERATURE,
+    START_SCAN_BTDEVICE,
+    STOP_SCAN_BTDEVICE,
 
     MAX
 };

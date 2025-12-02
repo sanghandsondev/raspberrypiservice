@@ -3,6 +3,8 @@
 #include "EventQueue.hpp"
 #include "MainWorker.hpp"
 #include "MonitorWorker.hpp"
+#include "BluetoothWorker.hpp"
+#include "BluezDBus.hpp"
 #include <csignal>
 #include <atomic>
 #include <condition_variable>
@@ -30,14 +32,17 @@ int main(){
     sd_notify(0, "READY=1");
 
     std::shared_ptr<EventQueue> eventQueue = std::make_shared<EventQueue>();
+    std::shared_ptr<BluezDBus> bluezDBus = std::make_shared<BluezDBus>();
 
-    auto mainWorker = std::make_shared<MainWorker>(eventQueue);
+    auto mainWorker = std::make_shared<MainWorker>(eventQueue, bluezDBus);
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
     auto monitorWorker = std::make_shared<MonitorWorker>(eventQueue);
+    auto bluetoothWorker = std::make_shared<BluetoothWorker>(eventQueue, bluezDBus);
 
     mainWorker->run();
     dbusReceiver->run();
     monitorWorker->run();
+    bluetoothWorker->run();
 
     g_runningFlag = true;
     while(g_runningFlag) {
@@ -56,10 +61,12 @@ int main(){
     mainWorker->stop();
     dbusReceiver->stop();
     monitorWorker->stop();
+    bluetoothWorker->stop();
 
     mainWorker->join();
     dbusReceiver->join();
     monitorWorker->join();
+    bluetoothWorker->join();
     R_LOG(WARN, "Hardware Manager exited.");
 
     return 0;

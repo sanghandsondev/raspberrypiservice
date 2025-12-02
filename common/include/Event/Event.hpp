@@ -39,6 +39,27 @@ class NotiTemperaturePayload : public Payload {
         float temperatureValue_;
 };
 
+class BluetoothDevicePayload : public Payload {
+    public:
+        explicit BluetoothDevicePayload(const std::string &name, const std::string &address, int rssi, bool isPaired, bool isConnected, const std::string &icon)
+            : name_(name), address_(address), rssi_(rssi), isPaired_(isPaired), isConnected_(isConnected), icon_(icon) {}
+
+        std::string getName() const { return name_; }
+        std::string getAddress() const { return address_; }
+        int getRssi() const { return rssi_; }
+        bool isPaired() const { return isPaired_; }
+        bool isConnected() const { return isConnected_; }
+        std::string getIcon() const {return icon_;}
+
+    private:
+        std::string name_;
+        std::string address_;
+        int rssi_;
+        bool isPaired_;
+        bool isConnected_;
+        std::string icon_;
+};
+
 // Record
 class WavPayload : public Payload {
     public:
