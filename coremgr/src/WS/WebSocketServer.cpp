@@ -138,6 +138,7 @@ void WebSocketServer::join(std::shared_ptr<WebSocketSession> session) {
     R_LOG(INFO, "New client joined. Total clients: %zu", sessions_.size());
 
     sendInitStateToClient(session);
+    // TODO: Request get managedObject bluetooth to update initial state
 }
 
 void WebSocketServer::leave(std::shared_ptr<WebSocketSession> session) {

@@ -10,8 +10,8 @@ BluezDBus::BluezDBus() : conn_(nullptr) {
     DBusError err;
     dbus_error_init(&err);
 
-    // 1. Connect to the system bus
-    conn_ = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
+    // 1. Connect to the system bus (use private connection)
+    conn_ = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
     if (dbus_error_is_set(&err)) {
         R_LOG(ERROR, "D-Bus Connection Error: %s", err.message);
         dbus_error_free(&err);
@@ -415,7 +415,8 @@ void BluezDBus::setPower(bool on) {
     dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &prop);
 
     dbus_message_iter_open_container(&args, DBUS_TYPE_VARIANT, DBUS_TYPE_BOOLEAN_AS_STRING, &variant);
-    dbus_message_iter_append_basic(&variant, DBUS_TYPE_BOOLEAN, &on);
+    dbus_bool_t dbus_on = on ? TRUE : FALSE;
+    dbus_message_iter_append_basic(&variant, DBUS_TYPE_BOOLEAN, &dbus_on);
     dbus_message_iter_close_container(&args, &variant);
 
     dbus_error_init(&err);

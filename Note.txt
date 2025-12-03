@@ -39,4 +39,13 @@ sudo reboot
 AutoEnable=true
 DiscoverableTimeout = 180
 
+----------------------------------------------------------------------
 
+[bluetoothctl]> power on
+[CHG] Controller D8:3A:DD:0F:FB:BE PowerState: off-enabling
+hci0 class of device changed: 0x400000
+[CHG] Controller D8:3A:DD:0F:FB:BE Class: 0x00400000 (4194304)
+hci0 new_settings: powered bondable ssp br/edr le secure-conn
+Changing power on succeeded
+[CHG] Controller D8:3A:DD:0F:FB:BE PowerState: on
+[CHG] Controller D8:3A:DD:0F:FB:BE Powered: yes

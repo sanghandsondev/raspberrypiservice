@@ -96,7 +96,10 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
         }
     } else {
         // TODO: Handle other signals if needed
-        R_LOG(DEBUG, "BluetoothWorker: Received unhandled D-Bus message.");
+        R_LOG(WARN, "BluetoothWorker: Received unhandled D-Bus message. Path: %s, Interface: %s, Member: %s",
+            dbus_message_get_path(msg),
+            dbus_message_get_interface(msg),
+            dbus_message_get_member(msg));
     }
 
 }
