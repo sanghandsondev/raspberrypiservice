@@ -534,6 +534,77 @@ void BluezDBus::unpairDevice(const std::string& address) {
     }
 }
 
+void BluezDBus::registerAgent(const std::string& capability) {
+    const char* agent_path = CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath().c_str();
+    const char* cap_str = capability.c_str();
+
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        "/org/bluez",
+        "org.bluez.AgentManager1",
+        "RegisterAgent"
+    );
+    if (!msg) {
+        R_LOG(ERROR, "Failed to create RegisterAgent message");
+        return;
+    }
+
+    if (!dbus_message_append_args(msg, DBUS_TYPE_OBJECT_PATH, &agent_path, DBUS_TYPE_STRING, &cap_str, DBUS_TYPE_INVALID)) {
+        R_LOG(ERROR, "Failed to append args to RegisterAgent message");
+        dbus_message_unref(msg);
+        return;
+    }
+
+    dbus_connection_send(conn_, msg, NULL);
+    dbus_message_unref(msg);
+    R_LOG(INFO, "Registered agent at %s with capability %s", agent_path, cap_str);
+
+    // Also set as default agent
+    DBusMessage* default_msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        "/org/bluez",
+        "org.bluez.AgentManager1",
+        "RequestDefaultAgent"
+    );
+    if (!default_msg) {
+        R_LOG(ERROR, "Failed to create RequestDefaultAgent message");
+        return;
+    }
+    if (!dbus_message_append_args(default_msg, DBUS_TYPE_OBJECT_PATH, &agent_path, DBUS_TYPE_INVALID)) {
+        R_LOG(ERROR, "Failed to append args to RequestDefaultAgent message");
+        dbus_message_unref(default_msg);
+        return;
+    }
+    dbus_connection_send(conn_, default_msg, NULL);
+    dbus_message_unref(default_msg);
+    R_LOG(INFO, "Requested agent at %s to be default agent", agent_path);
+}
+
+void BluezDBus::unregisterAgent() {
+    const char* agent_path = CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath().c_str();
+
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        "/org/bluez",
+        "org.bluez.AgentManager1",
+        "UnregisterAgent"
+    );
+    if (!msg) {
+        R_LOG(ERROR, "Failed to create UnregisterAgent message");
+        return;
+    }
+
+    if (!dbus_message_append_args(msg, DBUS_TYPE_OBJECT_PATH, &agent_path, DBUS_TYPE_INVALID)) {
+        R_LOG(ERROR, "Failed to append args to UnregisterAgent message");
+        dbus_message_unref(msg);
+        return;
+    }
+
+    dbus_connection_send(conn_, msg, NULL);
+    dbus_message_unref(msg);
+    R_LOG(INFO, "Unregistered agent at %s", agent_path);
+}
+
 DBusDataInfo BluezDBus::getAllDeviceProperties(const std::string& objectPath) {
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getBluezServiceName().c_str(),

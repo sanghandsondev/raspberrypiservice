@@ -5,6 +5,7 @@
 #include "MonitorWorker.hpp"
 #include "BluetoothWorker.hpp"
 #include "BluezDBus.hpp"
+#include "BluetoothAgent.hpp"
 #include <csignal>
 #include <atomic>
 #include <condition_variable>
@@ -33,11 +34,19 @@ int main(){
 
     std::shared_ptr<EventQueue> eventQueue = std::make_shared<EventQueue>();
     std::shared_ptr<BluezDBus> bluezDBus = std::make_shared<BluezDBus>();
+    if (bluezDBus->getConnection() == nullptr) {
+        R_LOG(ERROR, "Failed to connect to D-Bus for BlueZ. Exiting.");
+        return 1;
+    }
+    std::shared_ptr<BluetoothAgent> agent = std::make_shared<BluetoothAgent>(bluezDBus->getConnection());
+
+    // Register agent
+    bluezDBus->registerAgent("NoInputNoOutput"); // Capability for "Just Works"
 
     auto mainWorker = std::make_shared<MainWorker>(eventQueue, bluezDBus);
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
     auto monitorWorker = std::make_shared<MonitorWorker>(eventQueue);
-    auto bluetoothWorker = std::make_shared<BluetoothWorker>(eventQueue, bluezDBus);
+    auto bluetoothWorker = std::make_shared<BluetoothWorker>(eventQueue, bluezDBus, agent);
 
     mainWorker->run();
     dbusReceiver->run();
@@ -58,6 +67,7 @@ int main(){
     }
 
     R_LOG(WARN, "Shutdown signal received, stopping threads...");
+    bluezDBus->unregisterAgent();
     mainWorker->stop();
     dbusReceiver->stop();
     monitorWorker->stop();

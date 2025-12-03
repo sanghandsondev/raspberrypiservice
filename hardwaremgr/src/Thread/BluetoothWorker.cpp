@@ -4,6 +4,7 @@
 #include "BluezDBus.hpp"
 #include "DBusSender.hpp"
 #include "DBusData.hpp"
+#include "BluetoothAgent.hpp"
 #include <thread>
 #include <poll.h>
 #include <cerrno>
@@ -11,8 +12,8 @@
 #include <dbus/dbus.h>
 #include <algorithm>
 
-BluetoothWorker::BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus) 
-    : ThreadBase("BluetoothWorker"), eventQueue_(eventQueue), bluezDBus_(bluezDBus) {
+BluetoothWorker::BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus, std::shared_ptr<BluetoothAgent> agent) 
+    : ThreadBase("BluetoothWorker"), eventQueue_(eventQueue), bluezDBus_(bluezDBus), agent_(agent) {
 }
 
 void BluetoothWorker::threadFunction(){
@@ -36,6 +37,10 @@ void BluetoothWorker::threadFunction(){
     std::string match_rule_changed = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() +
         "',member='PropertiesChanged',sender='" + CONFIG_INSTANCE()->getBluezServiceName() + "'";
     bluezDBus_->addMatchRule(match_rule_changed);
+
+    // Register to receive method calls for our agent
+    std::string match_rule_agent = "type='method_call',interface='org.bluez.Agent1',path='" + CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath() + "'";
+    bluezDBus_->addMatchRule(match_rule_agent);
 
     DBusConnection* conn = bluezDBus_->getConnection();
     int fd;
@@ -84,6 +89,11 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
     } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(), "PropertiesChanged")) {
         R_LOG(DEBUG, "BluetoothWorker: Received PropertiesChanged signal.");
         handlePropertiesChanged(msg);
+    } else if (dbus_message_get_type(msg) == DBUS_MESSAGE_TYPE_METHOD_CALL &&
+               std::string(dbus_message_get_path(msg)) == CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath()) {
+        if (agent_) {
+            agent_->handleMessage(msg);
+        }
     } else {
         // TODO: Handle other signals if needed
         R_LOG(DEBUG, "BluetoothWorker: Received unhandled D-Bus message.");

@@ -17,6 +17,8 @@ public:
     void powerOffAdapter();
     void pairDevice(const std::string& address);
     void unpairDevice(const std::string& address);
+    void registerAgent(const std::string& capability);
+    void unregisterAgent();
 
     DBusConnection* getConnection();
     void addMatchRule(const std::string& rule);

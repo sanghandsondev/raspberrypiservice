@@ -9,15 +9,17 @@ class EventQueue;
 class Event;
 class Payload;
 class BluezDBus;
+class BluetoothAgent;
 
 class BluetoothWorker : public ThreadBase {
     public:
-        explicit BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus);
+        explicit BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus, std::shared_ptr<BluetoothAgent> agent);
         ~BluetoothWorker() = default;
 
     private:
         std::shared_ptr<EventQueue> eventQueue_;
         std::shared_ptr<BluezDBus> bluezDBus_;
+        std::shared_ptr<BluetoothAgent> agent_;
 
         void threadFunction() override;
         void dispatchMessage(DBusMessage* msg);

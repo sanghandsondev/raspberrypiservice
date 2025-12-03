@@ -19,6 +19,7 @@ class Config {
         const std::string &getObjectPath() const { return HARDWAREMGR_OBJECT_PATH;}
         const std::string &getInterfaceName() const { return HARDWAREMGR_INTERFACE_NAME;}
         const std::string &getSignalName() const { return HARDWAREMGR_SIGNAL_NAME;}
+        const std::string &getHardwareMgrAgentObjectPath() const { return HARDWAREMGR_AGENT_OBJECT_PATH; }
 
         const std::string &getW1DevicesPath() const { return W1_DEVICES_PATH; } 
         const std::string &getW1SensorPrefix() const { return W1_SENSOR_PREFIX; }
@@ -39,6 +40,7 @@ class Config {
         inline static const std::string HARDWAREMGR_OBJECT_PATH = "/com/example/hardwaremanager";
         inline static const std::string HARDWAREMGR_INTERFACE_NAME = "com.example.hardwaremanager.interface";
         inline static const std::string HARDWAREMGR_SIGNAL_NAME = "HardwareSignal";
+        inline static const std::string HARDWAREMGR_AGENT_OBJECT_PATH = "/com/example/hardwaremanager/agent";
 
         // BlueZ D-Bus configuration
         inline static const std::string BLUEZ_SERVICE_NAME = "org.bluez";
