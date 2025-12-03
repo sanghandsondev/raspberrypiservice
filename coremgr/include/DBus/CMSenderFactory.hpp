@@ -23,6 +23,9 @@ class CMSenderFactory : public ISenderFactory {
         DBusMessage* makeMsg_StartRecord(DBusCommand cmd);
         DBusMessage* makeMsg_StopRecord(DBusCommand cmd);
         DBusMessage* makeMsg_CancelRecord(DBusCommand cmd);
+
+        DBusMessage* makeMsgNoti_PairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_UnpairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         
 };
 

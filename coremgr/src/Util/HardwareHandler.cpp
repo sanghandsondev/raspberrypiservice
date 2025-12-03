@@ -5,6 +5,7 @@
 #include "WebSocketServer.hpp"
 #include "StateView.hpp"
 #include "DBusSender.hpp"
+#include "DBusData.hpp"
 
 void HardwareHandler::startScanBTDevice(){
     ScanningBTDeviceState currentState = STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE;
@@ -86,6 +87,32 @@ void HardwareHandler::bluetoothPowerOff(){
     }
 }
 
+void HardwareHandler::pairBTDevice(std::shared_ptr<Payload> payload){
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "PAIR_BTDEVICE payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+    std::string deviceAddress = btPayload->getAddress();
+    R_LOG(INFO, "Sending Pair command for Bluetooth device: %s", deviceAddress.c_str());
+    DBusDataInfo data;
+    data[DBUS_DATA_BT_DEVICE_ADDRESS] = deviceAddress;
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::PAIR_BTDEVICE, true, data);
+}
+
+void HardwareHandler::unpairBTDevice(std::shared_ptr<Payload> payload){
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "UNPAIR_BTDEVICE payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+    std::string deviceAddress = btPayload->getAddress();
+    R_LOG(INFO, "Sending Unpair command for Bluetooth device: %s", deviceAddress.c_str());
+    DBusDataInfo data;
+    data[DBUS_DATA_BT_DEVICE_ADDRESS] = deviceAddress;
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::UNPAIR_BTDEVICE, true, data);
+}
+
 void HardwareHandler::startScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
     std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
     if (notiPayload == nullptr) {
@@ -160,33 +187,6 @@ void HardwareHandler::updateTemperatureNOTI(std::shared_ptr<Payload> payload){
     }
 }
 
-void HardwareHandler::pairedBTDeviceFoundNOTI(std::shared_ptr<Payload> payload){
-    std::shared_ptr<BluetoothDevicePayload> btPayload = std::dynamic_pointer_cast<BluetoothDevicePayload>(payload);
-    if (btPayload == nullptr) {
-        R_LOG(ERROR, "PAIRED_BTDEVICE_FOUND_NOTI payload is not of type BluetoothDevicePayload");
-        return;
-    }
-
-    R_LOG(INFO, "Paired Bluetooth device found: Name=%s, Address=%s, RSSI=%d, Paired=%s, Connected=%s, Icon=%s",
-          btPayload->getName().c_str(),
-          btPayload->getAddress().c_str(),
-          btPayload->getRssi(),
-          btPayload->isPaired() ? "Yes" : "No",
-          btPayload->isConnected() ? "Yes" : "No",
-          btPayload->getIcon().c_str());
-
-    webSocket_->getServer()->updateStateAndBroadcast("success", 
-        "Paired Bluetooth device found.",
-        "Settings", "paired_btdevice_found_noti", {
-            {"device_name", btPayload->getName()},
-            {"device_address", btPayload->getAddress()},
-            {"rssi", btPayload->getRssi()},
-            {"is_paired", btPayload->isPaired()},
-            {"is_connected", btPayload->isConnected()},
-            {"icon", btPayload->getIcon()}
-        });
-}
-
 void HardwareHandler::scanningBTDeviceFoundNOTI(std::shared_ptr<Payload> payload){
     std::shared_ptr<BluetoothDevicePayload> btPayload = std::dynamic_pointer_cast<BluetoothDevicePayload>(payload);
     if (btPayload == nullptr) {
@@ -215,9 +215,9 @@ void HardwareHandler::scanningBTDeviceFoundNOTI(std::shared_ptr<Payload> payload
 }
 
 void HardwareHandler::scanningBTDeviceDeleteNOTI(std::shared_ptr<Payload> payload){
-    std::shared_ptr<BluetoothDeviceDeletePayload> btDeletePayload = std::dynamic_pointer_cast<BluetoothDeviceDeletePayload>(payload);
+    std::shared_ptr<BluetoothDeviceAddressPayload> btDeletePayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
     if (btDeletePayload == nullptr) {
-        R_LOG(ERROR, "SCANNING_BTDEVICE_DELETE_NOTI payload is not of type BluetoothDeviceDeletePayload");
+        R_LOG(ERROR, "SCANNING_BTDEVICE_DELETE_NOTI payload is not of type BluetoothDeviceAddressPayload");
         return;
     }
 
@@ -276,3 +276,73 @@ void HardwareHandler::bluetoothPowerOffNOTI(std::shared_ptr<Payload> payload){
             "Settings", "bluetooth_power_off_noti", {});
     }
 }
+
+void HardwareHandler::pairBTDeviceNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "PAIR_BTDEVICE_NOTI payload is not of type NotiPayload");
+        return;
+    }
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "Bluetooth device paired successfully: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Settings", "pair_btdevice_noti", {});
+    } else {
+        R_LOG(ERROR, "Failed to pair Bluetooth device: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(),
+            "Settings", "pair_btdevice_noti", {});
+    }
+}
+
+void HardwareHandler::unpairBTDeviceNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "UNPAIR_BTDEVICE_NOTI payload is not of type NotiPayload");
+        return;
+    }
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "Bluetooth device unpaired successfully: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Settings", "unpair_btdevice_noti", {});
+    } else {
+        R_LOG(ERROR, "Failed to unpair Bluetooth device: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(),
+            "Settings", "unpair_btdevice_noti", {});
+    }
+}
+
+void HardwareHandler::btDevicePropertyChangeNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<BluetoothDevicePayload> btPayload = std::dynamic_pointer_cast<BluetoothDevicePayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "BTDEVICE_PROPERTY_CHANGE_NOTI payload is not of type BluetoothDevicePayload");
+        return;
+    }
+
+    R_LOG(INFO, "Bluetooth device property changed: Name=%s, Address=%s, RSSI=%d, Paired=%s, Connected=%s, Icon=%s",
+        btPayload->getName().c_str(),
+        btPayload->getAddress().c_str(),
+        btPayload->getRssi(),
+        btPayload->isPaired() ? "Yes" : "No",
+        btPayload->isConnected() ? "Yes" : "No",
+        btPayload->getIcon().c_str());
+
+    webSocket_->getServer()->updateStateAndBroadcast("success", 
+        "Bluetooth device property changed.",
+        "Settings", "btdevice_property_change_noti", {
+            {"device_name", btPayload->getName()},
+            {"device_address", btPayload->getAddress()},
+            {"rssi", btPayload->getRssi()},
+            {"is_paired", btPayload->isPaired()},
+            {"is_connected", btPayload->isConnected()},
+            {"icon", btPayload->getIcon()}
+        });
+}
+

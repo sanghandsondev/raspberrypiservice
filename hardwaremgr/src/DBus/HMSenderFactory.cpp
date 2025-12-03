@@ -18,8 +18,6 @@ DBusMessage* HMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
             return makeMsgNoti_StartScanBTDevice(cmd, isSuccess, msgInfo);
         case DBusCommand::STOP_SCAN_BTDEVICE_NOTI:
             return makeMsgNoti_StopScanBTDevice(cmd, isSuccess, msgInfo);
-        case DBusCommand::PAIRED_BTDEVICE_FOUND_NOTI:
-            return makeMsgNoti_PairedBTDeviceFound(cmd, isSuccess, msgInfo);
         case DBusCommand::SCANNING_BTDEVICE_FOUND_NOTI:
             return makeMsgNoti_ScanningBTDeviceFound(cmd, isSuccess, msgInfo);
         case DBusCommand::SCANNING_BTDEVICE_DELETE_NOTI:
@@ -28,6 +26,12 @@ DBusMessage* HMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
             return makeMsgNoti_BluetoothPowerOn(cmd, isSuccess, msgInfo);
         case DBusCommand::BLUETOOTH_POWER_OFF_NOTI:
             return makeMsgNoti_BluetoothPowerOff(cmd, isSuccess, msgInfo);
+        case DBusCommand::BTDEVICE_PROPERTY_CHANGE_NOTI:
+            return makeMsgNoti_BTDevicePropertyChange(cmd, isSuccess, msgInfo);
+        case DBusCommand::PAIR_BTDEVICE_NOTI:
+            return makeMsgNoti_PairBTDevice(cmd, isSuccess, msgInfo);
+        case DBusCommand::UNPAIR_BTDEVICE_NOTI:
+            return makeMsgNoti_UnpairBTDevice(cmd, isSuccess, msgInfo);
         default:
             R_LOG(ERROR, "HMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
             return nullptr;
@@ -52,14 +56,6 @@ DBusMessage* HMSenderFactory::makeMsgNoti_StartScanBTDevice(DBusCommand cmd, boo
 }
 
 DBusMessage* HMSenderFactory::makeMsgNoti_StopScanBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
-    const char* objectPath = "/com/example/coremanager";
-    const char* interfaceName = "com.example.coremanager.interface";
-    const char* signalName = "CoreSignal";
-
-    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
-}
-
-DBusMessage* HMSenderFactory::makeMsgNoti_PairedBTDeviceFound(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/coremanager";
     const char* interfaceName = "com.example.coremanager.interface";
     const char* signalName = "CoreSignal";
@@ -92,6 +88,30 @@ DBusMessage* HMSenderFactory::makeMsgNoti_BluetoothPowerOn(DBusCommand cmd, bool
 }
 
 DBusMessage* HMSenderFactory::makeMsgNoti_BluetoothPowerOff(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_BTDevicePropertyChange(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_PairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_UnpairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/coremanager";
     const char* interfaceName = "com.example.coremanager.interface";
     const char* signalName = "CoreSignal";

@@ -15,20 +15,24 @@ public:
     void stopDiscovery();
     void powerOnAdapter();
     void powerOffAdapter();
+    void pairDevice(const std::string& address);
+    void unpairDevice(const std::string& address);
 
     DBusConnection* getConnection();
     void addMatchRule(const std::string& rule);
     DBusDataInfo parseDeviceProperties(DBusMessageIter *properties_iter);
     DBusDataInfo parseAdapterProperties(DBusMessageIter *properties_iter);
     const std::string& getAdapterPath() const;
-
+    DBusDataInfo getAllDeviceProperties(const std::string& objectPath);
+    
 private:
     DBusConnection* conn_;
     std::string adapterPath_;
-
+        
     void findAdapter();
     bool parseManagedObjects(DBusMessageIter *iter);
     void setPower(bool on);
+    std::string deviceAddressToObjectPath(const std::string& address) const;
 };
 
 #endif // BLUEZ_DBUS_HPP_

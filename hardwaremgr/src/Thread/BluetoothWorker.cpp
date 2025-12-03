@@ -248,28 +248,24 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
     }
 
     // Handle Device property changes
-    // if (iface_str == CONFIG_INSTANCE()->getBluezDeviceInterface()) {
-    //     // Extract address from path
-    //     size_t dev_pos = path_str.find("dev_");
-    //     if (dev_pos != std::string::npos) {
-    //         std::string addr = path_str.substr(dev_pos + 4);
-    //         std::replace(addr.begin(), addr.end(), '_', ':');
-    //         properties[DBUS_DATA_BT_DEVICE_ADDRESS] = addr;
-    //     } else {
-    //         // If we can't get address from path, we can't identify the device.
-    //         // It might be in the properties, but if not, we have to skip.
-    //         if (!properties.count(DBUS_DATA_BT_DEVICE_ADDRESS)) {
-    //              R_LOG(WARN, "PropertiesChanged for device, but no address found in path or properties.");
-    //              return;
-    //         }
-    //     }
+    if (iface_str == CONFIG_INSTANCE()->getBluezDeviceInterface()) {
+        // When a property changes, we get all properties to send a complete update.
+        R_LOG(INFO, "Properties changed for device: %s. Fetching all properties.", path_str.c_str());
+        DBusDataInfo all_properties = bluezDBus_->getAllDeviceProperties(path_str);
 
-    //     properties[DBUS_DATA_MESSAGE] = "Bluetooth device properties updated.";
-    //     R_LOG(INFO, "Device Updated: Address=%s, Name=%s, RSSI=%s",
-    //             properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str(),
-    //             properties.count(DBUS_DATA_BT_DEVICE_NAME) ? properties[DBUS_DATA_BT_DEVICE_NAME].c_str() : "N/A",
-    //             properties.count(DBUS_DATA_BT_DEVICE_RSSI) ? properties[DBUS_DATA_BT_DEVICE_RSSI].c_str() : "N/A");
+        if (all_properties[DBUS_DATA_BT_DEVICE_ADDRESS].empty()) {
+            R_LOG(WARN, "Could not get address for device at path %s. Skipping update.", path_str.c_str());
+            return;
+        }
 
-    //     DBUS_SENDER()->sendMessageNoti(DBusCommand::BTDEVICE_UPDATE_NOTI, true, properties);
-    // }
+        all_properties[DBUS_DATA_MESSAGE] = "Bluetooth device properties updated.";
+        R_LOG(INFO, "Device Updated: Address=%s, Name=%s, RSSI=%s, Paired=%s, Connected=%s",
+                all_properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str(),
+                all_properties[DBUS_DATA_BT_DEVICE_NAME].empty() ? "N/A" : all_properties[DBUS_DATA_BT_DEVICE_NAME].c_str(),
+                all_properties[DBUS_DATA_BT_DEVICE_RSSI].c_str(),
+                all_properties[DBUS_DATA_BT_DEVICE_PAIRED].c_str(),
+                all_properties[DBUS_DATA_BT_DEVICE_CONNECTED].c_str());
+
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::BTDEVICE_PROPERTY_CHANGE_NOTI, true, all_properties);
+    }
 }

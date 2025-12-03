@@ -18,11 +18,13 @@ class HMSenderFactory : public ISenderFactory {
         DBusMessage* makeMsgNoti_UpdateTemperature(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_StartScanBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_StopScanBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
-        DBusMessage* makeMsgNoti_PairedBTDeviceFound(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_ScanningBTDeviceFound(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_ScanningBTDeviceDelete(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_BluetoothPowerOn(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_BluetoothPowerOff(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_BTDevicePropertyChange(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_PairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_UnpairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
 };
 
 #endif // HM_SENDER_FACTORY_HPP_

@@ -19,6 +19,7 @@ class JsonHelper {
         JsonHelper &operator=(const JsonHelper &) = delete;
 
         std::optional<int> getIntField(const json& data, const std::string& key);
+        std::optional<std::string> getStringField(const json& data, const std::string& key);
 
     private:
         JsonHelper() = default;

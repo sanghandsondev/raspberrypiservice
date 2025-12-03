@@ -72,6 +72,8 @@ namespace {
         STOP_SCAN_BTDEVICE,
         BLUETOOTH_POWER_ON,
         BLUETOOTH_POWER_OFF,
+        PAIR_BTDEVICE,
+        UNPAIR_BTDEVICE,
 
         // Record
         START_RECORD,
@@ -88,6 +90,8 @@ namespace {
         if(commandStr == "stop_scan_btdevice") return CommandType::STOP_SCAN_BTDEVICE;
         if(commandStr == "bluetooth_power_on") return CommandType::BLUETOOTH_POWER_ON;
         if(commandStr == "bluetooth_power_off") return CommandType::BLUETOOTH_POWER_OFF;
+        if(commandStr == "pair_btdevice") return CommandType::PAIR_BTDEVICE;
+        if(commandStr == "unpair_btdevice") return CommandType::UNPAIR_BTDEVICE;
 
         // Record
         if (commandStr == "start_record") return CommandType::START_RECORD;
@@ -117,6 +121,27 @@ std::shared_ptr<Event> WebSocket::translateMsg(const std::string& message, const
         case CommandType::BLUETOOTH_POWER_OFF:
             event = std::make_shared<Event>(EventTypeID::BLUETOOTH_POWER_OFF);
             break;
+        case CommandType::PAIR_BTDEVICE:
+        {
+            // { "address": "XX:XX:XX:XX:XX:XX" }
+            auto addressOpt = JSON_HELPER_INSTANCE()->getStringField(data, "device_address");
+            if (addressOpt) {
+                std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(*addressOpt);
+                event = std::make_shared<Event>(EventTypeID::PAIR_BTDEVICE, payload);
+            }
+            break;
+        }
+        case CommandType::UNPAIR_BTDEVICE:
+        {
+            // { "address": "XX:XX:XX:XX:XX:XX" }
+            auto addressOpt = JSON_HELPER_INSTANCE()->getStringField(data, "device_address");
+            if (addressOpt) {
+                std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(*addressOpt);
+                event = std::make_shared<Event>(EventTypeID::UNPAIR_BTDEVICE, payload);
+            }
+            break;
+        }
+
         // Record
         case CommandType::START_RECORD:
             event = std::make_shared<Event>(EventTypeID::START_RECORD);

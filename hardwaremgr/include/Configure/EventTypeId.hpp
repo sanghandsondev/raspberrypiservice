@@ -10,6 +10,8 @@ enum class EventTypeID {
     STOP_SCAN_BTDEVICE,
     BLUETOOTH_POWER_ON,
     BLUETOOTH_POWER_OFF,
+    PAIR_BTDEVICE,
+    UNPAIR_BTDEVICE,
 
     MAX
 };

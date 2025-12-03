@@ -79,6 +79,12 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::BLUETOOTH_POWER_OFF:
             hardwareHandler_->bluetoothPowerOff();
             break;
+        case EventTypeID::PAIR_BTDEVICE:
+            hardwareHandler_->pairBTDevice(payload);
+            break;
+        case EventTypeID::UNPAIR_BTDEVICE:
+            hardwareHandler_->unpairBTDevice(payload);
+            break;
         case EventTypeID::UPDATE_TEMPERATURE_NOTI:
             hardwareHandler_->updateTemperatureNOTI(payload);
             break;
@@ -87,9 +93,6 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             break;
         case EventTypeID::STOP_SCAN_BTDEVICE_NOTI:
             hardwareHandler_->stopScanBTDeviceNOTI(payload);
-            break;
-        case EventTypeID::PAIRED_BTDEVICE_FOUND_NOTI:
-            hardwareHandler_->pairedBTDeviceFoundNOTI(payload);
             break;
         case EventTypeID::SCANNING_BTDEVICE_FOUND_NOTI:
             hardwareHandler_->scanningBTDeviceFoundNOTI(payload);
@@ -103,7 +106,16 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::BLUETOOTH_POWER_OFF_NOTI:
             hardwareHandler_->bluetoothPowerOffNOTI(payload);
             break;
-
+        case EventTypeID::BTDEVICE_PROPERTY_CHANGE_NOTI:
+            hardwareHandler_->btDevicePropertyChangeNOTI(payload);
+            break;
+        case EventTypeID::PAIR_BTDEVICE_NOTI:
+            hardwareHandler_->pairBTDeviceNOTI(payload);
+            break;
+        case EventTypeID::UNPAIR_BTDEVICE_NOTI:
+            hardwareHandler_->unpairBTDeviceNOTI(payload);
+            break;
+            
         // Record
         case EventTypeID::START_RECORD:
             recordHandler_->startRecord();

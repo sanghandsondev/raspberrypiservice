@@ -364,16 +364,14 @@ bool BluezDBus::parseManagedObjects(DBusMessageIter *iter) {
                     bool isPaired = !properties[DBUS_DATA_BT_DEVICE_PAIRED].empty() && properties[DBUS_DATA_BT_DEVICE_PAIRED] == "true";
                     bool isConnected = !properties[DBUS_DATA_BT_DEVICE_CONNECTED].empty() && properties[DBUS_DATA_BT_DEVICE_CONNECTED] == "true";
 
-                    if (isPaired || isConnected) {
-                        R_LOG(INFO, "Found existing device: Address=%s, Name=%s, Paired=%s, Connected=%s",
-                            properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str(),
-                            properties[DBUS_DATA_BT_DEVICE_NAME].empty() ? "N/A" : properties[DBUS_DATA_BT_DEVICE_NAME].c_str(),
-                            isPaired ? "Yes" : "No",
-                            isConnected ? "Yes" : "No");
-                        
-                        properties[DBUS_DATA_MESSAGE] = "Found existing paired/connected Bluetooth device.";
-                        DBUS_SENDER()->sendMessageNoti(DBusCommand::PAIRED_BTDEVICE_FOUND_NOTI, true, properties);
-                    }
+                    R_LOG(INFO, "Found existing device in managed objects: Address=%s, Name=%s, Paired=%s, Connected=%s",
+                        properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str(),
+                        properties[DBUS_DATA_BT_DEVICE_NAME].empty() ? "N/A" : properties[DBUS_DATA_BT_DEVICE_NAME].c_str(),
+                        isPaired ? "Yes" : "No",
+                        isConnected ? "Yes" : "No");
+                    
+                    properties[DBUS_DATA_MESSAGE] = "Found existing Bluetooth device in managed objects.";
+                    DBUS_SENDER()->sendMessageNoti(DBusCommand::SCANNING_BTDEVICE_FOUND_NOTI, true, properties);
                 }
             }
             dbus_message_iter_next(&interfaces_array_iter);
@@ -439,4 +437,143 @@ void BluezDBus::setPower(bool on) {
     if (reply) {
         dbus_message_unref(reply);
     }
+}
+
+std::string BluezDBus::deviceAddressToObjectPath(const std::string& address) const {
+    std::string path = adapterPath_ + "/dev_";
+    std::string addr_copy = address;
+    std::replace(addr_copy.begin(), addr_copy.end(), ':', '_');
+    path += addr_copy;
+    return path;
+}
+
+void BluezDBus::pairDevice(const std::string& address) {
+    R_LOG(INFO, "Attempting to pair with device: %s", address.c_str());
+    std::string objectPath = deviceAddressToObjectPath(address);
+
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        objectPath.c_str(),
+        CONFIG_INSTANCE()->getBluezDeviceInterface().c_str(),
+        "Pair"
+    );
+
+    DBusDataInfo info;
+    info[DBUS_DATA_BT_DEVICE_ADDRESS] = address;
+
+    if (msg == nullptr) {
+        R_LOG(ERROR, "Failed to create D-Bus message for Pair");
+        info[DBUS_DATA_MESSAGE] = "Failed to create D-Bus message for Pair";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::PAIR_BTDEVICE_NOTI, false, info);
+        return;
+    }
+
+    DBusError err;
+    dbus_error_init(&err);
+    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error calling Pair for device %s: %s", address.c_str(), err.message);
+        info[DBUS_DATA_MESSAGE] = std::string("Error pairing with device: ") + err.message;
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::PAIR_BTDEVICE_NOTI, false, info);
+        dbus_error_free(&err);
+    } else {
+        R_LOG(INFO, "Successfully called Pair for device %s. Pairing process initiated.", address.c_str());
+        // Note: Successful call doesn't mean pairing is complete.
+        // The result will come via PropertiesChanged signal (Paired property).
+    }
+
+    if (reply) {
+        dbus_message_unref(reply);
+    }
+}
+
+void BluezDBus::unpairDevice(const std::string& address) {
+    R_LOG(INFO, "Attempting to unpair (remove) device: %s", address.c_str());
+    std::string objectPath = deviceAddressToObjectPath(address);
+
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        adapterPath_.c_str(),
+        CONFIG_INSTANCE()->getBluezAdapterInterface().c_str(),
+        "RemoveDevice"
+    );
+
+    DBusDataInfo info;
+    info[DBUS_DATA_BT_DEVICE_ADDRESS] = address;
+
+    if (msg == nullptr) {
+        R_LOG(ERROR, "Failed to create D-Bus message for RemoveDevice");
+        info[DBUS_DATA_MESSAGE] = "Failed to create D-Bus message for RemoveDevice";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::UNPAIR_BTDEVICE_NOTI, false, info);
+        return;
+    }
+
+    const char* path_cstr = objectPath.c_str();
+    dbus_message_append_args(msg, DBUS_TYPE_OBJECT_PATH, &path_cstr, DBUS_TYPE_INVALID);
+
+    DBusError err;
+    dbus_error_init(&err);
+    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error calling RemoveDevice for %s: %s", address.c_str(), err.message);
+        info[DBUS_DATA_MESSAGE] = std::string("Error unpairing device: ") + err.message;
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::UNPAIR_BTDEVICE_NOTI, false, info);
+        dbus_error_free(&err);
+    } else {
+        R_LOG(INFO, "Successfully called RemoveDevice for %s.", address.c_str());
+        // Note: Successful call doesn't mean unpairing is complete.
+        // The result will come via PropertiesChanged signal (Paired property).
+    }
+
+    if (reply) {
+        dbus_message_unref(reply);
+    }
+}
+
+DBusDataInfo BluezDBus::getAllDeviceProperties(const std::string& objectPath) {
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        objectPath.c_str(),
+        CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(),
+        "GetAll"
+    );
+    if (msg == nullptr) {
+        R_LOG(ERROR, "Failed to create D-Bus message for GetAll on %s", objectPath.c_str());
+        return DBusDataInfo();
+    }
+
+    const char* iface = CONFIG_INSTANCE()->getBluezDeviceInterface().c_str();
+    dbus_message_append_args(msg, DBUS_TYPE_STRING, &iface, DBUS_TYPE_INVALID);
+
+    DBusError err;
+    dbus_error_init(&err);
+    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error calling GetAll on %s: %s", objectPath.c_str(), err.message);
+        dbus_error_free(&err);
+        return DBusDataInfo();
+    }
+
+    if (reply == nullptr) {
+        R_LOG(ERROR, "No reply received for GetAll on %s", objectPath.c_str());
+        return DBusDataInfo();
+    }
+
+    DBusMessageIter iter;
+    DBusDataInfo properties;
+    if (dbus_message_iter_init(reply, &iter)) {
+        // The reply for GetAll is a{sv}, which is what parseDeviceProperties expects
+        properties = parseDeviceProperties(&iter);
+    } else {
+        R_LOG(ERROR, "Failed to init iterator for GetAll reply on %s", objectPath.c_str());
+    }
+
+    dbus_message_unref(reply);
+    return properties;
 }

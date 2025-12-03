@@ -26,7 +26,16 @@ DBusMessage* CMSenderFactory::makeMsg(DBusCommand cmd) {
 }
 
 DBusMessage* CMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
-    // TODO
+    switch (cmd)
+    {
+    case DBusCommand::PAIR_BTDEVICE:
+        return makeMsgNoti_PairBTDevice(cmd, isSuccess, msgInfo);
+    case DBusCommand::UNPAIR_BTDEVICE:
+        return makeMsgNoti_UnpairBTDevice(cmd, isSuccess, msgInfo);
+    default:
+        R_LOG(ERROR, "CMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
+        return nullptr;
+    }
 }
 
 // Specific message creation functions
@@ -61,6 +70,22 @@ DBusMessage* CMSenderFactory::makeMsg_BluetoothPowerOff(DBusCommand cmd) {
     const char* signalName = "HardwareSignal";
 
     return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
+}
+
+DBusMessage* CMSenderFactory::makeMsgNoti_PairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/hardwaremanager";
+    const char* interfaceName = "com.example.hardwaremanager.interface";
+    const char* signalName = "HardwareSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* CMSenderFactory::makeMsgNoti_UnpairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/hardwaremanager";
+    const char* interfaceName = "com.example.hardwaremanager.interface";
+    const char* signalName = "HardwareSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
 }
 
 // Record

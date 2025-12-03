@@ -28,6 +28,9 @@ class MainWorker : public ThreadBase {
         void processStopScanBTDeviceEvent();
         void processBluetoothPowerOnEvent();
         void processBluetoothPowerOffEvent();
+
+        void processPairBTDeviceEvent(std::shared_ptr<Payload> payload);
+        void processUnpairBTDeviceEvent(std::shared_ptr<Payload> payload);
 };
 
 #endif // MAIN_WORKER_HPP_

@@ -60,9 +60,9 @@ class BluetoothDevicePayload : public Payload {
         std::string icon_;
 };
 
-class BluetoothDeviceDeletePayload : public Payload {
+class BluetoothDeviceAddressPayload : public Payload {
     public:
-        explicit BluetoothDeviceDeletePayload(const std::string &address)
+        explicit BluetoothDeviceAddressPayload(const std::string &address)
             : address_(address) {}
 
         std::string getAddress() const { return address_; }
