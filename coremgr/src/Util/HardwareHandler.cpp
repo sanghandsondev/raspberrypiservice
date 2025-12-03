@@ -10,12 +10,15 @@ void HardwareHandler::startScanBTDevice(){
     ScanningBTDeviceState currentState = STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE;
     switch (currentState) {
         case ScanningBTDeviceState::IDLE:
-            STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::SCANNING;
+            STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::PROCESSING;
             DBUS_SENDER()->sendMessage(DBusCommand::START_SCAN_BTDEVICE);
             R_LOG(INFO, "Started scanning for Bluetooth devices.");
             break;
         case ScanningBTDeviceState::SCANNING:
             R_LOG(WARN, "Received START_SCAN_BTDEVICE event while already SCANNING. No Action taken.");
+            break;
+        case ScanningBTDeviceState::PROCESSING:
+            R_LOG(WARN, "Received START_SCAN_BTDEVICE event while in PROCESSING state. No Action taken.");
             break;
         default:
             R_LOG(WARN, "Received START_SCAN_BTDEVICE event in invalid state");
@@ -28,11 +31,14 @@ void HardwareHandler::stopScanBTDevice(){
     switch (currentState) {
         case ScanningBTDeviceState::SCANNING:
             DBUS_SENDER()->sendMessage(DBusCommand::STOP_SCAN_BTDEVICE);
-            STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::IDLE;
+            STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::PROCESSING;
             R_LOG(INFO, "Stopped scanning for Bluetooth devices.");
             break;
         case ScanningBTDeviceState::IDLE:
             R_LOG(WARN, "Received STOP_SCAN_BTDEVICE event while already IDLE. No Action taken.");
+            break;
+        case ScanningBTDeviceState::PROCESSING:
+            R_LOG(WARN, "Received STOP_SCAN_BTDEVICE event while in PROCESSING state. No Action taken.");
             break;
         default:
             R_LOG(WARN, "Received STOP_SCAN_BTDEVICE event in invalid state");
@@ -92,6 +98,12 @@ void HardwareHandler::startScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
 
         webSocket_->getServer()->updateStateAndBroadcast("fail", 
             notiPayload->getMsgInfo(), "Settings", "start_scan_btdevice_noti", {});
+    } else {
+        R_LOG(INFO, "Bluetooth device scan started successfully.");
+        STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::SCANNING;
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(), "Settings", "start_scan_btdevice_noti", {});
     }
 }
 
@@ -103,8 +115,15 @@ void HardwareHandler::stopScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
     }
     if (!notiPayload->isSuccess()) {
         R_LOG(ERROR, "Bluetooth device scan stop failed: %s", notiPayload->getMsgInfo().c_str());
+        STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::SCANNING;
 
         webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(), "Settings", "stop_scan_btdevice_noti", {});
+    } else {
+        R_LOG(INFO, "Bluetooth device scan stopped successfully.");
+        STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::IDLE;
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
             notiPayload->getMsgInfo(), "Settings", "stop_scan_btdevice_noti", {});
     }
 }

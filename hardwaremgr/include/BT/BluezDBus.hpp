@@ -19,6 +19,7 @@ public:
     DBusConnection* getConnection();
     void addMatchRule(const std::string& rule);
     DBusDataInfo parseDeviceProperties(DBusMessageIter *properties_iter);
+    DBusDataInfo parseAdapterProperties(DBusMessageIter *properties_iter);
     const std::string& getAdapterPath() const;
 
 private:

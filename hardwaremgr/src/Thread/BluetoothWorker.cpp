@@ -199,46 +199,55 @@ void BluetoothWorker::handleInterfacesRemoved(DBusMessage* msg) {
 void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
     // Signature: "sa{sv}as"
     // interface_name, changed_properties, invalidated_properties
-    // const char* object_path = dbus_message_get_path(msg);
-    // if (!object_path) return;
+    const char* object_path = dbus_message_get_path(msg);
+    if (!object_path) return;
 
-    // DBusMessageIter iter;
-    // if (!dbus_message_iter_init(msg, &iter)) return;
+    DBusMessageIter iter;
+    if (!dbus_message_iter_init(msg, &iter)) return;
 
-    // // 1. Interface name (string)
-    // if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) return;
-    // const char* interface_name = nullptr;
-    // dbus_message_iter_get_basic(&iter, &interface_name);
-    // if (!interface_name) return;
+    // 1. Interface name (string)
+    if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) return;
+    const char* interface_name = nullptr;
+    dbus_message_iter_get_basic(&iter, &interface_name);
+    if (!interface_name) return;
 
-    // std::string iface_str(interface_name);
-    // std::string path_str(object_path);
+    std::string iface_str(interface_name);
+    std::string path_str(object_path);
 
-    // // 2. Changed properties (a{sv})
-    // dbus_message_iter_next(&iter);
-    // if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_ARRAY) return;
+    // 2. Changed properties (a{sv})
+    dbus_message_iter_next(&iter);
+    if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_ARRAY) return;
 
-    // DBusDataInfo properties = bluezDBus_->parseDeviceProperties(&iter);
-    // properties[DBUS_DATA_OBJECT_PATH] = path_str;
+    DBusDataInfo properties;
 
-    // // Handle Adapter property changes
-    // if (iface_str == CONFIG_INSTANCE()->getBluezAdapterInterface() && path_str == bluezDBus_->getAdapterPath()) {
-    //     if (properties.count(DBUS_DATA_BT_ADAPTER_POWERED)) {
-    //         bool is_powered = (properties[DBUS_DATA_BT_ADAPTER_POWERED] == "true");
-    //         R_LOG(INFO, "Adapter power state changed to: %s", is_powered ? "ON" : "OFF");
-    //         properties[DBUS_DATA_MESSAGE] = std::string("Adapter power state changed to ") + (is_powered ? "ON" : "OFF");
-    //         DBUS_SENDER()->sendMessageNoti(DBusCommand::BLUETOOTH_POWER_CHANGED_NOTI, true, properties);
-    //     }
-    //     if (properties.count(DBUS_DATA_BT_ADAPTER_DISCOVERING)) {
-    //         bool is_discovering = (properties[DBUS_DATA_BT_ADAPTER_DISCOVERING] == "true");
-    //         R_LOG(INFO, "Adapter discovery state changed to: %s", is_discovering ? "ON" : "OFF");
-    //         properties[DBUS_DATA_MESSAGE] = std::string("Adapter discovery state changed to ") + (is_discovering ? "ON" : "OFF");
-    //         DBUS_SENDER()->sendMessageNoti(DBusCommand::BT_DISCOVERY_CHANGED_NOTI, true, properties);
-    //     }
-    //     return;
-    // }
+    // Handle Adapter (Controller) property changes
+    if (iface_str == CONFIG_INSTANCE()->getBluezAdapterInterface() && path_str == bluezDBus_->getAdapterPath()) {
+        properties = bluezDBus_->parseAdapterProperties(&iter);
+        if (!properties[DBUS_DATA_BT_ADAPTER_POWERED].empty()) {
+            bool is_powered = (properties[DBUS_DATA_BT_ADAPTER_POWERED] == "true");
+            R_LOG(INFO, "Adapter power state changed to: %s", is_powered ? "ON" : "OFF");
+            properties[DBUS_DATA_MESSAGE] = std::string("Adapter power state changed to ") + (is_powered ? "ON" : "OFF");
+            if(is_powered){
+                DBUS_SENDER()->sendMessageNoti(DBusCommand::BLUETOOTH_POWER_ON_NOTI, true, properties);
+            } else {
+                DBUS_SENDER()->sendMessageNoti(DBusCommand::BLUETOOTH_POWER_OFF_NOTI, true, properties);
+            }
 
-    // // Handle Device property changes
+        }
+        if (!properties[DBUS_DATA_BT_ADAPTER_DISCOVERING].empty()) {
+            bool is_discovering = (properties[DBUS_DATA_BT_ADAPTER_DISCOVERING] == "true");
+            R_LOG(INFO, "Adapter discovery state changed to: %s", is_discovering ? "ON" : "OFF");
+            properties[DBUS_DATA_MESSAGE] = std::string("Adapter discovery state changed to ") + (is_discovering ? "ON" : "OFF");
+            if (is_discovering) {
+                DBUS_SENDER()->sendMessageNoti(DBusCommand::START_SCAN_BTDEVICE_NOTI, true, properties);
+            } else {
+                DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_SCAN_BTDEVICE_NOTI, true, properties);
+            }
+        }
+        return;
+    }
+
+    // Handle Device property changes
     // if (iface_str == CONFIG_INSTANCE()->getBluezDeviceInterface()) {
     //     // Extract address from path
     //     size_t dev_pos = path_str.find("dev_");

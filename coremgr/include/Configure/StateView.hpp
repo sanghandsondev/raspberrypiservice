@@ -13,7 +13,8 @@ enum class RecordState {
 
 enum class ScanningBTDeviceState {
     IDLE = 0,
-    SCANNING
+    SCANNING,
+    PROCESSING
 };
 
 enum class BluetoothPowerState {

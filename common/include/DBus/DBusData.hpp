@@ -17,6 +17,9 @@ enum DBusDataType{
     DBUS_DATA_BT_DEVICE_PAIRED,
     DBUS_DATA_BT_DEVICE_CONNECTED,
     DBUS_DATA_BT_DEVICE_ICON,
+    
+    DBUS_DATA_BT_ADAPTER_POWERED,
+    DBUS_DATA_BT_ADAPTER_DISCOVERING,
 
     // Record
     DBUS_DATA_WAV_FILE_PATH,
@@ -36,8 +39,11 @@ struct DBusDataInfo {
         data[DBUS_DATA_BT_DEVICE_ADDRESS] = "";
         data[DBUS_DATA_BT_DEVICE_ICON] = "";
         data[DBUS_DATA_BT_DEVICE_RSSI] = "0";
-        data[DBUS_DATA_BT_DEVICE_PAIRED] = "false";
-        data[DBUS_DATA_BT_DEVICE_CONNECTED] = "false";
+        data[DBUS_DATA_BT_DEVICE_PAIRED] = "";
+        data[DBUS_DATA_BT_DEVICE_CONNECTED] = "";
+
+        data[DBUS_DATA_BT_ADAPTER_POWERED] = "";
+        data[DBUS_DATA_BT_ADAPTER_DISCOVERING] = "";
 
         data[DBUS_DATA_WAV_FILE_PATH] = "";
         data[DBUS_DATA_WAV_FILE_DURATION_SEC] = "0";

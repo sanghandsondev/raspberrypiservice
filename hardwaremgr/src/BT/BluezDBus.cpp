@@ -82,8 +82,6 @@ void BluezDBus::startDiscovery() {
         dbus_error_free(&err);
     } else if (reply != nullptr) {
         R_LOG(INFO, "Successfully called StartDiscovery.");
-        info[DBUS_DATA_MESSAGE] = "Bluetooth discovery started.";
-        DBUS_SENDER()->sendMessageNoti(DBusCommand::START_SCAN_BTDEVICE_NOTI, true, info);
         dbus_message_unref(reply);
     } else {
         R_LOG(WARN, "StartDiscovery call sent, but no reply received (or not expected).");
@@ -119,14 +117,49 @@ void BluezDBus::stopDiscovery() {
         dbus_error_free(&err);
     } else if (reply != nullptr) {
         R_LOG(INFO, "Successfully called StopDiscovery.");
-        info[DBUS_DATA_MESSAGE] = "Bluetooth discovery stopped.";
-        DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_SCAN_BTDEVICE_NOTI, true, info);
         dbus_message_unref(reply);
     } else {
         R_LOG(WARN, "StopDiscovery call sent, but no reply received (or not expected).");
     }
 
     dbus_message_unref(msg);
+}
+
+DBusDataInfo BluezDBus::parseAdapterProperties(DBusMessageIter *properties_iter) {
+    DBusDataInfo properties;
+    DBusMessageIter dict_entry_iter;
+    dbus_message_iter_recurse(properties_iter, &dict_entry_iter);
+
+    while (dbus_message_iter_get_arg_type(&dict_entry_iter) == DBUS_TYPE_DICT_ENTRY) {
+        DBusMessageIter prop_iter;
+        dbus_message_iter_recurse(&dict_entry_iter, &prop_iter);
+
+        const char* key = nullptr;
+        dbus_message_iter_get_basic(&prop_iter, &key);
+
+        dbus_message_iter_next(&prop_iter); // Move to the variant value
+        DBusMessageIter variant_iter;
+        dbus_message_iter_recurse(&prop_iter, &variant_iter);
+
+        if (key) {
+            std::string prop_key(key);
+            if (prop_key == "Powered") {
+                if (dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
+                    dbus_bool_t value;
+                    dbus_message_iter_get_basic(&variant_iter, &value);
+                    properties[DBUS_DATA_BT_ADAPTER_POWERED] = (value == TRUE) ? "true" : "false";
+                }
+            } else if (prop_key == "Discovering") {
+                if (dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
+                    dbus_bool_t value;
+                    dbus_message_iter_get_basic(&variant_iter, &value);
+                    properties[DBUS_DATA_BT_ADAPTER_DISCOVERING] = (value == TRUE) ? "true" : "false";
+                }
+            }
+        }
+        dbus_message_iter_next(&dict_entry_iter);
+    }
+    return properties;
 }
 
 DBusDataInfo BluezDBus::parseDeviceProperties(DBusMessageIter *properties_iter) {
@@ -169,13 +202,13 @@ DBusDataInfo BluezDBus::parseDeviceProperties(DBusMessageIter *properties_iter) 
                 if (dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
                     dbus_bool_t value;
                     dbus_message_iter_get_basic(&variant_iter, &value);
-                    properties[DBUS_DATA_BT_DEVICE_PAIRED] = value ? "true" : "false";
+                    properties[DBUS_DATA_BT_DEVICE_PAIRED] = (value == TRUE) ? "true" : "false";
                 }
             } else if (prop_key == "Connected") {
                 if (dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
                     dbus_bool_t value;
                     dbus_message_iter_get_basic(&variant_iter, &value);
-                    properties[DBUS_DATA_BT_DEVICE_CONNECTED] = value ? "true" : "false";
+                    properties[DBUS_DATA_BT_DEVICE_CONNECTED] = (value == TRUE) ? "true" : "false";
                 }
             } else if (prop_key == "Alias") {
                 if (dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_STRING) {
@@ -291,12 +324,45 @@ bool BluezDBus::parseManagedObjects(DBusMessageIter *iter) {
                 if (iface_str == CONFIG_INSTANCE()->getBluezAdapterInterface()) {
                     adapterPath_ = path;
                     adapterFound = true;
+                    
+                    // Move to the properties array for the adapter interface
+                    dbus_message_iter_next(&interface_entry_iter); 
+                    DBusDataInfo properties = parseAdapterProperties(&interface_entry_iter);
+
+                    // Send initial state notifications
+                    if (!properties[DBUS_DATA_BT_ADAPTER_POWERED].empty()) {
+                        bool is_powered = (properties[DBUS_DATA_BT_ADAPTER_POWERED] == "true");
+                        R_LOG(INFO, "Initial Adapter State: Powered = %s", is_powered ? "ON" : "OFF");
+                        DBusDataInfo power_props;
+                        power_props[DBUS_DATA_BT_ADAPTER_POWERED] = properties[DBUS_DATA_BT_ADAPTER_POWERED];
+                        power_props[DBUS_DATA_MESSAGE] = std::string("Initial adapter power state is ") + (is_powered ? "ON" : "OFF");
+                        // DBUS_SENDER()->sendMessageNoti(DBusCommand::BLUETOOTH_POWER_CHANGED_NOTI, true, power_props);
+                        if(is_powered){
+                            DBUS_SENDER()->sendMessageNoti(DBusCommand::BLUETOOTH_POWER_ON_NOTI, true, power_props);
+                        } else {
+                            DBUS_SENDER()->sendMessageNoti(DBusCommand::BLUETOOTH_POWER_OFF_NOTI, true, power_props);
+                        }
+                    }
+
+                    if (!properties[DBUS_DATA_BT_ADAPTER_DISCOVERING].empty()) {
+                        bool is_discovering = (properties[DBUS_DATA_BT_ADAPTER_DISCOVERING] == "true");
+                        R_LOG(INFO, "Initial Adapter State: Discovering = %s", is_discovering ? "ON" : "OFF");
+                        DBusDataInfo discovery_props;
+                        discovery_props[DBUS_DATA_BT_ADAPTER_DISCOVERING] = properties[DBUS_DATA_BT_ADAPTER_DISCOVERING];
+                        discovery_props[DBUS_DATA_MESSAGE] = std::string("Initial adapter discovery state is ") + (is_discovering ? "ON" : "OFF");
+                        // DBUS_SENDER()->sendMessageNoti(DBusCommand::BT_DISCOVERY_CHANGED_NOTI, true, discovery_props);
+                        if(is_discovering){
+                            DBUS_SENDER()->sendMessageNoti(DBusCommand::START_SCAN_BTDEVICE_NOTI, true, discovery_props);
+                        } else {
+                            DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_SCAN_BTDEVICE_NOTI, true, discovery_props);
+                        }
+                    }
                 } else if (iface_str == CONFIG_INSTANCE()->getBluezDeviceInterface()) {
                     dbus_message_iter_next(&interface_entry_iter); // Move to properties array
                     DBusDataInfo properties = parseDeviceProperties(&interface_entry_iter);
                     
-                    bool isPaired = properties[DBUS_DATA_BT_DEVICE_PAIRED] == "true";
-                    bool isConnected = properties[DBUS_DATA_BT_DEVICE_CONNECTED] == "true";
+                    bool isPaired = !properties[DBUS_DATA_BT_DEVICE_PAIRED].empty() && properties[DBUS_DATA_BT_DEVICE_PAIRED] == "true";
+                    bool isConnected = !properties[DBUS_DATA_BT_DEVICE_CONNECTED].empty() && properties[DBUS_DATA_BT_DEVICE_CONNECTED] == "true";
 
                     if (isPaired || isConnected) {
                         R_LOG(INFO, "Found existing device: Address=%s, Name=%s, Paired=%s, Connected=%s",
@@ -331,7 +397,6 @@ void BluezDBus::setPower(bool on) {
     DBusMessage* msg;
     DBusMessageIter args, variant;
     DBusError err;
-    DBusDataInfo info;
 
     msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getBluezServiceName().c_str(),
@@ -361,6 +426,7 @@ void BluezDBus::setPower(bool on) {
 
     DBusCommand notiCmd = on ? DBusCommand::BLUETOOTH_POWER_ON_NOTI : DBusCommand::BLUETOOTH_POWER_OFF_NOTI;
 
+    DBusDataInfo info;
     if (dbus_error_is_set(&err)) {
         R_LOG(ERROR, "Error setting Powered property: %s", err.message);
         info[DBUS_DATA_MESSAGE] = std::string("Error setting adapter power: ") + err.message;
@@ -368,8 +434,6 @@ void BluezDBus::setPower(bool on) {
         dbus_error_free(&err);
     } else {
         R_LOG(INFO, "Successfully set Powered property to %s", on ? "true" : "false");
-        info[DBUS_DATA_MESSAGE] = std::string("Bluetooth adapter power set to ") + (on ? "ON" : "OFF");
-        DBUS_SENDER()->sendMessageNoti(notiCmd, true, info);
     }
 
     if (reply) {

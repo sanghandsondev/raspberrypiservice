@@ -24,7 +24,6 @@ class BluetoothWorker : public ThreadBase {
         void handleInterfacesAdded(DBusMessage* msg);
         void handleInterfacesRemoved(DBusMessage* msg);
         void handlePropertiesChanged(DBusMessage* msg);
-        std::string parseVariant(DBusMessageIter *iter);
 };
 
 #endif // BLUETOOTH_WORKER_HPP_
