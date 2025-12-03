@@ -26,6 +26,8 @@ class MainWorker : public ThreadBase {
 
         void processStartScanBTDeviceEvent();
         void processStopScanBTDeviceEvent();
+        void processBluetoothPowerOnEvent();
+        void processBluetoothPowerOffEvent();
 };
 
 #endif // MAIN_WORKER_HPP_

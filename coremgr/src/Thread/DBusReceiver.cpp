@@ -65,6 +65,10 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
         }
         case DBusCommand::SCANNING_BTDEVICE_FOUND_NOTI: {
             R_LOG(INFO, "Dispatching SCANNING_BTDEVICE_FOUND_NOTI from DBus");
+            if (!isSuccess) {
+                R_LOG(WARN, "SCANNING_BTDEVICE_FOUND_NOTI indicates failure. Message: %s", dataInfo.data[DBUS_DATA_MESSAGE].c_str());
+                break;
+            }
             std::shared_ptr<Payload> payload = std::make_shared<BluetoothDevicePayload>(
                                                 dataInfo.data[DBUS_DATA_BT_DEVICE_NAME],
                                                 dataInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS],
@@ -73,6 +77,32 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
                                                 dataInfo.data[DBUS_DATA_BT_DEVICE_CONNECTED] == "true",
                                                 dataInfo.data[DBUS_DATA_BT_DEVICE_ICON]);
             auto event = std::make_shared<Event>(EventTypeID::SCANNING_BTDEVICE_FOUND_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::SCANNING_BTDEVICE_DELETE_NOTI: {
+            R_LOG(INFO, "Dispatching SCANNING_BTDEVICE_DELETE_NOTI from DBus");
+            if (!isSuccess) {
+                R_LOG(WARN, "SCANNING_BTDEVICE_DELETE_NOTI indicates failure. Message: %s", dataInfo.data[DBUS_DATA_MESSAGE].c_str());
+                break;
+            }
+            std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceDeletePayload>(
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS]);
+            auto event = std::make_shared<Event>(EventTypeID::SCANNING_BTDEVICE_DELETE_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::BLUETOOTH_POWER_ON_NOTI: {
+            R_LOG(INFO, "Dispatching BLUETOOTH_POWER_ON_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::BLUETOOTH_POWER_ON_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::BLUETOOTH_POWER_OFF_NOTI: {
+            R_LOG(INFO, "Dispatching BLUETOOTH_POWER_OFF_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::BLUETOOTH_POWER_OFF_NOTI, payload);
             eventQueue_->pushEvent(event);
             break;
         }

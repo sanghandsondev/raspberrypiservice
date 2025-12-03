@@ -60,6 +60,17 @@ class BluetoothDevicePayload : public Payload {
         std::string icon_;
 };
 
+class BluetoothDeviceDeletePayload : public Payload {
+    public:
+        explicit BluetoothDeviceDeletePayload(const std::string &address)
+            : address_(address) {}
+
+        std::string getAddress() const { return address_; }
+
+    private:
+        std::string address_;
+};
+
 // Record
 class WavPayload : public Payload {
     public:

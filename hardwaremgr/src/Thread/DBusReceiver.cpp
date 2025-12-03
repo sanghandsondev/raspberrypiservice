@@ -23,6 +23,14 @@ void DBusReceiver::handleMessage(DBusCommand cmd) {
             R_LOG(INFO, "DBusReceiver: Received STOP_SCAN_BTDEVICE command. Pushing event.");
             eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::STOP_SCAN_BTDEVICE));
             break;
+        case DBusCommand::BLUETOOTH_POWER_ON:
+            R_LOG(INFO, "DBusReceiver: Received BLUETOOTH_POWER_ON command. Pushing event.");
+            eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::BLUETOOTH_POWER_ON));
+            break;
+        case DBusCommand::BLUETOOTH_POWER_OFF:
+            R_LOG(INFO, "DBusReceiver: Received BLUETOOTH_POWER_OFF command. Pushing event.");
+            eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::BLUETOOTH_POWER_OFF));
+            break;
         default:
             R_LOG(WARN, "DBusReceiver received unknown DBusCommand");
             break;

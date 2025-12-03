@@ -17,6 +17,8 @@ class CMSenderFactory : public ISenderFactory {
     private:
         DBusMessage* makeMsg_StartScanBTDevice(DBusCommand cmd);
         DBusMessage* makeMsg_StopScanBTDevice(DBusCommand cmd);
+        DBusMessage* makeMsg_BluetoothPowerOn(DBusCommand cmd);
+        DBusMessage* makeMsg_BluetoothPowerOff(DBusCommand cmd);
 
         DBusMessage* makeMsg_StartRecord(DBusCommand cmd);
         DBusMessage* makeMsg_StopRecord(DBusCommand cmd);

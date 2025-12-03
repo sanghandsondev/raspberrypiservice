@@ -40,6 +40,46 @@ void HardwareHandler::stopScanBTDevice(){
     }
 }
 
+void HardwareHandler::bluetoothPowerOn(){
+    BluetoothPowerState currentState = STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE;
+    switch (currentState) {
+        case BluetoothPowerState::OFF:
+            STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE = BluetoothPowerState::PROCESSING;
+            DBUS_SENDER()->sendMessage(DBusCommand::BLUETOOTH_POWER_ON);
+            R_LOG(INFO, "Sent Bluetooth Power On command.");
+            break;
+        case BluetoothPowerState::ON:
+            R_LOG(WARN, "Received BLUETOOTH_POWER_ON event while already ON. No Action taken.");
+            break;
+        case BluetoothPowerState::PROCESSING:
+            R_LOG(WARN, "Received BLUETOOTH_POWER_ON event while in PROCESSING state. No Action taken.");
+            break;
+        default:
+            R_LOG(WARN, "Received BLUETOOTH_POWER_ON event in invalid state");
+            break;
+    }
+}
+
+void HardwareHandler::bluetoothPowerOff(){
+    BluetoothPowerState currentState = STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE;
+    switch (currentState) {
+        case BluetoothPowerState::ON:
+            STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE = BluetoothPowerState::PROCESSING;
+            DBUS_SENDER()->sendMessage(DBusCommand::BLUETOOTH_POWER_OFF);
+            R_LOG(INFO, "Sent Bluetooth Power Off command.");
+            break;
+        case BluetoothPowerState::OFF:
+            R_LOG(WARN, "Received BLUETOOTH_POWER_OFF event while already OFF. No Action taken.");
+            break;
+        case BluetoothPowerState::PROCESSING:
+            R_LOG(WARN, "Received BLUETOOTH_POWER_OFF event while in PROCESSING state. No Action taken.");
+            break;
+        default:
+            R_LOG(WARN, "Received BLUETOOTH_POWER_OFF event in invalid state");
+            break;
+    }
+}
+
 void HardwareHandler::startScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
     std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
     if (notiPayload == nullptr) {
@@ -153,4 +193,67 @@ void HardwareHandler::scanningBTDeviceFoundNOTI(std::shared_ptr<Payload> payload
             {"is_connected", btPayload->isConnected()},
             {"icon", btPayload->getIcon()}
         });
+}
+
+void HardwareHandler::scanningBTDeviceDeleteNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<BluetoothDeviceDeletePayload> btDeletePayload = std::dynamic_pointer_cast<BluetoothDeviceDeletePayload>(payload);
+    if (btDeletePayload == nullptr) {
+        R_LOG(ERROR, "SCANNING_BTDEVICE_DELETE_NOTI payload is not of type BluetoothDeviceDeletePayload");
+        return;
+    }
+
+    R_LOG(INFO, "Scanning Bluetooth device deleted: Address=%s",
+        btDeletePayload->getAddress().c_str());
+
+    webSocket_->getServer()->updateStateAndBroadcast("success", 
+        "Scanning Bluetooth device deleted.",
+        "Settings", "scanning_btdevice_delete_noti", {
+            {"device_address", btDeletePayload->getAddress()}
+        });
+}
+
+void HardwareHandler::bluetoothPowerOnNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "BLUETOOTH_POWER_ON_NOTI payload is not of type NotiPayload");
+        return;
+    }
+    if (notiPayload->isSuccess()) {
+        STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE = BluetoothPowerState::ON;
+        R_LOG(INFO, "Bluetooth powered ON successfully.");
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Settings", "bluetooth_power_on_noti", {});
+    } else {
+        STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE = BluetoothPowerState::OFF;
+        R_LOG(ERROR, "Failed to power ON Bluetooth: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(),
+            "Settings", "bluetooth_power_on_noti", {});
+    }
+}
+
+void HardwareHandler::bluetoothPowerOffNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "BLUETOOTH_POWER_OFF_NOTI payload is not of type NotiPayload");
+        return;
+    }
+    if (notiPayload->isSuccess()) {
+        STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE = BluetoothPowerState::OFF;
+        R_LOG(INFO, "Bluetooth powered OFF successfully.");
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Settings", "bluetooth_power_off_noti", {});
+    } else {
+        STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE = BluetoothPowerState::ON;
+        R_LOG(ERROR, "Failed to power OFF Bluetooth: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(),
+            "Settings", "bluetooth_power_off_noti", {});
+    }
 }

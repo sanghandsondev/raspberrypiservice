@@ -16,6 +16,12 @@ enum class ScanningBTDeviceState {
     SCANNING
 };
 
+enum class BluetoothPowerState {
+    OFF = 0,
+    ON,
+    PROCESSING
+};
+
 class StateView {
     public:
         static StateView *getInstance() {
@@ -29,6 +35,7 @@ class StateView {
         inline static RecordState RECORD_STATE = RecordState::STOPPED;
         inline static int CURRENT_TEMPERATURE = 0;
         inline static ScanningBTDeviceState SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::IDLE;
+        inline static BluetoothPowerState BLUETOOTH_POWER_STATE = BluetoothPowerState::OFF;
 
     private:
         StateView() = default;

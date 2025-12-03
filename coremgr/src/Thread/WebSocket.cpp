@@ -70,6 +70,8 @@ namespace {
         // Hardware
         START_SCAN_BTDEVICE,
         STOP_SCAN_BTDEVICE,
+        BLUETOOTH_POWER_ON,
+        BLUETOOTH_POWER_OFF,
 
         // Record
         START_RECORD,
@@ -84,6 +86,8 @@ namespace {
         // Hardware
         if(commandStr == "start_scan_btdevice") return CommandType::START_SCAN_BTDEVICE;
         if(commandStr == "stop_scan_btdevice") return CommandType::STOP_SCAN_BTDEVICE;
+        if(commandStr == "bluetooth_power_on") return CommandType::BLUETOOTH_POWER_ON;
+        if(commandStr == "bluetooth_power_off") return CommandType::BLUETOOTH_POWER_OFF;
 
         // Record
         if (commandStr == "start_record") return CommandType::START_RECORD;
@@ -107,7 +111,12 @@ std::shared_ptr<Event> WebSocket::translateMsg(const std::string& message, const
         case CommandType::STOP_SCAN_BTDEVICE:
             event = std::make_shared<Event>(EventTypeID::STOP_SCAN_BTDEVICE);
             break;
-
+        case CommandType::BLUETOOTH_POWER_ON:
+            event = std::make_shared<Event>(EventTypeID::BLUETOOTH_POWER_ON);
+            break;
+        case CommandType::BLUETOOTH_POWER_OFF:
+            event = std::make_shared<Event>(EventTypeID::BLUETOOTH_POWER_OFF);
+            break;
         // Record
         case CommandType::START_RECORD:
             event = std::make_shared<Event>(EventTypeID::START_RECORD);

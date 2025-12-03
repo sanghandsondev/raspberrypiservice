@@ -15,12 +15,17 @@ class HardwareHandler {
 
         void startScanBTDevice();
         void stopScanBTDevice();
+        void bluetoothPowerOn();
+        void bluetoothPowerOff();
 
         void updateTemperatureNOTI(std::shared_ptr<Payload>);
         void startScanBTDeviceNOTI(std::shared_ptr<Payload>);
         void stopScanBTDeviceNOTI(std::shared_ptr<Payload>);
         void pairedBTDeviceFoundNOTI(std::shared_ptr<Payload>);
         void scanningBTDeviceFoundNOTI(std::shared_ptr<Payload>);
+        void scanningBTDeviceDeleteNOTI(std::shared_ptr<Payload>);
+        void bluetoothPowerOnNOTI(std::shared_ptr<Payload>);
+        void bluetoothPowerOffNOTI(std::shared_ptr<Payload>);
     
     private:
         std::shared_ptr<WebSocket> webSocket_;

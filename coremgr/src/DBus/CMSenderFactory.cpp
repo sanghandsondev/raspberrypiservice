@@ -8,6 +8,10 @@ DBusMessage* CMSenderFactory::makeMsg(DBusCommand cmd) {
             return makeMsg_StartScanBTDevice(cmd);
         case DBusCommand::STOP_SCAN_BTDEVICE:
             return makeMsg_StopScanBTDevice(cmd);
+        case DBusCommand::BLUETOOTH_POWER_ON:
+            return makeMsg_BluetoothPowerOn(cmd);
+        case DBusCommand::BLUETOOTH_POWER_OFF:
+            return makeMsg_BluetoothPowerOff(cmd);
         // Record
         case DBusCommand::START_RECORD:
             return makeMsg_StartRecord(cmd);
@@ -26,6 +30,7 @@ DBusMessage* CMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
 }
 
 // Specific message creation functions
+// Hardware
 DBusMessage* CMSenderFactory::makeMsg_StartScanBTDevice(DBusCommand cmd) {
     const char* objectPath = "/com/example/hardwaremanager";
     const char* interfaceName = "com.example.hardwaremanager.interface";
@@ -42,6 +47,23 @@ DBusMessage* CMSenderFactory::makeMsg_StopScanBTDevice(DBusCommand cmd) {
     return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
 }
 
+DBusMessage* CMSenderFactory::makeMsg_BluetoothPowerOn(DBusCommand cmd) {
+    const char* objectPath = "/com/example/hardwaremanager";
+    const char* interfaceName = "com.example.hardwaremanager.interface";
+    const char* signalName = "HardwareSignal";
+
+    return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
+}
+
+DBusMessage* CMSenderFactory::makeMsg_BluetoothPowerOff(DBusCommand cmd) {
+    const char* objectPath = "/com/example/hardwaremanager";
+    const char* interfaceName = "com.example.hardwaremanager.interface";
+    const char* signalName = "HardwareSignal";
+
+    return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
+}
+
+// Record
 DBusMessage* CMSenderFactory::makeMsg_StartRecord(DBusCommand cmd) {
     const char* objectPath = "/com/example/recordmanager";
     const char* interfaceName = "com.example.recordmanager.interface";

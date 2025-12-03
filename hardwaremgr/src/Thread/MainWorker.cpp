@@ -44,7 +44,14 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             R_LOG(INFO, "Processing STOP_SCAN_BTDEVICE event");
             processStopScanBTDeviceEvent();
             break;
-        
+        case EventTypeID::BLUETOOTH_POWER_ON:
+            R_LOG(INFO, "Processing BLUETOOTH_POWER_ON event");
+            processBluetoothPowerOnEvent();
+            break;
+        case EventTypeID::BLUETOOTH_POWER_OFF:
+            R_LOG(INFO, "Processing BLUETOOTH_POWER_OFF event");
+            processBluetoothPowerOffEvent();
+            break;
         default:
             R_LOG(WARN, "MainWorker received unknown EventTypeID");
             break;
@@ -65,4 +72,20 @@ void MainWorker::processStopScanBTDeviceEvent() {
         return;
     }
     bluezDBus_->stopDiscovery();
+}
+
+void MainWorker::processBluetoothPowerOnEvent() {
+    if (!bluezDBus_) {
+        R_LOG(ERROR, "BluezDBus is not initialized in MainWorker");
+        return;
+    }
+    bluezDBus_->powerOnAdapter();
+}
+
+void MainWorker::processBluetoothPowerOffEvent() {
+    if (!bluezDBus_) {
+        R_LOG(ERROR, "BluezDBus is not initialized in MainWorker");
+        return;
+    }
+    bluezDBus_->powerOffAdapter();
 }

@@ -22,6 +22,7 @@ class BluetoothWorker : public ThreadBase {
         void threadFunction() override;
         void dispatchMessage(DBusMessage* msg);
         void handleInterfacesAdded(DBusMessage* msg);
+        void handleInterfacesRemoved(DBusMessage* msg);
         void handlePropertiesChanged(DBusMessage* msg);
         std::string parseVariant(DBusMessageIter *iter);
 };

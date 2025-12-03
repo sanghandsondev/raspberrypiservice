@@ -13,10 +13,13 @@ public:
 
     void startDiscovery();
     void stopDiscovery();
+    void powerOnAdapter();
+    void powerOffAdapter();
 
     DBusConnection* getConnection();
     void addMatchRule(const std::string& rule);
     DBusDataInfo parseDeviceProperties(DBusMessageIter *properties_iter);
+    const std::string& getAdapterPath() const;
 
 private:
     DBusConnection* conn_;
@@ -24,6 +27,7 @@ private:
 
     void findAdapter();
     bool parseManagedObjects(DBusMessageIter *iter);
+    void setPower(bool on);
 };
 
 #endif // BLUEZ_DBUS_HPP_

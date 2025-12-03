@@ -4,6 +4,7 @@
 #include "DBusData.hpp"
 #include "DBusSender.hpp"
 #include <stdexcept>
+#include <algorithm>
 
 BluezDBus::BluezDBus() : conn_(nullptr) {
     DBusError err;
@@ -34,6 +35,10 @@ BluezDBus::~BluezDBus() {
 
 DBusConnection* BluezDBus::getConnection() {
     return conn_;
+}
+
+const std::string& BluezDBus::getAdapterPath() const {
+    return adapterPath_;
 }
 
 void BluezDBus::addMatchRule(const std::string& rule) {
@@ -310,4 +315,64 @@ bool BluezDBus::parseManagedObjects(DBusMessageIter *iter) {
         dbus_message_iter_next(&array_iter);
     }
     return adapterFound;
+}
+
+void BluezDBus::powerOnAdapter(){
+    R_LOG(INFO, "Powering ON Bluetooth adapter...");
+    setPower(true);
+}
+
+void BluezDBus::powerOffAdapter(){
+    R_LOG(INFO, "Powering OFF Bluetooth adapter...");
+    setPower(false);
+}
+
+void BluezDBus::setPower(bool on) {
+    DBusMessage* msg;
+    DBusMessageIter args, variant;
+    DBusError err;
+    DBusDataInfo info;
+
+    msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        adapterPath_.c_str(),
+        CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(),
+        "Set"
+    );
+    if (msg == nullptr) {
+        R_LOG(ERROR, "Failed to create D-Bus message for Set Power");
+        return;
+    }
+
+    const char* iface = CONFIG_INSTANCE()->getBluezAdapterInterface().c_str();
+    const char* prop = "Powered";
+
+    dbus_message_iter_init_append(msg, &args);
+    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &iface);
+    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &prop);
+
+    dbus_message_iter_open_container(&args, DBUS_TYPE_VARIANT, DBUS_TYPE_BOOLEAN_AS_STRING, &variant);
+    dbus_message_iter_append_basic(&variant, DBUS_TYPE_BOOLEAN, &on);
+    dbus_message_iter_close_container(&args, &variant);
+
+    dbus_error_init(&err);
+    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    DBusCommand notiCmd = on ? DBusCommand::BLUETOOTH_POWER_ON_NOTI : DBusCommand::BLUETOOTH_POWER_OFF_NOTI;
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error setting Powered property: %s", err.message);
+        info[DBUS_DATA_MESSAGE] = std::string("Error setting adapter power: ") + err.message;
+        DBUS_SENDER()->sendMessageNoti(notiCmd, false, info);
+        dbus_error_free(&err);
+    } else {
+        R_LOG(INFO, "Successfully set Powered property to %s", on ? "true" : "false");
+        info[DBUS_DATA_MESSAGE] = std::string("Bluetooth adapter power set to ") + (on ? "ON" : "OFF");
+        DBUS_SENDER()->sendMessageNoti(notiCmd, true, info);
+    }
+
+    if (reply) {
+        dbus_message_unref(reply);
+    }
 }

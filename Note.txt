@@ -39,34 +39,4 @@ sudo reboot
 AutoEnable=true
 DiscoverableTimeout = 180
 
-https://specifications.freedesktop.org/icon-naming/latest/
 
-
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN"
- "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
-
-<busconfig>
-    <!-- Allow root -->
-    <policy user="root">
-        <allow own="com.example.coremanager"/>
-        <allow send_destination="com.example.coremanager"/>
-    </policy>
-
-    <!-- Allow user sang -->
-    <policy user="sang">
-        <allow own="com.example.coremanager"/>
-        <allow send_destination="com.example.coremanager"/>
-    </policy>
-
-    <!-- Allow user pi -->
-    <policy user="pi">
-        <allow own="com.example.coremanager"/>
-        <allow send_destination="com.example.coremanager"/>
-    </policy>
-
-    <!-- Permit everyone else to send messages (not own) -->
-    <policy context="default">
-        <allow send_destination="com.example.coremanager"/>
-    </policy>
-</busconfig>

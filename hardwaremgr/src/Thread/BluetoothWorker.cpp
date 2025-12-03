@@ -9,6 +9,7 @@
 #include <cerrno>
 #include <cstring>
 #include <dbus/dbus.h>
+#include <algorithm>
 
 BluetoothWorker::BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus) 
     : ThreadBase("BluetoothWorker"), eventQueue_(eventQueue), bluezDBus_(bluezDBus) {
@@ -25,6 +26,11 @@ void BluetoothWorker::threadFunction(){
     std::string match_rule_added = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusObjectManagerInterface() + 
         "',member='InterfacesAdded',sender='" + CONFIG_INSTANCE()->getBluezServiceName() + "'";
     bluezDBus_->addMatchRule(match_rule_added);
+
+    // Register to receive signals for removed interfaces from BlueZ ObjectManager
+    std::string match_rule_removed = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusObjectManagerInterface() + 
+        "',member='InterfacesRemoved',sender='" + CONFIG_INSTANCE()->getBluezServiceName() + "'";
+    bluezDBus_->addMatchRule(match_rule_removed);
 
     // Register for PropertiesChanged signals
     std::string match_rule_changed = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() +
@@ -72,6 +78,9 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
     if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusObjectManagerInterface().c_str(), "InterfacesAdded")) {
         R_LOG(DEBUG, "BluetoothWorker: Received InterfacesAdded signal.");
         handleInterfacesAdded(msg);
+    } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusObjectManagerInterface().c_str(), "InterfacesRemoved")) {
+        R_LOG(DEBUG, "BluetoothWorker: Received InterfacesRemoved signal.");
+        handleInterfacesRemoved(msg);
     } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(), "PropertiesChanged")) {
         R_LOG(DEBUG, "BluetoothWorker: Received PropertiesChanged signal.");
         handlePropertiesChanged(msg);
@@ -139,6 +148,54 @@ void BluetoothWorker::handleInterfacesAdded(DBusMessage* msg) {
     }
 }
 
+void BluetoothWorker::handleInterfacesRemoved(DBusMessage* msg) {
+    // The InterfacesRemoved signal has the signature "oas"
+    // object_path, array<string>
+    DBusMessageIter iter;
+    if (!dbus_message_iter_init(msg, &iter)) {
+        R_LOG(ERROR, "Failed to init iterator for InterfacesRemoved signal.");
+        return;
+    }
+
+    if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_OBJECT_PATH) {
+        R_LOG(WARN, "InterfacesRemoved signal first argument is not an object path.");
+        return;
+    }
+
+    const char* object_path = nullptr;
+    dbus_message_iter_get_basic(&iter, &object_path);
+    if (!object_path) return;
+
+    dbus_message_iter_next(&iter); // Move to the array of interfaces
+
+    DBusMessageIter interfaces_array_iter;
+    dbus_message_iter_recurse(&iter, &interfaces_array_iter);
+
+    while (dbus_message_iter_get_arg_type(&interfaces_array_iter) == DBUS_TYPE_STRING) {
+        const char* interface_name = nullptr;
+        dbus_message_iter_get_basic(&interfaces_array_iter, &interface_name);
+
+        if (interface_name && std::string(interface_name) == CONFIG_INSTANCE()->getBluezDeviceInterface()) {
+            R_LOG(INFO, "Bluetooth device removed at path: %s", object_path);
+            
+            std::string path_str(object_path);
+            size_t dev_pos = path_str.find("dev_");
+            if (dev_pos != std::string::npos) {
+                std::string addr = path_str.substr(dev_pos + 4);
+                std::replace(addr.begin(), addr.end(), '_', ':');
+                
+                DBusDataInfo properties;
+                properties[DBUS_DATA_BT_DEVICE_ADDRESS] = addr;
+                properties[DBUS_DATA_MESSAGE] = "Bluetooth device removed from scan.";
+
+                R_LOG(INFO, "Device Removed: Address=%s", addr.c_str());
+                DBUS_SENDER()->sendMessageNoti(DBusCommand::SCANNING_BTDEVICE_DELETE_NOTI, true, properties);
+            }
+        }
+        dbus_message_iter_next(&interfaces_array_iter);
+    }
+}
+
 void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
     // Signature: "sa{sv}as"
     // interface_name, changed_properties, invalidated_properties
@@ -152,50 +209,58 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
     // if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) return;
     // const char* interface_name = nullptr;
     // dbus_message_iter_get_basic(&iter, &interface_name);
+    // if (!interface_name) return;
 
-    // if (!interface_name || std::string(interface_name) != CONFIG_INSTANCE()->getBluezDeviceInterface()) {
-    //     return; // Not a change for a device, ignore
-    // }
+    // std::string iface_str(interface_name);
+    // std::string path_str(object_path);
 
     // // 2. Changed properties (a{sv})
     // dbus_message_iter_next(&iter);
     // if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_ARRAY) return;
 
     // DBusDataInfo properties = bluezDBus_->parseDeviceProperties(&iter);
+    // properties[DBUS_DATA_OBJECT_PATH] = path_str;
 
-    // if (properties[DBUS_DATA_BT_DEVICE_NAME].empty() && properties[DBUS_DATA_BT_DEVICE_RSSI] == "0") {
-    //     return; // No properties we care about have changed
+    // // Handle Adapter property changes
+    // if (iface_str == CONFIG_INSTANCE()->getBluezAdapterInterface() && path_str == bluezDBus_->getAdapterPath()) {
+    //     if (properties.count(DBUS_DATA_BT_ADAPTER_POWERED)) {
+    //         bool is_powered = (properties[DBUS_DATA_BT_ADAPTER_POWERED] == "true");
+    //         R_LOG(INFO, "Adapter power state changed to: %s", is_powered ? "ON" : "OFF");
+    //         properties[DBUS_DATA_MESSAGE] = std::string("Adapter power state changed to ") + (is_powered ? "ON" : "OFF");
+    //         DBUS_SENDER()->sendMessageNoti(DBusCommand::BLUETOOTH_POWER_CHANGED_NOTI, true, properties);
+    //     }
+    //     if (properties.count(DBUS_DATA_BT_ADAPTER_DISCOVERING)) {
+    //         bool is_discovering = (properties[DBUS_DATA_BT_ADAPTER_DISCOVERING] == "true");
+    //         R_LOG(INFO, "Adapter discovery state changed to: %s", is_discovering ? "ON" : "OFF");
+    //         properties[DBUS_DATA_MESSAGE] = std::string("Adapter discovery state changed to ") + (is_discovering ? "ON" : "OFF");
+    //         DBUS_SENDER()->sendMessageNoti(DBusCommand::BT_DISCOVERY_CHANGED_NOTI, true, properties);
+    //     }
+    //     return;
     // }
 
-    // // We need the device address to identify it. PropertiesChanged might not include it.
-    // // We can get it from the object path, but it's not reliable.
-    // // For now, we assume if RSSI changes, we need to get other info.
-    // // A better approach would be to query the object for its full properties.
-    // // For this implementation, we'll just send what we have.
-    // // The object path is like /org/bluez/hci0/dev_XX_XX_XX_XX_XX_XX
-    // std::string path_str = object_path;
-    // std::string addr = path_str.substr(path_str.find("dev_") + 4);
-    // std::replace(addr.begin(), addr.end(), '_', ':');
-    // properties[DBUS_DATA_BT_DEVICE_ADDRESS] = addr;
+    // // Handle Device property changes
+    // if (iface_str == CONFIG_INSTANCE()->getBluezDeviceInterface()) {
+    //     // Extract address from path
+    //     size_t dev_pos = path_str.find("dev_");
+    //     if (dev_pos != std::string::npos) {
+    //         std::string addr = path_str.substr(dev_pos + 4);
+    //         std::replace(addr.begin(), addr.end(), '_', ':');
+    //         properties[DBUS_DATA_BT_DEVICE_ADDRESS] = addr;
+    //     } else {
+    //         // If we can't get address from path, we can't identify the device.
+    //         // It might be in the properties, but if not, we have to skip.
+    //         if (!properties.count(DBUS_DATA_BT_DEVICE_ADDRESS)) {
+    //              R_LOG(WARN, "PropertiesChanged for device, but no address found in path or properties.");
+    //              return;
+    //         }
+    //     }
 
-    // properties[DBUS_DATA_MESSAGE] = "Bluetooth device properties updated.";
-    // R_LOG(INFO, "Device Updated: Address=%s, Name=%s, RSSI=%s",
-    //         properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str(),
-    //         properties[DBUS_DATA_BT_DEVICE_NAME].empty() ? "N/A" : properties[DBUS_DATA_BT_DEVICE_NAME].c_str(),
-    //         properties[DBUS_DATA_BT_DEVICE_RSSI].c_str());
+    //     properties[DBUS_DATA_MESSAGE] = "Bluetooth device properties updated.";
+    //     R_LOG(INFO, "Device Updated: Address=%s, Name=%s, RSSI=%s",
+    //             properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str(),
+    //             properties.count(DBUS_DATA_BT_DEVICE_NAME) ? properties[DBUS_DATA_BT_DEVICE_NAME].c_str() : "N/A",
+    //             properties.count(DBUS_DATA_BT_DEVICE_RSSI) ? properties[DBUS_DATA_BT_DEVICE_RSSI].c_str() : "N/A");
 
-            // if (properties.count(DBUS_DATA_BT_DEVICE_CONNECTED)) {
-            //     R_LOG(INFO, "Device %s connection status changed to: %s",
-            //           addr.c_str(), properties[DBUS_DATA_BT_DEVICE_CONNECTED].c_str());
-            //     // Send a specific notification for connection change
-            //     DBUS_SENDER()->sendMessageNoti(DBusCommand::BTDEVICE_CONNECTION_CHANGED_NOTI, true, properties);
-            // }
-        
-            // if (properties.count(DBUS_DATA_BT_DEVICE_PAIRED)) {
-            //     R_LOG(INFO, "Device %s pairing status changed to: %s",
-            //           addr.c_str(), properties[DBUS_DATA_BT_DEVICE_PAIRED].c_str());
-            //     // Send a specific notification for pairing change
-            //     DBUS_SENDER()->sendMessageNoti(DBusCommand::BTDEVICE_PAIRING_CHANGED_NOTI, true, properties);
-            // }
-    // DBUS_SENDER()->sendMessageNoti(DBusCommand::BTDEVICE_UPDATE_NOTI, true, properties); // TODO
+    //     DBUS_SENDER()->sendMessageNoti(DBusCommand::BTDEVICE_UPDATE_NOTI, true, properties);
+    // }
 }
