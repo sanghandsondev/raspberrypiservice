@@ -223,6 +223,16 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
             properties[DBUS_DATA_MESSAGE] = std::string("Adapter power state changed to ") + (is_powered ? "ON" : "OFF");
             if(is_powered){
                 DBUS_SENDER()->sendMessageNoti(DBusCommand::BLUETOOTH_POWER_ON_NOTI, true, properties);
+                
+                // Check if adapter is discoverable, if not, make it discoverable.
+                DBusDataInfo all_adapter_props = bluezDBus_->getAllAdapterProperties(path_str);
+                if (!all_adapter_props[DBUS_DATA_BT_ADAPTER_DISCOVERABLE].empty()) {
+                    bool is_discoverable = (all_adapter_props[DBUS_DATA_BT_ADAPTER_DISCOVERABLE] == "true");
+                    if (!is_discoverable) {
+                        R_LOG(INFO, "Adapter is powered on but not discoverable. Setting it to be discoverable.");
+                        bluezDBus_->setDiscoverable(true);
+                    }
+                }
             } else {
                 DBUS_SENDER()->sendMessageNoti(DBusCommand::BLUETOOTH_POWER_OFF_NOTI, true, properties);
             }
@@ -237,6 +247,14 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
             } else {
                 DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_SCAN_BTDEVICE_NOTI, true, properties);
             }
+        }
+        if (!properties[DBUS_DATA_BT_ADAPTER_DISCOVERABLE].empty()) {
+            bool is_discoverable = (properties[DBUS_DATA_BT_ADAPTER_DISCOVERABLE] == "true");
+            R_LOG(INFO, "Adapter discoverable state changed to: %s", is_discoverable ? "ON" : "OFF");
+            // You might want to add a new DBusCommand for this notification if needed.
+            // For now, just logging. If a notification is needed, you can use an existing one or create a new one.
+            // properties[DBUS_DATA_MESSAGE] = std::string("Adapter discoverable state changed to ") + (is_discoverable ? "ON" : "OFF");
+            // DBUS_SENDER()->sendMessageNoti(DBusCommand::BT_DISCOVERABLE_CHANGED_NOTI, true, properties);
         }
         return;
     }

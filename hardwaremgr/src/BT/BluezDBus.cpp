@@ -159,6 +159,12 @@ DBusDataInfo BluezDBus::parseAdapterProperties(DBusMessageIter *properties_iter)
                     dbus_message_iter_get_basic(&variant_iter, &value);
                     properties[DBUS_DATA_BT_ADAPTER_DISCOVERING] = (value == TRUE) ? "true" : "false";
                 }
+            } else if (prop_key == "Discoverable") {
+                if (dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
+                    dbus_bool_t value;
+                    dbus_message_iter_get_basic(&variant_iter, &value);
+                    properties[DBUS_DATA_BT_ADAPTER_DISCOVERABLE] = (value == TRUE) ? "true" : "false";
+                }
             }
         }
         dbus_message_iter_next(&dict_entry_iter);
@@ -402,6 +408,18 @@ bool BluezDBus::parseManagedObjects(DBusMessageIter *iter) {
                             DBUS_SENDER()->sendMessageNoti(DBusCommand::STOP_SCAN_BTDEVICE_NOTI, true, discovery_props);
                         }
                     }
+
+                    if (!properties[DBUS_DATA_BT_ADAPTER_DISCOVERABLE].empty()) {
+                        bool is_discoverable = (properties[DBUS_DATA_BT_ADAPTER_DISCOVERABLE] == "true");
+                        R_LOG(INFO, "Initial Adapter State: Discoverable = %s", is_discoverable ? "ON" : "OFF");
+                        // Ensure adapter is discoverable if powered on
+                        bool is_powered = !properties[DBUS_DATA_BT_ADAPTER_POWERED].empty() && properties[DBUS_DATA_BT_ADAPTER_POWERED] == "true";
+                        if (is_powered && !is_discoverable) {
+                            R_LOG(INFO, "Adapter is powered on but not discoverable. Setting it to be discoverable.");
+                            setDiscoverable(true);
+                        }
+                    }
+
                 } else if (iface_str == CONFIG_INSTANCE()->getBluezDeviceInterface()) {
                     dbus_message_iter_next(&interface_entry_iter); // Move to properties array
                     DBusDataInfo properties = parseDeviceProperties(&interface_entry_iter);
@@ -820,4 +838,92 @@ void BluezDBus::trustDevice(const std::string& address) {
     if (reply) {
         dbus_message_unref(reply);
     }
+}
+
+void BluezDBus::setDiscoverable(bool on) {
+    DBusMessage* msg;
+    DBusMessageIter args, variant;
+    DBusError err;
+
+    msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        adapterPath_.c_str(),
+        CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(),
+        "Set"
+    );
+    if (msg == nullptr) {
+        R_LOG(ERROR, "Failed to create D-Bus message for Set Discoverable");
+        return;
+    }
+
+    const char* iface = CONFIG_INSTANCE()->getBluezAdapterInterface().c_str();
+    const char* prop = "Discoverable";
+
+    dbus_message_iter_init_append(msg, &args);
+    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &iface);
+    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &prop);
+
+    dbus_message_iter_open_container(&args, DBUS_TYPE_VARIANT, DBUS_TYPE_BOOLEAN_AS_STRING, &variant);
+    dbus_bool_t dbus_on = on ? TRUE : FALSE;
+    dbus_message_iter_append_basic(&variant, DBUS_TYPE_BOOLEAN, &dbus_on);
+    dbus_message_iter_close_container(&args, &variant);
+
+    dbus_error_init(&err);
+    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error setting Discoverable property: %s", err.message);
+        dbus_error_free(&err);
+    } else {
+        R_LOG(INFO, "Successfully set Discoverable property to %s", on ? "true" : "false");
+    }
+
+    if (reply) {
+        dbus_message_unref(reply);
+    }
+}
+
+DBusDataInfo BluezDBus::getAllAdapterProperties(const std::string& objectPath){
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        objectPath.c_str(),
+        CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(),
+        "GetAll"
+    );
+    if (msg == nullptr) {
+        R_LOG(ERROR, "Failed to create D-Bus message for GetAll on %s", objectPath.c_str());
+        return DBusDataInfo();
+    }
+
+    const char* iface = CONFIG_INSTANCE()->getBluezAdapterInterface().c_str();
+    dbus_message_append_args(msg, DBUS_TYPE_STRING, &iface, DBUS_TYPE_INVALID);
+
+    DBusError err;
+    dbus_error_init(&err);
+    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error calling GetAll on %s: %s", objectPath.c_str(), err.message);
+        dbus_error_free(&err);
+        return DBusDataInfo();
+    }
+
+    if (reply == nullptr) {
+        R_LOG(ERROR, "No reply received for GetAll on %s", objectPath.c_str());
+        return DBusDataInfo();
+    }
+
+    DBusMessageIter iter;
+    DBusDataInfo properties;
+    if (dbus_message_iter_init(reply, &iter)) {
+        // The reply for GetAll is a{sv}, which is what parseAdapterProperties expects
+        properties = parseAdapterProperties(&iter);
+    } else {
+        R_LOG(ERROR, "Failed to init iterator for GetAll reply on %s", objectPath.c_str());
+    }
+
+    dbus_message_unref(reply);
+    return properties;
 }

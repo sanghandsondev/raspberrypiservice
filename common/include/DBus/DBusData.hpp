@@ -21,6 +21,7 @@ enum DBusDataType{
     
     DBUS_DATA_BT_ADAPTER_POWERED,
     DBUS_DATA_BT_ADAPTER_DISCOVERING,
+    DBUS_DATA_BT_ADAPTER_DISCOVERABLE,
 
     // Record
     DBUS_DATA_WAV_FILE_PATH,
@@ -46,6 +47,7 @@ struct DBusDataInfo {
 
         data[DBUS_DATA_BT_ADAPTER_POWERED] = "";
         data[DBUS_DATA_BT_ADAPTER_DISCOVERING] = "";
+        data[DBUS_DATA_BT_ADAPTER_DISCOVERABLE] = "";
 
         data[DBUS_DATA_WAV_FILE_PATH] = "";
         data[DBUS_DATA_WAV_FILE_DURATION_SEC] = "0";

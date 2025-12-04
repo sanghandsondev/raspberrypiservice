@@ -31,6 +31,8 @@ public:
     DBusDataInfo parseAdapterProperties(DBusMessageIter *properties_iter);
     const std::string& getAdapterPath() const;
     DBusDataInfo getAllDeviceProperties(const std::string& objectPath);
+    DBusDataInfo getAllAdapterProperties(const std::string& objectPath);
+    void setDiscoverable(bool on);
     
 private:
     DBusConnection* conn_;
