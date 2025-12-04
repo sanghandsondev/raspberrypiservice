@@ -214,6 +214,12 @@ DBusDataInfo BluezDBus::parseDeviceProperties(DBusMessageIter *properties_iter) 
                     dbus_message_iter_get_basic(&variant_iter, &value);
                     properties[DBUS_DATA_BT_DEVICE_CONNECTED] = (value == TRUE) ? "true" : "false";
                 }
+            } else if (prop_key == "Trusted") {
+                if (dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
+                    dbus_bool_t value;
+                    dbus_message_iter_get_basic(&variant_iter, &value);
+                    properties[DBUS_DATA_BT_DEVICE_TRUSTED] = (value == TRUE) ? "true" : "false";
+                }
             } else if (prop_key == "Alias") {
                 if (dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_STRING) {
                     const char* value = nullptr;
@@ -762,6 +768,53 @@ void BluezDBus::disconnectDevice(const std::string& address) {
         dbus_error_free(&err);
     } else {
         R_LOG(INFO, "Successfully called Disconnect for device %s. Disconnection process initiated.", address.c_str());
+    }
+
+    if (reply) {
+        dbus_message_unref(reply);
+    }
+}
+
+void BluezDBus::trustDevice(const std::string& address) {
+    R_LOG(INFO, "Setting Trusted=true for device: %s", address.c_str());
+    std::string objectPath = deviceAddressToObjectPath(address);
+
+    DBusMessage* msg;
+    DBusMessageIter args, variant;
+    DBusError err;
+
+    msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        objectPath.c_str(),
+        CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(),
+        "Set"
+    );
+    if (msg == nullptr) {
+        R_LOG(ERROR, "Failed to create D-Bus message for Set Trusted");
+        return;
+    }
+
+    const char* iface = CONFIG_INSTANCE()->getBluezDeviceInterface().c_str();
+    const char* prop = "Trusted";
+
+    dbus_message_iter_init_append(msg, &args);
+    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &iface);
+    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &prop);
+
+    dbus_message_iter_open_container(&args, DBUS_TYPE_VARIANT, DBUS_TYPE_BOOLEAN_AS_STRING, &variant);
+    dbus_bool_t dbus_true = TRUE;
+    dbus_message_iter_append_basic(&variant, DBUS_TYPE_BOOLEAN, &dbus_true);
+    dbus_message_iter_close_container(&args, &variant);
+
+    dbus_error_init(&err);
+    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error setting Trusted property for %s: %s", address.c_str(), err.message);
+        dbus_error_free(&err);
+    } else {
+        R_LOG(INFO, "Successfully called Set Trusted=true for device %s", address.c_str());
     }
 
     if (reply) {

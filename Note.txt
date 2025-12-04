@@ -88,5 +88,6 @@ table.insert(bluez_monitor.rules, rule)
 [CHECK]
 
 6/ Xử lý Connect, tìm hiểu về "Trusted" -> (Thường là) Đã tin cậy, cho phép kết nối tự động.
+[CHECK]
 
 7/ Lấy data Batery của device như loa, speaker

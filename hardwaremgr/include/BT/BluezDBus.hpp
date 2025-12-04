@@ -22,6 +22,7 @@ public:
     void unregisterAgent();
     void connectDevice(const std::string& address);
     void disconnectDevice(const std::string& address);
+    void trustDevice(const std::string& address);
 
     bool isAdapterFound() const;
     DBusConnection* getConnection();

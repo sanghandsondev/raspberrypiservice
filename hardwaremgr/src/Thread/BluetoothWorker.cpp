@@ -245,10 +245,29 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
     if (iface_str == CONFIG_INSTANCE()->getBluezDeviceInterface()) {
         // When a property changes, we get all properties to send a complete update.
         R_LOG(INFO, "Properties changed for device: %s. Fetching all properties.", path_str.c_str());
+        DBusDataInfo change_propertys = bluezDBus_->parseDeviceProperties(&iter);
         DBusDataInfo all_properties = bluezDBus_->getAllDeviceProperties(path_str);
 
         if (all_properties[DBUS_DATA_BT_DEVICE_ADDRESS].empty()) {
             R_LOG(WARN, "Could not get address for device at path %s. Skipping update.", path_str.c_str());
+            return;
+        }
+
+        // Auto-trust device on first successful connection after pairing
+        bool is_paired = (all_properties[DBUS_DATA_BT_DEVICE_PAIRED] == "true");
+        bool is_connected = (all_properties[DBUS_DATA_BT_DEVICE_CONNECTED] == "true");
+        bool is_trusted = (all_properties[DBUS_DATA_BT_DEVICE_TRUSTED] == "true");
+
+        if (is_paired && is_connected && !is_trusted) {
+            R_LOG(INFO, "Device %s is paired and connected but not trusted. Setting Trusted=true.", all_properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str());
+            bluezDBus_->trustDevice(all_properties[DBUS_DATA_BT_DEVICE_ADDRESS]);
+            // Re-fetch properties to include the new trusted state in the notification
+            // all_properties = bluezDBus_->getAllDeviceProperties(path_str);
+        }
+
+        // If RSSI only changed, skip sending full update to reduce noise
+        if(!change_propertys[DBUS_DATA_BT_DEVICE_RSSI].empty()){ 
+            R_LOG(INFO, " - RSSI changed to: %s", change_propertys[DBUS_DATA_BT_DEVICE_RSSI].c_str());
             return;
         }
 
@@ -259,7 +278,7 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
                 all_properties[DBUS_DATA_BT_DEVICE_RSSI].c_str(),
                 all_properties[DBUS_DATA_BT_DEVICE_PAIRED].c_str(),
                 all_properties[DBUS_DATA_BT_DEVICE_CONNECTED].c_str());
-
+        
         DBUS_SENDER()->sendMessageNoti(DBusCommand::BTDEVICE_PROPERTY_CHANGE_NOTI, true, all_properties);
     }
 }
