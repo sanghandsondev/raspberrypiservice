@@ -123,7 +123,7 @@ DBusMessage* HMSenderFactory::makeMsgNoti_UnpairBTDevice(DBusCommand cmd, bool i
     return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
 }
 
-DBusMesasge* HMSenderFactory::makeMsgNoti_ConnectBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+DBusMessage* HMSenderFactory::makeMsgNoti_ConnectBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/coremanager";
     const char* interfaceName = "com.example.coremanager.interface";
     const char* signalName = "CoreSignal";
