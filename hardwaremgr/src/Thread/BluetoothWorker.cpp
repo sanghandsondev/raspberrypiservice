@@ -284,18 +284,19 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
         }
 
         // If RSSI only changed, skip sending full update to reduce noise
-        if(!change_propertys[DBUS_DATA_BT_DEVICE_RSSI].empty()){ 
-            R_LOG(INFO, " - RSSI changed to: %s", change_propertys[DBUS_DATA_BT_DEVICE_RSSI].c_str());
-            return;
-        }
+        // if(!change_propertys[DBUS_DATA_BT_DEVICE_RSSI].empty()){ 
+        //     R_LOG(INFO, " - RSSI changed to: %s", change_propertys[DBUS_DATA_BT_DEVICE_RSSI].c_str());
+        //     return;
+        // }
 
         all_properties[DBUS_DATA_MESSAGE] = "Bluetooth device properties updated.";
-        R_LOG(INFO, "Device Updated: Address=%s, Name=%s, RSSI=%s, Paired=%s, Connected=%s",
+        R_LOG(INFO, "Device Updated: Address=%s, Name=%s, RSSI=%s, Paired=%s, Connected=%s, Trusted=%s",
                 all_properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str(),
                 all_properties[DBUS_DATA_BT_DEVICE_NAME].empty() ? "N/A" : all_properties[DBUS_DATA_BT_DEVICE_NAME].c_str(),
                 all_properties[DBUS_DATA_BT_DEVICE_RSSI].c_str(),
                 all_properties[DBUS_DATA_BT_DEVICE_PAIRED].c_str(),
-                all_properties[DBUS_DATA_BT_DEVICE_CONNECTED].c_str());
+                all_properties[DBUS_DATA_BT_DEVICE_CONNECTED].c_str(),
+                all_properties[DBUS_DATA_BT_DEVICE_TRUSTED].c_str());
         
         DBUS_SENDER()->sendMessageNoti(DBusCommand::BTDEVICE_PROPERTY_CHANGE_NOTI, true, all_properties);
     }
