@@ -5,12 +5,14 @@
 #include <memory>
 #include <dbus/dbus.h>
 #include "DBusData.hpp"
+#include <atomic>
 
 class BluezDBus {
 public:
     BluezDBus();
     ~BluezDBus();
 
+    void initializeAdapter();
     void startDiscovery();
     void stopDiscovery();
     void powerOnAdapter();
@@ -20,6 +22,7 @@ public:
     void registerAgent(const std::string& capability);
     void unregisterAgent();
 
+    bool isAdapterFound() const;
     DBusConnection* getConnection();
     void addMatchRule(const std::string& rule);
     DBusDataInfo parseDeviceProperties(DBusMessageIter *properties_iter);
@@ -30,8 +33,7 @@ public:
 private:
     DBusConnection* conn_;
     std::string adapterPath_;
-        
-    void findAdapter();
+    std::atomic<bool> isInitialized_{false};
     bool parseManagedObjects(DBusMessageIter *iter);
     void setPower(bool on);
     std::string deviceAddressToObjectPath(const std::string& address) const;

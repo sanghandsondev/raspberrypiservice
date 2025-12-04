@@ -1,6 +1,7 @@
 #include "WebSocketServer.hpp"
 #include "RLogger.hpp"
 #include "StateView.hpp"
+#include "DBusSender.hpp"
 
 namespace beast = boost::beast;
 namespace websocket = beast::websocket;
@@ -138,7 +139,7 @@ void WebSocketServer::join(std::shared_ptr<WebSocketSession> session) {
     R_LOG(INFO, "New client joined. Total clients: %zu", sessions_.size());
 
     sendInitStateToClient(session);
-    // TODO: Request get managedObject bluetooth to update initial state
+    DBUS_SENDER()->sendMessage(DBusCommand::INITIALIZE_BLUETOOTH);
 }
 
 void WebSocketServer::leave(std::shared_ptr<WebSocketSession> session) {
@@ -207,15 +208,15 @@ void WebSocketServer::sendInitStateToClient(std::shared_ptr<WebSocketSession> se
     session->send(message);
 
     // Send current Bluetooth state
-    jsonData["msg"] = "initial_state";
-    jsonData["component"] = "Settings";
-    jsonData["data"] = {
-        {"bluetooth_power_state", STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE == BluetoothPowerState::ON ? true : false},
-        {"scanning_btdevice_state", STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE == ScanningBTDeviceState::SCANNING ? true : false}
-    };
-    status_msg["data"] = jsonData;
-    message = status_msg.dump();
-    session->send(message);
+    // jsonData["msg"] = "initial_state";
+    // jsonData["component"] = "Settings";
+    // jsonData["data"] = {
+    //     {"bluetooth_power_state", STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE == BluetoothPowerState::ON ? true : false},
+    //     {"scanning_btdevice_state", STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE == ScanningBTDeviceState::SCANNING ? true : false}
+    // };
+    // status_msg["data"] = jsonData;
+    // message = status_msg.dump();
+    // session->send(message);
     
 }
 

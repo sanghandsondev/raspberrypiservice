@@ -15,6 +15,7 @@ class CMSenderFactory : public ISenderFactory {
         DBusMessage* makeMsgNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) override;
 
     private:
+        DBusMessage* makeMsg_InitializeBluetooth(DBusCommand cmd);
         DBusMessage* makeMsg_StartScanBTDevice(DBusCommand cmd);
         DBusMessage* makeMsg_StopScanBTDevice(DBusCommand cmd);
         DBusMessage* makeMsg_BluetoothPowerOn(DBusCommand cmd);

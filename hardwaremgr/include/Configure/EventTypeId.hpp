@@ -6,6 +6,7 @@
 enum class EventTypeID {
     NONE = 0,
     
+    INITIALIZE_BLUETOOTH,
     START_SCAN_BTDEVICE,
     STOP_SCAN_BTDEVICE,
     BLUETOOTH_POWER_ON,

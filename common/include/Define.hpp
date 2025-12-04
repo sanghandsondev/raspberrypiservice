@@ -5,6 +5,7 @@ enum class DBusCommand {
     NONE = 0,
 
     // Hardware
+    INITIALIZE_BLUETOOTH,
     START_SCAN_BTDEVICE,
     STOP_SCAN_BTDEVICE,
     BLUETOOTH_POWER_ON,

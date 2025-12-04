@@ -4,6 +4,8 @@
 DBusMessage* CMSenderFactory::makeMsg(DBusCommand cmd) {
     switch (cmd) {
         // Hardware
+        case DBusCommand::INITIALIZE_BLUETOOTH:
+            return makeMsg_InitializeBluetooth(cmd);
         case DBusCommand::START_SCAN_BTDEVICE:
             return makeMsg_StartScanBTDevice(cmd);
         case DBusCommand::STOP_SCAN_BTDEVICE:
@@ -40,6 +42,14 @@ DBusMessage* CMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
 
 // Specific message creation functions
 // Hardware
+DBusMessage* CMSenderFactory::makeMsg_InitializeBluetooth(DBusCommand cmd) {
+    const char* objectPath = "/com/example/hardwaremanager";
+    const char* interfaceName = "com.example.hardwaremanager.interface";
+    const char* signalName = "HardwareSignal";
+
+    return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
+}
+
 DBusMessage* CMSenderFactory::makeMsg_StartScanBTDevice(DBusCommand cmd) {
     const char* objectPath = "/com/example/hardwaremanager";
     const char* interfaceName = "com.example.hardwaremanager.interface";

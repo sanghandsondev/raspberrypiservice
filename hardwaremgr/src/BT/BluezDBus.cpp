@@ -22,8 +22,8 @@ BluezDBus::BluezDBus() : conn_(nullptr) {
     }
     R_LOG(INFO, "Successfully connected to D-Bus system bus for BlueZ.");
     
-    // 2. Find the Bluetooth adapter
-    findAdapter(); 
+    // 2. Find the Bluetooth adapter - This will be done later via an event
+    // initializeAdapter(); 
 }
 
 BluezDBus::~BluezDBus() {
@@ -35,6 +35,10 @@ BluezDBus::~BluezDBus() {
 
 DBusConnection* BluezDBus::getConnection() {
     return conn_;
+}
+
+bool BluezDBus::isAdapterFound() const {
+    return !adapterPath_.empty();
 }
 
 const std::string& BluezDBus::getAdapterPath() const {
@@ -236,7 +240,14 @@ DBusDataInfo BluezDBus::parseDeviceProperties(DBusMessageIter *properties_iter) 
     return properties;
 }
 
-void BluezDBus::findAdapter() {
+void BluezDBus::initializeAdapter() {
+    if (isInitialized_.exchange(true)) {
+        R_LOG(WARN, "BluezDBus adapter already initialized.");
+        return;
+    }
+
+    R_LOG(INFO, "Initializing BlueZ Bluetooth adapter...");
+
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getBluezServiceName().c_str(),
         "/",
@@ -275,6 +286,33 @@ void BluezDBus::findAdapter() {
     }
 
     dbus_message_unref(reply);
+
+    // Add match rules for signals
+    R_LOG(INFO, "Adding D-Bus match rules for BlueZ signals...");
+    try {
+        // Register to receive signals for added interfaces from BlueZ ObjectManager
+        std::string match_rule_added = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusObjectManagerInterface() + 
+        "',member='InterfacesAdded',sender='" + CONFIG_INSTANCE()->getBluezServiceName() + "'";
+        addMatchRule(match_rule_added);
+
+    // Register to receive signals for removed interfaces from BlueZ ObjectManager
+    std::string match_rule_removed = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusObjectManagerInterface() + 
+        "',member='InterfacesRemoved',sender='" + CONFIG_INSTANCE()->getBluezServiceName() + "'";
+        addMatchRule(match_rule_removed);
+
+    // Register for PropertiesChanged signals
+    std::string match_rule_changed = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() +
+        "',member='PropertiesChanged',sender='" + CONFIG_INSTANCE()->getBluezServiceName() + "'";
+        addMatchRule(match_rule_changed);
+
+    // Register to receive method calls for our agent
+    std::string match_rule_agent = "type='method_call',interface='org.bluez.Agent1',path='" + CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath() + "'";
+        addMatchRule(match_rule_agent);
+    } catch (const std::runtime_error& e) {
+        R_LOG(ERROR, "Failed to add D-Bus match rules: %s", e.what());
+        isInitialized_ = false;     // Reset flag on failure
+        throw std::runtime_error(std::string("Failed to add D-Bus match rules: ") + e.what());
+    }
 }
 
 bool BluezDBus::parseManagedObjects(DBusMessageIter *iter) {

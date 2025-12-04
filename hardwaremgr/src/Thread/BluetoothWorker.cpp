@@ -23,25 +23,6 @@ void BluetoothWorker::threadFunction(){
         return;
     }
 
-    // Register to receive signals for added interfaces from BlueZ ObjectManager
-    std::string match_rule_added = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusObjectManagerInterface() + 
-        "',member='InterfacesAdded',sender='" + CONFIG_INSTANCE()->getBluezServiceName() + "'";
-    bluezDBus_->addMatchRule(match_rule_added);
-
-    // Register to receive signals for removed interfaces from BlueZ ObjectManager
-    std::string match_rule_removed = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusObjectManagerInterface() + 
-        "',member='InterfacesRemoved',sender='" + CONFIG_INSTANCE()->getBluezServiceName() + "'";
-    bluezDBus_->addMatchRule(match_rule_removed);
-
-    // Register for PropertiesChanged signals
-    std::string match_rule_changed = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() +
-        "',member='PropertiesChanged',sender='" + CONFIG_INSTANCE()->getBluezServiceName() + "'";
-    bluezDBus_->addMatchRule(match_rule_changed);
-
-    // Register to receive method calls for our agent
-    std::string match_rule_agent = "type='method_call',interface='org.bluez.Agent1',path='" + CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath() + "'";
-    bluezDBus_->addMatchRule(match_rule_agent);
-
     DBusConnection* conn = bluezDBus_->getConnection();
     int fd;
     if (!dbus_connection_get_unix_fd(conn, &fd)) {
@@ -234,7 +215,7 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
     DBusDataInfo properties;
 
     // Handle Adapter (Controller) property changes
-    if (iface_str == CONFIG_INSTANCE()->getBluezAdapterInterface() && path_str == bluezDBus_->getAdapterPath()) {
+    if (iface_str == CONFIG_INSTANCE()->getBluezAdapterInterface() && bluezDBus_->isAdapterFound() && path_str == bluezDBus_->getAdapterPath()) {
         properties = bluezDBus_->parseAdapterProperties(&iter);
         if (!properties[DBUS_DATA_BT_ADAPTER_POWERED].empty()) {
             bool is_powered = (properties[DBUS_DATA_BT_ADAPTER_POWERED] == "true");

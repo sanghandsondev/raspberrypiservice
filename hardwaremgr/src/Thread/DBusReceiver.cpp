@@ -15,6 +15,10 @@ DBusReceiver::DBusReceiver(std::shared_ptr<EventQueue> eventQueue)
 
 void DBusReceiver::handleMessage(DBusCommand cmd) {
     switch (cmd) {
+        case DBusCommand::INITIALIZE_BLUETOOTH:
+            R_LOG(INFO, "DBusReceiver: Received INITIALIZE_BLUETOOTH command. Pushing event.");
+            eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::INITIALIZE_BLUETOOTH)); // TODO: Define EventTypeID for INITIALIZE_BLUETOOTH
+            break;
         case DBusCommand::START_SCAN_BTDEVICE:
             R_LOG(INFO, "DBusReceiver: Received START_SCAN_BTDEVICE command. Pushing event.");
             eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::START_SCAN_BTDEVICE));

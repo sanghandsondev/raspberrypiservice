@@ -24,6 +24,7 @@ class MainWorker : public ThreadBase {
 
         void processEvent(const std::shared_ptr<Event> event);
 
+        void processInitializeBluetoothEvent();
         void processStartScanBTDeviceEvent();
         void processStopScanBTDeviceEvent();
         void processBluetoothPowerOnEvent();

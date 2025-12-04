@@ -36,6 +36,10 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
 
     // Process the event based on its type
     switch (event->getEventTypeId()) {
+        case EventTypeID::INITIALIZE_BLUETOOTH:
+            R_LOG(INFO, "Processing INITIALIZE_BLUETOOTH event");
+            processInitializeBluetoothEvent();
+            break;
         case EventTypeID::START_SCAN_BTDEVICE:
             R_LOG(INFO, "Processing START_SCAN_BTDEVICE event");
             processStartScanBTDeviceEvent();
@@ -64,6 +68,14 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             R_LOG(WARN, "MainWorker received unknown EventTypeID");
             break;
     }
+}
+
+void MainWorker::processInitializeBluetoothEvent() {
+    if (!bluezDBus_) {
+        R_LOG(ERROR, "BluezDBus is not initialized in MainWorker");
+        return;
+    }
+    bluezDBus_->initializeAdapter();
 }
 
 void MainWorker::processStartScanBTDeviceEvent() {

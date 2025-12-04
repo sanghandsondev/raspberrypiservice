@@ -40,12 +40,9 @@ AutoEnable=true
 DiscoverableTimeout = 180
 
 ----------------------------------------------------------------------
+5/ Khi connected với WebSocket, request DBUSSender từ WebSocket của CoreManager để get ObjectManaged. -> findAdapter()
+(vừa get Adapter property + vừa get được paired device)
+---> Bỏ initState của bluetooth state 
+---> Ngoài ra cần kết nối WS thì chức năng bluetooth mới enable nhé, đảm bảo ko cho request luôn. 
 
-[bluetoothctl]> power on
-[CHG] Controller D8:3A:DD:0F:FB:BE PowerState: off-enabling
-hci0 class of device changed: 0x400000
-[CHG] Controller D8:3A:DD:0F:FB:BE Class: 0x00400000 (4194304)
-hci0 new_settings: powered bondable ssp br/edr le secure-conn
-Changing power on succeeded
-[CHG] Controller D8:3A:DD:0F:FB:BE PowerState: on
-[CHG] Controller D8:3A:DD:0F:FB:BE Powered: yes
+6/ Xử lý Connect, tìm hiểu về "Trusted" -> (Thường là) Đã tin cậy, cho phép kết nối tự động.
