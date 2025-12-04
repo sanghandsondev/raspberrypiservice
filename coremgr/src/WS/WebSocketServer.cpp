@@ -208,16 +208,15 @@ void WebSocketServer::sendInitStateToClient(std::shared_ptr<WebSocketSession> se
     session->send(message);
 
     // Send current Bluetooth state
-    // jsonData["msg"] = "initial_state";
-    // jsonData["component"] = "Settings";
-    // jsonData["data"] = {
-    //     {"bluetooth_power_state", STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE == BluetoothPowerState::ON ? true : false},
-    //     {"scanning_btdevice_state", STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE == ScanningBTDeviceState::SCANNING ? true : false}
-    // };
-    // status_msg["data"] = jsonData;
-    // message = status_msg.dump();
-    // session->send(message);
-    
+    jsonData["msg"] = "initial_state";
+    jsonData["component"] = "Settings";
+    jsonData["data"] = {
+        {"bluetooth_power_state", STATE_VIEW_INSTANCE()->BLUETOOTH_POWER_STATE == BluetoothPowerState::ON ? true : false},
+        {"scanning_btdevice_state", STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE == ScanningBTDeviceState::SCANNING ? true : false}
+    };
+    status_msg["data"] = jsonData;
+    message = status_msg.dump();
+    session->send(message);
 }
 
 void WebSocketServer::updateStateAndBroadcast(const std::string& status, const std::string& msgInfo, 

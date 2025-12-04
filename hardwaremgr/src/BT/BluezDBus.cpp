@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <algorithm>
 
-BluezDBus::BluezDBus() : conn_(nullptr) {
+BluezDBus::BluezDBus() : conn_(nullptr), isInitialized_(false) {
     DBusError err;
     dbus_error_init(&err);
 
@@ -241,11 +241,6 @@ DBusDataInfo BluezDBus::parseDeviceProperties(DBusMessageIter *properties_iter) 
 }
 
 void BluezDBus::initializeAdapter() {
-    if (isInitialized_.exchange(true)) {
-        R_LOG(WARN, "BluezDBus adapter already initialized.");
-        return;
-    }
-
     R_LOG(INFO, "Initializing BlueZ Bluetooth adapter...");
 
     DBusMessage* msg = dbus_message_new_method_call(
@@ -288,6 +283,10 @@ void BluezDBus::initializeAdapter() {
     dbus_message_unref(reply);
 
     // Add match rules for signals
+    if (isInitialized_) {
+        R_LOG(INFO, "BlueZ D-Bus already initialized. Skipping match rule addition.");
+        return;
+    }
     R_LOG(INFO, "Adding D-Bus match rules for BlueZ signals...");
     try {
         // Register to receive signals for added interfaces from BlueZ ObjectManager
@@ -308,6 +307,8 @@ void BluezDBus::initializeAdapter() {
     // Register to receive method calls for our agent
     std::string match_rule_agent = "type='method_call',interface='org.bluez.Agent1',path='" + CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath() + "'";
         addMatchRule(match_rule_agent);
+    
+        isInitialized_ = true;
     } catch (const std::runtime_error& e) {
         R_LOG(ERROR, "Failed to add D-Bus match rules: %s", e.what());
         isInitialized_ = false;     // Reset flag on failure

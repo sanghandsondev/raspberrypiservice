@@ -5,7 +5,6 @@
 #include <memory>
 #include <dbus/dbus.h>
 #include "DBusData.hpp"
-#include <atomic>
 
 class BluezDBus {
 public:
@@ -33,7 +32,7 @@ public:
 private:
     DBusConnection* conn_;
     std::string adapterPath_;
-    std::atomic<bool> isInitialized_{false};
+    bool isInitialized_;
     bool parseManagedObjects(DBusMessageIter *iter);
     void setPower(bool on);
     std::string deviceAddressToObjectPath(const std::string& address) const;
