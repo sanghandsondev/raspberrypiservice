@@ -20,6 +20,8 @@ public:
     void unpairDevice(const std::string& address);
     void registerAgent(const std::string& capability);
     void unregisterAgent();
+    void connectDevice(const std::string& address);
+    void disconnectDevice(const std::string& address);
 
     bool isAdapterFound() const;
     DBusConnection* getConnection();

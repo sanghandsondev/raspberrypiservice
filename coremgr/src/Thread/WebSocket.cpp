@@ -74,6 +74,8 @@ namespace {
         BLUETOOTH_POWER_OFF,
         PAIR_BTDEVICE,
         UNPAIR_BTDEVICE,
+        CONNECT_BTDEVICE,
+        DISCONNECT_BTDEVICE,
 
         // Record
         START_RECORD,
@@ -92,6 +94,8 @@ namespace {
         if(commandStr == "bluetooth_power_off") return CommandType::BLUETOOTH_POWER_OFF;
         if(commandStr == "pair_btdevice") return CommandType::PAIR_BTDEVICE;
         if(commandStr == "unpair_btdevice") return CommandType::UNPAIR_BTDEVICE;
+        if(commandStr == "connect_btdevice") return CommandType::CONNECT_BTDEVICE;
+        if(commandStr == "disconnect_btdevice") return CommandType::DISCONNECT_BTDEVICE;
 
         // Record
         if (commandStr == "start_record") return CommandType::START_RECORD;
@@ -138,6 +142,26 @@ std::shared_ptr<Event> WebSocket::translateMsg(const std::string& message, const
             if (addressOpt) {
                 std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(*addressOpt);
                 event = std::make_shared<Event>(EventTypeID::UNPAIR_BTDEVICE, payload);
+            }
+            break;
+        }
+        case CommandType::CONNECT_BTDEVICE:
+        {
+            // { "address": "XX:XX:XX:XX:XX:XX" }
+            auto addressOpt = JSON_HELPER_INSTANCE()->getStringField(data, "device_address");
+            if (addressOpt) {
+                std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(*addressOpt);
+                event = std::make_shared<Event>(EventTypeID::CONNECT_BTDEVICE, payload);
+            }
+            break;
+        }
+        case CommandType::DISCONNECT_BTDEVICE:
+        {
+            // { "address": "XX:XX:XX:XX:XX:XX" }
+            auto addressOpt = JSON_HELPER_INSTANCE()->getStringField(data, "device_address");
+            if (addressOpt) {
+                std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(*addressOpt);
+                event = std::make_shared<Event>(EventTypeID::DISCONNECT_BTDEVICE, payload);
             }
             break;
         }

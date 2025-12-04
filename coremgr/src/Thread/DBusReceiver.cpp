@@ -124,6 +124,24 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             eventQueue_->pushEvent(event);
             break;
         }
+        case DBusCommand::CONNECT_BTDEVICE_NOTI: {
+            R_LOG(INFO, "Dispatching CONNECT_BTDEVICE_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiBTDeviceAddressPayload>( isSuccess, 
+                                                        dataInfo.data[DBUS_DATA_MESSAGE],
+                                                        dataInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS]);
+            auto event = std::make_shared<Event>(EventTypeID::CONNECT_BTDEVICE_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::DISCONNECT_BTDEVICE_NOTI: {
+            R_LOG(INFO, "Dispatching DISCONNECT_BTDEVICE_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiBTDeviceAddressPayload>( isSuccess, 
+                                                                    dataInfo.data[DBUS_DATA_MESSAGE],
+                                                        dataInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS]);
+            auto event = std::make_shared<Event>(EventTypeID::DISCONNECT_BTDEVICE_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
 
         // From Record Manager Service
         case DBusCommand::START_RECORD_NOTI: {

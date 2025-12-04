@@ -11,10 +11,8 @@
 
 18. GStreamer, Camera, Capture, ... OpenCV...
 
-//
-Phân loại ICON bluetooth device
-
-Thêm nhận biết thiết bị đã pair hay chưa (tính sau)
+19. Thực sự thì vẫn cần Timer cho CoreManager để nếu ko nhận được noti thì phải trả về cho client. 
+KHÁ KHÓ CHO IMPLEMENT. Chắc là ko code đâu, vì phải thay đổi code hiện tại khá nhiều.
 
 // ---------------------------
 sudo apt update
@@ -38,11 +36,57 @@ sudo reboot
 // sudo nano /etc/bluetooth/main.config
 AutoEnable=true
 DiscoverableTimeout = 180
+----------------------------------------------------------------------
+Ví dụ: Bạn có thể tạo một file /etc/wireplumber/main.lua.d/60-custom-policy.lua (hoặc trong ~/.config/wireplumber/...) 
+với nội dung tương tự như sau để đặt ưu tiên cho các loại thiết bị:
+
+rule = {
+  matches = {
+    {
+      -- Match all audio sinks
+      { "node.name", "matches", "alsa_output.*" },
+    },
+  },
+  apply_properties = {
+    -- Default priority
+    ["priority.session"] = 100,
+  },
+}
+table.insert(alsa_monitor.rules, rule)
+
+rule = {
+  matches = {
+    {
+      -- Match 3.5mm jack (card 1 on RPi)
+      { "device.name", "matches", "alsa_card.platform-bcm2835_headpho" },
+    },
+  },
+  apply_properties = {
+    -- Higher priority than default
+    ["priority.session"] = 1500,
+  },
+}
+table.insert(alsa_monitor.rules, rule)
+
+rule = {
+  matches = {
+    {
+      -- Match all bluetooth devices
+      { "device.name", "matches", "bluez_card.*" },
+    },
+  },
+  apply_properties = {
+    -- Highest priority
+    ["priority.session"] = 2000,
+  },
+}
+table.insert(bluez_monitor.rules, rule)
 
 ----------------------------------------------------------------------
 5/ Khi connected với WebSocket, request DBUSSender từ WebSocket của CoreManager để get ObjectManaged. -> findAdapter()
 (vừa get Adapter property + vừa get được paired device)
----> Bỏ initState của bluetooth state 
----> Ngoài ra cần kết nối WS thì chức năng bluetooth mới enable nhé, đảm bảo ko cho request luôn. 
+[CHECK]
 
 6/ Xử lý Connect, tìm hiểu về "Trusted" -> (Thường là) Đã tin cậy, cho phép kết nối tự động.
+
+7/ Lấy data Batery của device như loa, speaker

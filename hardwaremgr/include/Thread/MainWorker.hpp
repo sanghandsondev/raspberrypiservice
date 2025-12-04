@@ -32,6 +32,8 @@ class MainWorker : public ThreadBase {
 
         void processPairBTDeviceEvent(std::shared_ptr<Payload> payload);
         void processUnpairBTDeviceEvent(std::shared_ptr<Payload> payload);
+        void procsesConnectBTDeviceEvent(std::shared_ptr<Payload> payload);
+        void processDisconnectBTDeviceEvent(std::shared_ptr<Payload> payload);
 };
 
 #endif // MAIN_WORKER_HPP_

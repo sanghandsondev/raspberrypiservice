@@ -19,6 +19,8 @@ class HardwareHandler {
         void bluetoothPowerOff();
         void pairBTDevice(std::shared_ptr<Payload>);
         void unpairBTDevice(std::shared_ptr<Payload>);
+        void connectBTDevice(std::shared_ptr<Payload>);
+        void disconnectBTDevice(std::shared_ptr<Payload>);
 
         void updateTemperatureNOTI(std::shared_ptr<Payload>);
         void startScanBTDeviceNOTI(std::shared_ptr<Payload>);
@@ -30,6 +32,8 @@ class HardwareHandler {
         void btDevicePropertyChangeNOTI(std::shared_ptr<Payload>);
         void pairBTDeviceNOTI(std::shared_ptr<Payload>);
         void unpairBTDeviceNOTI(std::shared_ptr<Payload>);
+        void connectBTDeviceNOTI(std::shared_ptr<Payload>);
+        void disconnectBTDeviceNOTI(std::shared_ptr<Payload>);
     
     private:
         std::shared_ptr<WebSocket> webSocket_;

@@ -688,3 +688,83 @@ DBusDataInfo BluezDBus::getAllDeviceProperties(const std::string& objectPath) {
     dbus_message_unref(reply);
     return properties;
 }
+
+void BluezDBus::connectDevice(const std::string& address) {
+    R_LOG(INFO, "Attempting to connect to device: %s", address.c_str());
+    std::string objectPath = deviceAddressToObjectPath(address);
+
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        objectPath.c_str(),
+        CONFIG_INSTANCE()->getBluezDeviceInterface().c_str(),
+        "Connect"
+    );
+
+    DBusDataInfo info;
+    info[DBUS_DATA_BT_DEVICE_ADDRESS] = address;
+
+    if (msg == nullptr) {
+        R_LOG(ERROR, "Failed to create D-Bus message for Connect");
+        info[DBUS_DATA_MESSAGE] = "Failed to create D-Bus message for Connect";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::CONNECT_BTDEVICE_NOTI, false, info);
+        return;
+    }
+
+    DBusError err;
+    dbus_error_init(&err);
+    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error calling Connect for device %s: %s", address.c_str(), err.message);
+        info[DBUS_DATA_MESSAGE] = std::string("Error connecting to device: ") + err.message;
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::CONNECT_BTDEVICE_NOTI, false, info);
+        dbus_error_free(&err);
+    } else {
+        R_LOG(INFO, "Successfully called Connect for device %s. Connection process initiated.", address.c_str());
+    }
+
+    if (reply) {
+        dbus_message_unref(reply);
+    }
+}
+
+void BluezDBus::disconnectDevice(const std::string& address) {
+    R_LOG(INFO, "Attempting to disconnect from device: %s", address.c_str());
+    std::string objectPath = deviceAddressToObjectPath(address);
+
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+        objectPath.c_str(),
+        CONFIG_INSTANCE()->getBluezDeviceInterface().c_str(),
+        "Disconnect"
+    );
+
+    DBusDataInfo info;
+    info[DBUS_DATA_BT_DEVICE_ADDRESS] = address;
+
+    if (msg == nullptr) {
+        R_LOG(ERROR, "Failed to create D-Bus message for Disconnect");
+        info[DBUS_DATA_MESSAGE] = "Failed to create D-Bus message for Disconnect";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::DISCONNECT_BTDEVICE_NOTI, false, info);
+        return;
+    }
+
+    DBusError err;
+    dbus_error_init(&err);
+    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error calling Disconnect for device %s: %s", address.c_str(), err.message);
+        info[DBUS_DATA_MESSAGE] = std::string("Error disconnecting from device: ") + err.message;
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::DISCONNECT_BTDEVICE_NOTI, false, info);
+        dbus_error_free(&err);
+    } else {
+        R_LOG(INFO, "Successfully called Disconnect for device %s. Disconnection process initiated.", address.c_str());
+    }
+
+    if (reply) {
+        dbus_message_unref(reply);
+    }
+}

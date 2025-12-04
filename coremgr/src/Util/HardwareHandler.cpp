@@ -113,6 +113,32 @@ void HardwareHandler::unpairBTDevice(std::shared_ptr<Payload> payload){
     DBUS_SENDER()->sendMessageNoti(DBusCommand::UNPAIR_BTDEVICE, true, data);
 }
 
+void HardwareHandler::connectBTDevice(std::shared_ptr<Payload> payload){
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "CONNECT_BTDEVICE payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+    std::string deviceAddress = btPayload->getAddress();
+    R_LOG(INFO, "Sending Connect command for Bluetooth device: %s", deviceAddress.c_str());
+    DBusDataInfo data;
+    data[DBUS_DATA_BT_DEVICE_ADDRESS] = deviceAddress;
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::CONNECT_BTDEVICE, true, data);
+}
+
+void HardwareHandler::disconnectBTDevice(std::shared_ptr<Payload> payload){
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "DISCONNECT_BTDEVICE payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+    std::string deviceAddress = btPayload->getAddress();
+    R_LOG(INFO, "Sending Disconnect command for Bluetooth device: %s", deviceAddress.c_str());
+    DBusDataInfo data;
+    data[DBUS_DATA_BT_DEVICE_ADDRESS] = deviceAddress;
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::DISCONNECT_BTDEVICE, true, data);
+}
+
 void HardwareHandler::startScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
     std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
     if (notiPayload == nullptr) {
@@ -316,6 +342,56 @@ void HardwareHandler::unpairBTDeviceNOTI(std::shared_ptr<Payload> payload){
         webSocket_->getServer()->updateStateAndBroadcast("fail", 
             notiPayload->getMsgInfo(),
             "Settings", "unpair_btdevice_noti", {});
+    }
+}
+
+void HardwareHandler::connectBTDeviceNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiBTDeviceAddressPayload> notiPayload = std::dynamic_pointer_cast<NotiBTDeviceAddressPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "CONNECT_BTDEVICE_NOTI payload is not of type NotiBTDeviceAddressPayload");
+        return;
+    }
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "Bluetooth device connected successfully: %s", notiPayload->getAddress().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Settings", "connect_btdevice_noti", {
+                {"device_address", notiPayload->getAddress()}
+            });
+    } else {
+        R_LOG(ERROR, "Failed to connect Bluetooth device: %s", notiPayload->getAddress().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(),
+            "Settings", "connect_btdevice_noti", {
+                {"device_address", notiPayload->getAddress()}
+            });
+    }
+}
+
+void HardwareHandler::disconnectBTDeviceNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiBTDeviceAddressPayload> notiPayload = std::dynamic_pointer_cast<NotiBTDeviceAddressPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "DISCONNECT_BTDEVICE_NOTI payload is not of type NotiBTDeviceAddressPayload");
+        return;
+    }
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "Bluetooth device disconnected successfully: %s", notiPayload->getAddress().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Settings", "disconnect_btdevice_noti", {
+                {"device_address", notiPayload->getAddress()}
+            });
+    } else {
+        R_LOG(ERROR, "Failed to disconnect Bluetooth device: %s", notiPayload->getAddress().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(),
+            "Settings", "disconnect_btdevice_noti", {
+                {"device_address", notiPayload->getAddress()}
+            });
     }
 }
 

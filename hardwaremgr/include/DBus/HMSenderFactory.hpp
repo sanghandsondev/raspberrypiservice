@@ -25,6 +25,8 @@ class HMSenderFactory : public ISenderFactory {
         DBusMessage* makeMsgNoti_BTDevicePropertyChange(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_PairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_UnpairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_ConnectBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_DisconnectBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
 };
 
 #endif // HM_SENDER_FACTORY_HPP_

@@ -64,6 +64,14 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             R_LOG(INFO, "Processing UNPAIR_BTDEVICE event");
             processUnpairBTDeviceEvent(event->getPayload());
             break;
+        case EventTypeID::CONNECT_BTDEVICE:
+            R_LOG(INFO, "Processing CONNECT_BTDEVICE event");
+            procsesConnectBTDeviceEvent(event->getPayload());
+            break;
+        case EventTypeID::DISCONNECT_BTDEVICE:
+            R_LOG(INFO, "Processing DISCONNECT_BTDEVICE event");
+            processDisconnectBTDeviceEvent(event->getPayload());
+            break;
         default:
             R_LOG(WARN, "MainWorker received unknown EventTypeID");
             break;
@@ -134,4 +142,30 @@ void MainWorker::processUnpairBTDeviceEvent(std::shared_ptr<Payload> payload) {
         return;
     }
     bluezDBus_->unpairDevice(btPayload->getAddress());
+}
+
+void MainWorker::procsesConnectBTDeviceEvent(std::shared_ptr<Payload> payload) {
+    if (!bluezDBus_) {
+        R_LOG(ERROR, "BluezDBus is not initialized in MainWorker");
+        return;
+    }
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "CONNECT_BTDEVICE payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+    bluezDBus_->connectDevice(btPayload->getAddress());
+}
+
+void MainWorker::processDisconnectBTDeviceEvent(std::shared_ptr<Payload> payload) {
+    if (!bluezDBus_) {
+        R_LOG(ERROR, "BluezDBus is not initialized in MainWorker");
+        return;
+    }
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "DISCONNECT_BTDEVICE payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+    bluezDBus_->disconnectDevice(btPayload->getAddress());
 }

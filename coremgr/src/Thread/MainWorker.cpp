@@ -85,6 +85,12 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::UNPAIR_BTDEVICE:
             hardwareHandler_->unpairBTDevice(payload);
             break;
+        case EventTypeID::CONNECT_BTDEVICE:
+            hardwareHandler_->connectBTDevice(payload);
+            break;
+        case EventTypeID::DISCONNECT_BTDEVICE:
+            hardwareHandler_->disconnectBTDevice(payload);
+            break;
         case EventTypeID::UPDATE_TEMPERATURE_NOTI:
             hardwareHandler_->updateTemperatureNOTI(payload);
             break;
@@ -115,7 +121,12 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::UNPAIR_BTDEVICE_NOTI:
             hardwareHandler_->unpairBTDeviceNOTI(payload);
             break;
-            
+        case EventTypeID::CONNECT_BTDEVICE_NOTI:
+            hardwareHandler_->connectBTDeviceNOTI(payload);
+            break;
+        case EventTypeID::DISCONNECT_BTDEVICE_NOTI:
+            hardwareHandler_->disconnectBTDeviceNOTI(payload);
+            break;
         // Record
         case EventTypeID::START_RECORD:
             recordHandler_->startRecord();

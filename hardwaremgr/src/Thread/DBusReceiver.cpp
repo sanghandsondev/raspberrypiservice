@@ -62,6 +62,22 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             eventQueue_->pushEvent(event);
             break;
         }
+        case DBusCommand::CONNECT_BTDEVICE: {
+            R_LOG(INFO, "Dispatching CONNECT_BTDEVICE_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(
+                                                msgInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS]);
+            auto event = std::make_shared<Event>(EventTypeID::CONNECT_BTDEVICE, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::DISCONNECT_BTDEVICE: {
+            R_LOG(INFO, "Dispatching DISCONNECT_BTDEVICE_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(
+                                                msgInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS]);
+            auto event = std::make_shared<Event>(EventTypeID::DISCONNECT_BTDEVICE, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
         
         default:
             R_LOG(WARN, "DBusReceiver received unknown DBusCommand for notification");
