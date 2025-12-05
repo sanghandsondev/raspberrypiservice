@@ -5,6 +5,7 @@
 #include "DBusReceiver.hpp"
 #include "WebSocket.hpp"
 #include "WebSocketServer.hpp"
+#include "Timer.hpp"
 #include "DBThreadPool.hpp"
 #include "RLogger.hpp"
 #include "Config.hpp"
@@ -45,6 +46,7 @@ int main(){
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
     auto webSocketThread = std::make_shared<WebSocket>(eventQueue);
     auto dbThreadPool = std::make_shared<DBThreadPool>(eventQueue, CONFIG_INSTANCE()->getSQLiteDBWorkerThreads());
+    TIMER_INSTANCE()->SetEventQueue(eventQueue);
 
     // TIÊM PHỤ THUỘC (DIPENDENCY INJECTION)
     mainWorker->setWebSocket(webSocketThread);
@@ -54,6 +56,7 @@ int main(){
     dbusReceiver->run();
     webSocketThread->run();
     dbThreadPool->run();
+    TIMER_INSTANCE()->run();
 
     startUpCoreMgr(eventQueue);
 
@@ -75,11 +78,13 @@ int main(){
     dbusReceiver->stop();
     webSocketThread->stop();
     dbThreadPool->stop();
+    TIMER_INSTANCE()->stop();
 
     mainWorker->join();
     dbusReceiver->join();
     webSocketThread->join();
     dbThreadPool->join();
+    TIMER_INSTANCE()->join();
     R_LOG(WARN, "Core Manager exited.");
 
     return 0;

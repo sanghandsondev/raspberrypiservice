@@ -37,5 +37,6 @@ void ThreadBase::stop() {
     } else {
         CMN_LOG(WARN, "%s thread is not running", threadName_.c_str());
     }
+    onStop();
 }
 

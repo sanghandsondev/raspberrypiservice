@@ -13,6 +13,7 @@ class ThreadBase {
     protected:
         std::atomic<bool> runningFlag_;
         virtual void threadFunction() = 0;
+        virtual void onStop() {}
 
     public:
         explicit ThreadBase(std::string threadName);

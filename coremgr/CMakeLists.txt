@@ -37,6 +37,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${ROOT_DIR}/external/json
     ${ROOT_DIR}/include
     ${ROOT_DIR}/include/Configure
+    ${ROOT_DIR}/include/Controller
     ${ROOT_DIR}/include/Thread
     ${ROOT_DIR}/include/DB
     ${ROOT_DIR}/include/DBus
