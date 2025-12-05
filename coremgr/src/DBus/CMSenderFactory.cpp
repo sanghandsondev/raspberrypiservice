@@ -38,6 +38,10 @@ DBusMessage* CMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
         return makeMsgNoti_ConnectBTDevice(cmd, isSuccess, msgInfo);
     case DBusCommand::DISCONNECT_BTDEVICE:
         return makeMsgNoti_DisconnectBTDevice(cmd, isSuccess, msgInfo);
+    case DBusCommand::REJECT_REQUEST_CONFIRMATION:
+        return makeMsgNoti_RejectBTDeviceRequestConfirmation(cmd, isSuccess, msgInfo);
+    case DBusCommand::ACCEPT_REQUEST_CONFIRMATION:
+        return makeMsgNoti_AcceptBTDeviceRequestConfirmation(cmd, isSuccess, msgInfo);
     default:
         R_LOG(ERROR, "CMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
         return nullptr;
@@ -111,6 +115,22 @@ DBusMessage* CMSenderFactory::makeMsgNoti_ConnectBTDevice(DBusCommand cmd, bool 
 }
 
 DBusMessage* CMSenderFactory::makeMsgNoti_DisconnectBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/hardwaremanager";
+    const char* interfaceName = "com.example.hardwaremanager.interface";
+    const char* signalName = "HardwareSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* CMSenderFactory::makeMsgNoti_RejectBTDeviceRequestConfirmation(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/hardwaremanager";
+    const char* interfaceName = "com.example.hardwaremanager.interface";
+    const char* signalName = "HardwareSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* CMSenderFactory::makeMsgNoti_AcceptBTDeviceRequestConfirmation(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/hardwaremanager";
     const char* interfaceName = "com.example.hardwaremanager.interface";
     const char* signalName = "HardwareSignal";

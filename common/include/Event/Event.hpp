@@ -86,6 +86,19 @@ class BluetoothDeviceAddressPayload : public Payload {
         std::string address_;
 };
 
+class BluetoothDevicePasskeyPayload : public Payload {
+    public:
+        explicit BluetoothDevicePasskeyPayload(const std::string &address, int passkey)
+            : address_(address), passkey_(passkey) {}
+        
+        std::string getAddress() const { return address_; }
+        int getPasskey() const { return passkey_; }
+
+    private:
+        std::string address_;
+        int passkey_;
+};
+
 // Record
 class WavPayload : public Payload {
     public:

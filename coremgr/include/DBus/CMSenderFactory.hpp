@@ -20,15 +20,18 @@ class CMSenderFactory : public ISenderFactory {
         DBusMessage* makeMsg_StopScanBTDevice(DBusCommand cmd);
         DBusMessage* makeMsg_BluetoothPowerOn(DBusCommand cmd);
         DBusMessage* makeMsg_BluetoothPowerOff(DBusCommand cmd);
-
+        
+        
         DBusMessage* makeMsg_StartRecord(DBusCommand cmd);
         DBusMessage* makeMsg_StopRecord(DBusCommand cmd);
         DBusMessage* makeMsg_CancelRecord(DBusCommand cmd);
-
+        
         DBusMessage* makeMsgNoti_PairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_UnpairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_ConnectBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_DisconnectBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_RejectBTDeviceRequestConfirmation(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_AcceptBTDeviceRequestConfirmation(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
 };
 
 #endif // CM_SENDER_FACTORY_HPP_

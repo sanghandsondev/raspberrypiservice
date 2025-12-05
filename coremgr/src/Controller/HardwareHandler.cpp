@@ -6,6 +6,22 @@
 #include "StateView.hpp"
 #include "DBusSender.hpp"
 #include "DBusData.hpp"
+#include "Timer.hpp"
+#include "EventQueue.hpp"
+#include "EventTypeId.hpp"
+
+void HardwareHandler::removeTimerOnTimerIdMap(const std::string& key){
+    try {
+        if (timerIdMap_.find(key) != timerIdMap_.end()) {
+            TIMER_INSTANCE()->stopTimer(timerIdMap_.at(key));
+            timerIdMap_.erase(key);
+        } else {
+            R_LOG(WARN, "No timerIdMap_ entry found for key: %s to remove", key.c_str());
+        }
+    } catch (const std::out_of_range &e) {
+        R_LOG(ERROR, "Exception in removeTimerOnTimerIdMap for key: %s - %s", key.c_str(), e.what());
+    }
+}
 
 void HardwareHandler::startScanBTDevice(){
     ScanningBTDeviceState currentState = STATE_VIEW_INSTANCE()->SCANNING_BTDEVICE_STATE;
@@ -137,6 +153,36 @@ void HardwareHandler::disconnectBTDevice(std::shared_ptr<Payload> payload){
     DBusDataInfo data;
     data[DBUS_DATA_BT_DEVICE_ADDRESS] = deviceAddress;
     DBUS_SENDER()->sendMessageNoti(DBusCommand::DISCONNECT_BTDEVICE, true, data);
+}
+
+void HardwareHandler::rejectBTDeviceRequestConfirmation(std::shared_ptr<Payload> payload){
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "REJECT_REQUEST_CONFIRMATION payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+    std::string deviceAddress = btPayload->getAddress();
+    R_LOG(INFO, "Rejecting request confirmation for Bluetooth device: %s", deviceAddress.c_str());
+    DBusDataInfo data;
+    data[DBUS_DATA_BT_DEVICE_ADDRESS] = deviceAddress;
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::REJECT_REQUEST_CONFIRMATION, true, data);
+
+    removeTimerOnTimerIdMap(deviceAddress);
+}
+
+void HardwareHandler::acceptBTDeviceRequestConfirmation(std::shared_ptr<Payload> payload){
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "ACCEPT_REQUEST_CONFIRMATION payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+    std::string deviceAddress = btPayload->getAddress();
+    R_LOG(INFO, "Accepting request confirmation for Bluetooth device: %s", deviceAddress.c_str());
+    DBusDataInfo data;
+    data[DBUS_DATA_BT_DEVICE_ADDRESS] = deviceAddress;
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::ACCEPT_REQUEST_CONFIRMATION, true, data);
+
+    removeTimerOnTimerIdMap(deviceAddress);
 }
 
 void HardwareHandler::startScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
@@ -422,3 +468,43 @@ void HardwareHandler::btDevicePropertyChangeNOTI(std::shared_ptr<Payload> payloa
         });
 }
 
+void HardwareHandler::btDeviceRequestConfirmationNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<BluetoothDevicePasskeyPayload> passkeyPayload = std::dynamic_pointer_cast<BluetoothDevicePasskeyPayload>(payload);
+    if (passkeyPayload == nullptr) {
+        R_LOG(ERROR, "BTDEVICE_REQUEST_CONFIRMATION_NOTI payload is not of type BluetoothDevicePasskeyPayload");
+        return;
+    }
+
+    R_LOG(INFO, "Bluetooth device requests confirmation: Address=%s, Passkey=%d",
+        passkeyPayload->getAddress().c_str(),
+        passkeyPayload->getPasskey());
+
+    webSocket_->getServer()->updateStateAndBroadcast("success", 
+        "Bluetooth device requests confirmation.",
+        "Settings", "btdevice_request_confirmation_noti", {
+            {"device_address", passkeyPayload->getAddress()},
+            {"passkey", passkeyPayload->getPasskey()}
+        });
+    
+    // Start Timer to auto-cancel confirmation after timeout
+    std::shared_ptr<Payload> payload2 = std::make_shared<BluetoothDeviceAddressPayload>(passkeyPayload->getAddress());
+    std::shared_ptr<Event> event = std::make_shared<Event>(EventTypeID::BTDEVICE_REQUEST_CONFIRMATION_TIMEOUT, payload2);
+
+    int32_t timerId = TIMER_INSTANCE()->startTimer(TIMEOUT_REQUEST_CONFIRMATION_MS, event);
+
+    if(timerId != -1) {
+        timerIdMap_[passkeyPayload->getAddress()] = timerId;
+    }
+}
+
+void HardwareHandler::handleBTDeviceRequestConfirmationTimeout(std::shared_ptr<Payload> payload){
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "BTDEVICE_REQUEST_CONFIRMATION_TIMEOUT payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+
+    DBusDataInfo data;
+    data[DBUS_DATA_BT_DEVICE_ADDRESS] = btPayload->getAddress();
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::REJECT_REQUEST_CONFIRMATION, true, data);
+}

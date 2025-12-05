@@ -91,6 +91,12 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::DISCONNECT_BTDEVICE:
             hardwareHandler_->disconnectBTDevice(payload);
             break;
+        case EventTypeID::ACCEPT_REQUEST_CONFIRMATION:
+            hardwareHandler_->acceptBTDeviceRequestConfirmation(payload);
+            break;
+        case EventTypeID::REJECT_REQUEST_CONFIRMATION:
+            hardwareHandler_->rejectBTDeviceRequestConfirmation(payload);
+            break;
         case EventTypeID::UPDATE_TEMPERATURE_NOTI:
             hardwareHandler_->updateTemperatureNOTI(payload);
             break;
@@ -126,6 +132,12 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             break;
         case EventTypeID::DISCONNECT_BTDEVICE_NOTI:
             hardwareHandler_->disconnectBTDeviceNOTI(payload);
+            break;
+        case EventTypeID::BTDEVICE_REQUEST_CONFIRMATION_NOTI:
+            hardwareHandler_->btDeviceRequestConfirmationNOTI(payload);
+            break;
+        case EventTypeID::BTDEVICE_REQUEST_CONFIRMATION_TIMEOUT:
+            hardwareHandler_->handleBTDeviceRequestConfirmationTimeout(payload);
             break;
         // Record
         case EventTypeID::START_RECORD:

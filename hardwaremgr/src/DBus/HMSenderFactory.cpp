@@ -36,6 +36,8 @@ DBusMessage* HMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
             return makeMsgNoti_ConnectBTDevice(cmd, isSuccess, msgInfo);
         case DBusCommand::DISCONNECT_BTDEVICE_NOTI:
             return makeMsgNoti_DisconnectBTDevice(cmd, isSuccess, msgInfo);
+        case DBusCommand::BTDEVICE_REQUEST_CONFIRMATION_NOTI:
+            return makeMsgNoti_BTDeviceRequestConfirmation(cmd, isSuccess, msgInfo);
         default:
             R_LOG(ERROR, "HMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
             return nullptr;
@@ -132,6 +134,14 @@ DBusMessage* HMSenderFactory::makeMsgNoti_ConnectBTDevice(DBusCommand cmd, bool 
 }
 
 DBusMessage* HMSenderFactory::makeMsgNoti_DisconnectBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_BTDeviceRequestConfirmation(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/coremanager";
     const char* interfaceName = "com.example.coremanager.interface";
     const char* signalName = "CoreSignal";

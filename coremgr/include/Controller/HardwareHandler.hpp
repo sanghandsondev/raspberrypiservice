@@ -2,6 +2,10 @@
 #define HARDWARE_HANDLER_HPP_
 
 #include <memory>
+#include <string>
+#include <unordered_map>
+
+#define TIMEOUT_REQUEST_CONFIRMATION_MS 10000 // 10 seconds
 
 class WebSocket;
 class Payload;
@@ -21,6 +25,8 @@ class HardwareHandler {
         void unpairBTDevice(std::shared_ptr<Payload>);
         void connectBTDevice(std::shared_ptr<Payload>);
         void disconnectBTDevice(std::shared_ptr<Payload>);
+        void acceptBTDeviceRequestConfirmation(std::shared_ptr<Payload>);
+        void rejectBTDeviceRequestConfirmation(std::shared_ptr<Payload>);
 
         void updateTemperatureNOTI(std::shared_ptr<Payload>);
         void startScanBTDeviceNOTI(std::shared_ptr<Payload>);
@@ -34,8 +40,13 @@ class HardwareHandler {
         void unpairBTDeviceNOTI(std::shared_ptr<Payload>);
         void connectBTDeviceNOTI(std::shared_ptr<Payload>);
         void disconnectBTDeviceNOTI(std::shared_ptr<Payload>);
+        void btDeviceRequestConfirmationNOTI(std::shared_ptr<Payload>);
+        void handleBTDeviceRequestConfirmationTimeout(std::shared_ptr<Payload>);
     
     private:
+        std::unordered_map<std::string, int32_t> timerIdMap_;    // <deviceAddress, timerId>
+        void removeTimerOnTimerIdMap(const std::string& key);
+
         std::shared_ptr<WebSocket> webSocket_;
 };
 

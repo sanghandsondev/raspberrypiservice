@@ -5,10 +5,12 @@
 #include "RLogger.hpp"
 #include "DBusSender.hpp"
 #include "BluezDBus.hpp"
+#include "BluetoothAgent.hpp"
 #include <thread>
 
-MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus) : ThreadBase("MainWorker"), 
-    eventQueue_(eventQueue), bluezDBus_(bluezDBus) {
+MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus,
+     std::shared_ptr<BluetoothAgent> agent) : ThreadBase("MainWorker"), 
+    eventQueue_(eventQueue), bluezDBus_(bluezDBus), agent_(agent) {
 }
 
 void MainWorker::threadFunction() {
@@ -71,6 +73,14 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::DISCONNECT_BTDEVICE:
             R_LOG(INFO, "Processing DISCONNECT_BTDEVICE event");
             processDisconnectBTDeviceEvent(event->getPayload());
+            break;
+        case EventTypeID::REJECT_REQUEST_CONFIRMATION:
+            R_LOG(INFO, "Processing REJECT_REQUEST_CONFIRMATION event");
+            processRejectRequestConfirmationEvent(event->getPayload());
+            break;
+        case EventTypeID::ACCEPT_REQUEST_CONFIRMATION:
+            R_LOG(INFO, "Processing ACCEPT_REQUEST_CONFIRMATION event");
+            processAcceptRequestConfirmationEvent(event->getPayload());
             break;
         default:
             R_LOG(WARN, "MainWorker received unknown EventTypeID");
@@ -168,4 +178,30 @@ void MainWorker::processDisconnectBTDeviceEvent(std::shared_ptr<Payload> payload
         return;
     }
     bluezDBus_->disconnectDevice(btPayload->getAddress());
+}
+
+void MainWorker::processRejectRequestConfirmationEvent(std::shared_ptr<Payload> payload) {
+    if (!bluezDBus_) {
+        R_LOG(ERROR, "BluezDBus is not initialized in MainWorker");
+        return;
+    }
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "REJECT_REQUEST_CONFIRMATION payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+    agent_->confirmRequest(btPayload->getAddress(), false);
+}
+
+void MainWorker::processAcceptRequestConfirmationEvent(std::shared_ptr<Payload> payload) {
+    if (!bluezDBus_) {
+        R_LOG(ERROR, "BluezDBus is not initialized in MainWorker");
+        return;
+    }
+    std::shared_ptr<BluetoothDeviceAddressPayload> btPayload = std::dynamic_pointer_cast<BluetoothDeviceAddressPayload>(payload);
+    if (btPayload == nullptr) {
+        R_LOG(ERROR, "ACCEPT_REQUEST_CONFIRMATION payload is not of type BluetoothDeviceAddressPayload");
+        return;
+    }
+    agent_->confirmRequest(btPayload->getAddress(), true);
 }

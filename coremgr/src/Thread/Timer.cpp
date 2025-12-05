@@ -89,7 +89,7 @@ void Timer::sleepForNextItem(std::chrono::steady_clock::time_point &currentTime)
     });
 }
 
-void Timer::SetEventQueue(std::shared_ptr<class EventQueue> eventQueue) {
+void Timer::SetEventQueue(std::shared_ptr<EventQueue> eventQueue) {
     eventQueue_ = eventQueue;
 }
 
@@ -136,7 +136,7 @@ std::shared_ptr<TimerElement> Timer::makeNewTimerElement(const uint32_t timeout_
     return timerElement;
 }
 
-int32_t Timer::startTimer(const uint32_t timeout_ms, std::shared_ptr<class Event> event) {
+int32_t Timer::startTimer(const uint32_t timeout_ms, std::shared_ptr<Event> event) {
     if (eventQueue_ == nullptr) {
         R_LOG(ERROR, "EventQueue is not set in Timer");
         return -1;

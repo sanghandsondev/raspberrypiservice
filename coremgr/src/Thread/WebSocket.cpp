@@ -76,6 +76,8 @@ namespace {
         UNPAIR_BTDEVICE,
         CONNECT_BTDEVICE,
         DISCONNECT_BTDEVICE,
+        ACCEPT_REQUEST_CONFIRMATION,
+        REJECT_REQUEST_CONFIRMATION,
 
         // Record
         START_RECORD,
@@ -96,6 +98,8 @@ namespace {
         if(commandStr == "unpair_btdevice") return CommandType::UNPAIR_BTDEVICE;
         if(commandStr == "connect_btdevice") return CommandType::CONNECT_BTDEVICE;
         if(commandStr == "disconnect_btdevice") return CommandType::DISCONNECT_BTDEVICE;
+        if(commandStr == "accept_request_confirmation") return CommandType::ACCEPT_REQUEST_CONFIRMATION;
+        if(commandStr == "reject_request_confirmation") return CommandType::REJECT_REQUEST_CONFIRMATION;
 
         // Record
         if (commandStr == "start_record") return CommandType::START_RECORD;
@@ -162,6 +166,26 @@ std::shared_ptr<Event> WebSocket::translateMsg(const std::string& message, const
             if (addressOpt) {
                 std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(*addressOpt);
                 event = std::make_shared<Event>(EventTypeID::DISCONNECT_BTDEVICE, payload);
+            }
+            break;
+        }
+        case CommandType::ACCEPT_REQUEST_CONFIRMATION:
+        {
+            // { "address": "XX:XX:XX:XX:XX:XX" }
+            auto addressOpt = JSON_HELPER_INSTANCE()->getStringField(data, "device_address");
+            if (addressOpt) {
+                std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(*addressOpt);
+                event = std::make_shared<Event>(EventTypeID::ACCEPT_REQUEST_CONFIRMATION, payload);
+            }
+            break;
+        }
+        case CommandType::REJECT_REQUEST_CONFIRMATION:
+        {
+            // { "address": "XX:XX:XX:XX:XX:XX" }
+            auto addressOpt = JSON_HELPER_INSTANCE()->getStringField(data, "device_address");
+            if (addressOpt) {
+                std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(*addressOpt);
+                event = std::make_shared<Event>(EventTypeID::REJECT_REQUEST_CONFIRMATION, payload);
             }
             break;
         }

@@ -78,24 +78,25 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             eventQueue_->pushEvent(event);
             break;
         }
+        case DBusCommand::REJECT_REQUEST_CONFIRMATION: {
+            R_LOG(INFO, "Dispatching REJECT_REQUEST_CONFIRMATION_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(
+                                                msgInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS]);
+            auto event = std::make_shared<Event>(EventTypeID::REJECT_REQUEST_CONFIRMATION, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::ACCEPT_REQUEST_CONFIRMATION: {
+            R_LOG(INFO, "Dispatching ACCEPT_REQUEST_CONFIRMATION_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(
+                                                msgInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS]);
+            auto event = std::make_shared<Event>(EventTypeID::ACCEPT_REQUEST_CONFIRMATION, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
         
         default:
             R_LOG(WARN, "DBusReceiver received unknown DBusCommand for notification");
             break;
     }
 }
-
-// void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBusDataInfo &dataInfo) {
-//     // TODO : Payload for Noti Msg
-//     R_LOG(INFO, "DBusReceiver handling notification: cmd=%d, isSuccess=%d, msgInfo=%s",
-//             static_cast<int>(cmd), isSuccess, dataInfo.data[DBUS_DATA_MESSAGE].c_str());
-//     switch (cmd) {
-//         // From Hardware Manager Service
-//         case DBusCommand::UPDATE_TEMPERATURE_NOTI: {
-//             R_LOG(INFO, "Dispatching UPDATE_TEMPERATURE_NOTI from DBus");
-//             std::shared_ptr<Payload> payload = std::make_shared<NotiTemperaturePayload>(isSuccess, 
-//                                                 std::stof(dataInfo.data[DBUS_DATA_TEMPERATURE_VALUE]));
-//             auto event = std::make_shared<Event>(EventTypeID::UPDATE_TEMPERATURE_NOTI, payload);
-//             eventQueue_->pushEvent(event);
-//             break;
-//         }

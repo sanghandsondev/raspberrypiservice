@@ -38,12 +38,12 @@ int main(){
         R_LOG(ERROR, "Failed to connect to D-Bus for BlueZ. Exiting.");
         return 1;
     }
-    std::shared_ptr<BluetoothAgent> agent = std::make_shared<BluetoothAgent>(bluezDBus->getConnection());
+    std::shared_ptr<BluetoothAgent> agent = std::make_shared<BluetoothAgent>(bluezDBus->getConnection(), bluezDBus);
 
     // Register agent
     bluezDBus->registerAgent("NoInputNoOutput"); // Capability for "Just Works"
 
-    auto mainWorker = std::make_shared<MainWorker>(eventQueue, bluezDBus);
+    auto mainWorker = std::make_shared<MainWorker>(eventQueue, bluezDBus, agent);
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
     auto monitorWorker = std::make_shared<MonitorWorker>(eventQueue);
     auto bluetoothWorker = std::make_shared<BluetoothWorker>(eventQueue, bluezDBus, agent);

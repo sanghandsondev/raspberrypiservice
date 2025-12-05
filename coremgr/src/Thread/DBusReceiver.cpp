@@ -142,6 +142,19 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             eventQueue_->pushEvent(event);
             break;
         }
+        case DBusCommand::BTDEVICE_REQUEST_CONFIRMATION_NOTI: {
+            if(!isSuccess){
+                R_LOG(WARN, "BTDEVICE_REQUEST_CONFIRMATION_NOTI indicates failure. Message: %s", dataInfo.data[DBUS_DATA_MESSAGE].c_str());
+                break;
+            }
+            R_LOG(INFO, "Dispatching BTDEVICE_REQUEST_CONFIRMATION_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<BluetoothDevicePasskeyPayload>(
+                                                dataInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS],
+                                                std::stoi(dataInfo.data[DBUS_DATA_BT_PAIRING_PASSKEY]));
+            auto event = std::make_shared<Event>(EventTypeID::BTDEVICE_REQUEST_CONFIRMATION_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
 
         // From Record Manager Service
         case DBusCommand::START_RECORD_NOTI: {
