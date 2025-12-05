@@ -11,83 +11,48 @@
 
 18. GStreamer, Camera, Capture, ... OpenCV...
 
-19. Thực sự thì vẫn cần Timer cho CoreManager để nếu ko nhận được noti thì phải trả về cho client. 
-KHÁ KHÓ CHO IMPLEMENT. Chắc là ko code đâu, vì phải thay đổi code hiện tại khá nhiều.
-
 // ---------------------------
-sudo apt update
-sudo apt install -y bluez pi-bluetooth bluetooth
 
-sudo systemctl enable bluetooth.service
-sudo systemctl start bluetooth.service
-sudo systemctl status bluetooth.service
+Khi bluetooth off -> on, chủ động gửi request kết nối tới tất cả các device đã pair mà chưa connect hehe
 
-bluetoothctl
-Agent registered
-[bluetooth]# 
+// --------------------------
 
-Đảm bảo ở /boot/firmware/config.txt
-dtoverlay=...
+1/ Cài đặt và cấu hình oFono
+oFono là một daemon cung cấp API D-Bus cấp cao để điều khiển các chức năng telephony (modem, cuộc gọi, SMS, danh bạ).
+1.1/ sudo apt-get install ofono
 
-// Cấu hình quyền cho User
-sudo usermod -a -G bluetooth pi
-sudo reboot
+1.2/Cấp quyền cho oFono: oFono cần quyền để tương tác với BlueZ. Bạn cần chỉnh sửa file cấu hình D-Bus của BlueZ.
 
-// sudo nano /etc/bluetooth/main.config
-AutoEnable=true
-DiscoverableTimeout = 180
-----------------------------------------------------------------------
-Ví dụ: Bạn có thể tạo một file /etc/wireplumber/main.lua.d/60-custom-policy.lua (hoặc trong ~/.config/wireplumber/...) 
-với nội dung tương tự như sau để đặt ưu tiên cho các loại thiết bị:
+Mở file: sudo nano /etc/dbus-1/system.d/bluetooth.conf
+Tìm đến phần <policy user="root">. Bên trong đó, thêm một dòng cho phép ofono sở hữu dịch vụ của BlueZ:
+<policy user="ofono">
+    <allow own="org.bluez"/>
+    <allow send_destination="org.bluez"/>
+</policy>
 
-rule = {
-  matches = {
-    {
-      -- Match all audio sinks
-      { "node.name", "matches", "alsa_output.*" },
-    },
-  },
-  apply_properties = {
-    -- Default priority
-    ["priority.session"] = 100,
-  },
-}
-table.insert(alsa_monitor.rules, rule)
+sudo nano /lib/systemd/system/bluetooth.service
 
-rule = {
-  matches = {
-    {
-      -- Match 3.5mm jack (card 1 on RPi)
-      { "device.name", "matches", "alsa_card.platform-bcm2835_headpho" },
-    },
-  },
-  apply_properties = {
-    -- Higher priority than default
-    ["priority.session"] = 1500,
-  },
-}
-table.insert(alsa_monitor.rules, rule)
+1.3/ sudo nano /lib/systemd/system/bluetooth.service
+ExecStart=/usr/lib/bluetooth/bluetoothd --experimental
 
-rule = {
-  matches = {
-    {
-      -- Match all bluetooth devices
-      { "device.name", "matches", "bluez_card.*" },
-    },
-  },
-  apply_properties = {
-    -- Highest priority
-    ["priority.session"] = 2000,
-  },
-}
-table.insert(bluez_monitor.rules, rule)
+1.4/ 
+sudo systemctl daemon-reload
+sudo systemctl restart bluetooth
 
-----------------------------------------------------------------------
-5/ Khi connected với WebSocket, request DBUSSender từ WebSocket của CoreManager để get ObjectManaged. -> findAdapter()
-(vừa get Adapter property + vừa get được paired device)
-[CHECK]
+sudo systemctl enable ofono
+sudo systemctl start ofono
 
-6/ Xử lý Connect, tìm hiểu về "Trusted" -> (Thường là) Đã tin cậy, cho phép kết nối tự động.
-[CHECK]
+2/ Tương tác với oFono qua D-Bus
 
-7/ Lấy data Batery của device như loa, speaker
+Service: org.ofono
+org.ofono.Manager: Tại object path /. Dùng để lấy danh sách các "modem" (mỗi thiết bị Bluetooth được kết nối sẽ được xem như một modem).
+org.ofono.VoiceCallManager: Tại object path của modem (ví dụ: /bluetooth/XX_XX_XX_XX_XX_XX). Đây là nơi bạn:
+  Lắng nghe tín hiệu CallAdded (cuộc gọi đến/đi) và CallRemoved.
+  Gọi phương thức GetCalls() để lấy danh sách các cuộc gọi hiện tại.
+org.ofono.VoiceCall: Tại object path của cuộc gọi (ví dụ: /bluetooth/XX_XX_XX_XX_XX_XX/call_1). Đây là nơi bạn:
+  Lắng nghe tín hiệu PropertyChanged để biết trạng thái cuộc gọi (ringing, active, disconnected).
+  Gọi phương thức Answer() để chấp nhận cuộc gọi.
+  Gọi phương thức Hangup() để từ chối hoặc kết thúc cuộc gọi.
+org.ofono.Phonebook: Tại object path của modem. Dùng để truy cập danh bạ.
+
+3/ Hardwaremanager lắng nghe và gọi các API DBus của oFono
