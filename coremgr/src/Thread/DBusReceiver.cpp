@@ -150,7 +150,7 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             R_LOG(INFO, "Dispatching BTDEVICE_REQUEST_CONFIRMATION_NOTI from DBus");
             std::shared_ptr<Payload> payload = std::make_shared<BluetoothDevicePasskeyPayload>(
                                                 dataInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS],
-                                                std::stoi(dataInfo.data[DBUS_DATA_BT_PAIRING_PASSKEY]));
+                                                dataInfo.data[DBUS_DATA_BT_PAIRING_PASSKEY]);
             auto event = std::make_shared<Event>(EventTypeID::BTDEVICE_REQUEST_CONFIRMATION_NOTI, payload);
             eventQueue_->pushEvent(event);
             break;

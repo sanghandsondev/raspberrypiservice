@@ -41,7 +41,10 @@ int main(){
     std::shared_ptr<BluetoothAgent> agent = std::make_shared<BluetoothAgent>(bluezDBus->getConnection(), bluezDBus);
 
     // Register agent
-    bluezDBus->registerAgent("NoInputNoOutput"); // Capability for "Just Works"
+    // bluezDBus->registerAgent("NoInputNoOutput"); // Capability for "Just Works"
+    // I want capability to Display and Confirm passkey
+    bluezDBus->registerAgent("DisplayYesNo");
+    // or KeyboardDisplay for more complex interactions
 
     auto mainWorker = std::make_shared<MainWorker>(eventQueue, bluezDBus, agent);
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);

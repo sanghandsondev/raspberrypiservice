@@ -21,30 +21,42 @@ BluetoothAgent::~BluetoothAgent() {
 
 DBusHandlerResult BluetoothAgent::handleMessage(DBusMessage* message) {
     if (dbus_message_is_method_call(message, "org.bluez.Agent1", "RequestConfirmation")) {
+        R_LOG(DEBUG, "------------------> BluetoothAgent: Handling RequestConfirmation message.");
         handleRequestConfirmation(message);
         return DBUS_HANDLER_RESULT_HANDLED;
     }
     if (dbus_message_is_method_call(message, "org.bluez.Agent1", "RequestAuthorization")) {
+        R_LOG(DEBUG, "------------------> BluetoothAgent: Handling RequestAuthorization message.");
         handleRequestAuthorization(message);
         return DBUS_HANDLER_RESULT_HANDLED;
     }
     if (dbus_message_is_method_call(message, "org.bluez.Agent1", "RequestPinCode")) {
+        R_LOG(DEBUG, "------------------> BluetoothAgent: Handling RequestPinCode message.");
         handleRequestPinCode(message);
         return DBUS_HANDLER_RESULT_HANDLED;
     }
     if (dbus_message_is_method_call(message, "org.bluez.Agent1", "DisplayPasskey")) {
+        R_LOG(DEBUG, "------------------> BluetoothAgent: Handling DisplayPasskey message.");
         handleDisplayPasskey(message);
         return DBUS_HANDLER_RESULT_HANDLED;
     }
     if (dbus_message_is_method_call(message, "org.bluez.Agent1", "Release")) {
+        R_LOG(DEBUG, "------------------> BluetoothAgent: Handling Release message.");
         handleRelease(message);
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
+    R_LOG(ERROR, "------------------> BluetoothAgent: Unhandled message.");
+    DBusMessage* reply = dbus_message_new_error(message, "org.bluez.Error.Rejected", "Unkonwn method. Will not handle.");
+    if (reply) {
+        dbus_connection_send(conn_, reply, NULL);
+        dbus_message_unref(reply);
+    }
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
 void BluetoothAgent::handleRequestConfirmation(DBusMessage* message) {
+    R_LOG(INFO, "Agent: Handling RequestConfirmation message.");
     const char* device_path_cstr;
     dbus_uint32_t passkey;
 
@@ -129,7 +141,7 @@ void BluetoothAgent::handleRelease(DBusMessage* message) {
 void BluetoothAgent::confirmRequest(const std::string& deviceAddress, bool confirmed) {
     auto it = pendingConfirmations_.find(deviceAddress);
     if (it == pendingConfirmations_.end()) {
-        R_LOG(ERROR, "Agent: No pending confirmation request found for device %s", deviceAddress.c_str());
+        R_LOG(WARN, "Agent: No pending confirmation request found for device %s", deviceAddress.c_str());
         return;
     }
 

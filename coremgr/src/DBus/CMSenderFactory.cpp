@@ -22,7 +22,7 @@ DBusMessage* CMSenderFactory::makeMsg(DBusCommand cmd) {
         case DBusCommand::CANCEL_RECORD:
             return makeMsg_CancelRecord(cmd);
         default:
-            R_LOG(ERROR, "CMSenderFactory makeMsg Error: Unknown DBusCommand");
+            R_LOG(WARN, "CMSenderFactory makeMsg Error: Unknown DBusCommand");
             return nullptr;
     }
 }
@@ -43,7 +43,7 @@ DBusMessage* CMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
     case DBusCommand::ACCEPT_REQUEST_CONFIRMATION:
         return makeMsgNoti_AcceptBTDeviceRequestConfirmation(cmd, isSuccess, msgInfo);
     default:
-        R_LOG(ERROR, "CMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
+        R_LOG(WARN, "CMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
         return nullptr;
     }
 }

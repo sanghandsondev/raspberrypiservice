@@ -11,12 +11,12 @@
 
 18. GStreamer, Camera, Capture, ... OpenCV...
 
-// ---------------------------
 
-Khi bluetooth off -> on, chủ động gửi request kết nối tới tất cả các device đã pair mà chưa connect hehe
 
 // --------------------------
 
+
+-------------------------------
 1/ Cài đặt và cấu hình oFono
 oFono là một daemon cung cấp API D-Bus cấp cao để điều khiển các chức năng telephony (modem, cuộc gọi, SMS, danh bạ).
 1.1/ sudo apt-get install ofono

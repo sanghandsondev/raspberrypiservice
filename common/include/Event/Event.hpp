@@ -92,11 +92,11 @@ class BluetoothDevicePasskeyPayload : public Payload {
             : address_(address), passkey_(passkey) {}
         
         std::string getAddress() const { return address_; }
-        int getPasskey() const { return passkey_; }
+        std::string getPasskey() const { return passkey_; }
 
     private:
         std::string address_;
-        int passkey_;
+        std::string passkey_;
 };
 
 // Record

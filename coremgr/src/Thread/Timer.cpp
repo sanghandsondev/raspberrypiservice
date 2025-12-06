@@ -81,7 +81,7 @@ void Timer::sleepForNextItem(std::chrono::steady_clock::time_point &currentTime)
         nextItemTimeout = defaultTimeout;
     }
     size_t mapSize = timerTableMap.size();
-    R_LOG(DEBUG, "Timer sleep for next item: TimerCount=%zu", mapSize);
+    // R_LOG(DEBUG, "Timer sleep for next item: TimerCount=%zu", mapSize);
 
     // Wait until next item timeout or new timer added/stopped
     timerWakeupCondition.wait_until(lock, nextItemTimeout, [this, mapSize]() -> bool {
@@ -94,7 +94,7 @@ void Timer::SetEventQueue(std::shared_ptr<EventQueue> eventQueue) {
 }
 
 int32_t Timer::createNewTimerId() {
-    static int32_t nextTimerId = -1;
+    static int32_t nextTimerId = 1;
     int32_t newTimerId = -1;
     std::lock_guard<std::mutex> lock(timerMutex);
 

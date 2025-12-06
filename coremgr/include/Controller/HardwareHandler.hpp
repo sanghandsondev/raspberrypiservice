@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 
-#define TIMEOUT_REQUEST_CONFIRMATION_MS 10000 // 10 seconds
+#define TIMEOUT_REQUEST_CONFIRMATION_MS 30000 // 30 seconds
 
 class WebSocket;
 class Payload;

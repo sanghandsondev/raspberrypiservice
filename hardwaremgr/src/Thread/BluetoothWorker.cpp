@@ -72,6 +72,7 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
         handlePropertiesChanged(msg);
     } else if (dbus_message_get_type(msg) == DBUS_MESSAGE_TYPE_METHOD_CALL &&
                std::string(dbus_message_get_path(msg)) == CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath()) {
+        R_LOG(DEBUG, "BluetoothWorker: Received method call for Bluetooth Agent.");
         if (agent_) {
             agent_->handleMessage(msg);
         }
@@ -264,6 +265,13 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
         // When a property changes, we get all properties to send a complete update.
         R_LOG(INFO, "Properties changed for device: %s. Fetching all properties.", path_str.c_str());
         DBusDataInfo change_propertys = bluezDBus_->parseDeviceProperties(&iter);
+        
+        // If device is unpaired, no further processing needed.
+        // if(!change_propertys[DBUS_DATA_BT_DEVICE_PAIRED].empty() && change_propertys[DBUS_DATA_BT_DEVICE_PAIRED] == "false"){
+        //     R_LOG(INFO, "Device %s unpaired. Automatically remove by handleInterfacesRemoved", path_str.c_str());
+        //     return;
+        // }
+
         DBusDataInfo all_properties = bluezDBus_->getAllDeviceProperties(path_str);
 
         if (all_properties[DBUS_DATA_BT_DEVICE_ADDRESS].empty()) {

@@ -477,7 +477,7 @@ void HardwareHandler::btDeviceRequestConfirmationNOTI(std::shared_ptr<Payload> p
 
     R_LOG(INFO, "Bluetooth device requests confirmation: Address=%s, Passkey=%d",
         passkeyPayload->getAddress().c_str(),
-        passkeyPayload->getPasskey());
+        passkeyPayload->getPasskey().c_str());
 
     webSocket_->getServer()->updateStateAndBroadcast("success", 
         "Bluetooth device requests confirmation.",

@@ -23,7 +23,7 @@ BluezDBus::BluezDBus() : conn_(nullptr), isInitialized_(false) {
     R_LOG(INFO, "Successfully connected to D-Bus system bus for BlueZ.");
     
     // 2. Find the Bluetooth adapter - This will be done later via an event
-    // initializeAdapter(); 
+    initializeAdapter(); 
 }
 
 BluezDBus::~BluezDBus() {
@@ -557,6 +557,52 @@ void BluezDBus::unpairDevice(const std::string& address) {
     R_LOG(INFO, "Attempting to unpair (remove) device: %s", address.c_str());
     std::string objectPath = deviceAddressToObjectPath(address);
 
+    // --- Untrust before unpair ---
+    DBusDataInfo trust_info = getAllDeviceProperties(objectPath);
+    if (trust_info[DBUS_DATA_BT_DEVICE_ADDRESS].empty()) {
+        R_LOG(WARN, "Device %s not found before unpairing. Skipping untrust.", address.c_str());
+    } else if(trust_info[DBUS_DATA_BT_DEVICE_TRUSTED] == "true") {
+        DBusMessage* trust_msg = dbus_message_new_method_call(
+            CONFIG_INSTANCE()->getBluezServiceName().c_str(),
+            objectPath.c_str(),
+            CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(),
+            "Set"
+        );
+        if (trust_msg == nullptr) {
+            R_LOG(ERROR, "Failed to create D-Bus message for Set Trusted");
+        } else {
+            const char* iface = CONFIG_INSTANCE()->getBluezDeviceInterface().c_str();
+            const char* prop = "Trusted";
+            DBusMessageIter args, variant;
+            dbus_message_iter_init_append(trust_msg, &args);
+            dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &iface);
+            dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &prop);
+            dbus_message_iter_open_container(&args, DBUS_TYPE_VARIANT, DBUS_TYPE_BOOLEAN_AS_STRING, &variant);
+            dbus_bool_t dbus_false = FALSE;
+            dbus_message_iter_append_basic(&variant, DBUS_TYPE_BOOLEAN, &dbus_false);
+            dbus_message_iter_close_container(&args, &variant);
+
+            DBusError err;
+            dbus_error_init(&err);
+            DBusMessage* trust_reply = dbus_connection_send_with_reply_and_block(conn_, trust_msg, -1, &err);
+            dbus_message_unref(trust_msg);
+
+            if (dbus_error_is_set(&err)) {
+                R_LOG(ERROR, "Error setting Trusted property to false for %s: %s", address.c_str(), err.message);
+                dbus_error_free(&err);
+            } else {
+                R_LOG(INFO, "Successfully set Trusted property to false for %s", address.c_str());
+            }
+
+            if (trust_reply) {
+                dbus_message_unref(trust_reply);
+            }
+        }
+    } else {
+        R_LOG(INFO, "Device %s is already untrusted. No action needed.", address.c_str());
+    }
+
+    // --- Unpair logic ---
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getBluezServiceName().c_str(),
         adapterPath_.c_str(),
@@ -676,6 +722,7 @@ DBusDataInfo BluezDBus::getAllDeviceProperties(const std::string& objectPath) {
         CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(),
         "GetAll"
     );
+    
     if (msg == nullptr) {
         R_LOG(ERROR, "Failed to create D-Bus message for GetAll on %s", objectPath.c_str());
         return DBusDataInfo();
@@ -815,11 +862,14 @@ void BluezDBus::trustDevice(const std::string& address) {
     const char* iface = CONFIG_INSTANCE()->getBluezDeviceInterface().c_str();
     const char* prop = "Trusted";
 
+    // The correct DBus signature for the "Set" method is: ssv (string, string, variant)
+    // The variant type must be specified as "b" (for boolean) in the signature string.
     dbus_message_iter_init_append(msg, &args);
     dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &iface);
     dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &prop);
 
-    dbus_message_iter_open_container(&args, DBUS_TYPE_VARIANT, DBUS_TYPE_BOOLEAN_AS_STRING, &variant);
+    // Use "b" as the DBus signature for boolean
+    dbus_message_iter_open_container(&args, DBUS_TYPE_VARIANT, "b", &variant);
     dbus_bool_t dbus_true = TRUE;
     dbus_message_iter_append_basic(&variant, DBUS_TYPE_BOOLEAN, &dbus_true);
     dbus_message_iter_close_container(&args, &variant);
