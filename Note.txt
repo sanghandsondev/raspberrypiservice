@@ -14,7 +14,14 @@
 
 
 // --------------------------
+Khi start Pull noti thì clear danh sách cả local cả trong modelList
 
+Hoàn thanh nốt mấy cái DBusCommand để gửi End Noti Pull contact và hisCall
+Để khi end thì mới sắp xếp danh sách và ném vào modelList
+
+Khi endSession thì nhớ clear danh sách cả local cả trong modelList, và để lại text phù hợp
+
+Khi cố tình gọi mà trong trường hợp chưa có bluetooth Điện thoại kết nối thì sẽ hiển thị thông báo ngay
 
 -------------------------------
 1/ Cài đặt và cấu hình oFono

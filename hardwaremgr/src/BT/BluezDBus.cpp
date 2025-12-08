@@ -1096,9 +1096,9 @@ void BluezDBus::syncAllOfonoCallHistory(const std::string& modemPath) {
     getOfonoCallHistory(modemPath, "missed");
 
     R_LOG(INFO, "oFono: Finished pulling all call history. Sending end notification.");
-    // DBusDataInfo end_info;
-    // end_info[DBUS_DATA_MESSAGE] = "Call history sync complete.";
-    // DBUS_SENDER()->sendMessageNoti(DBusCommand::CALL_HISTORY_PULL_END_NOTI, true, end_info);
+    DBusDataInfo end_info;
+    end_info[DBUS_DATA_MESSAGE] = "Call history sync complete.";
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::CALL_HISTORY_PULL_END_NOTI, true, end_info);
 }
 
 void BluezDBus::syncLatestOfonoCall(const std::string& modemPath, const std::string& type) {
@@ -1176,9 +1176,9 @@ void BluezDBus::syncAllOfonoContacts(const std::string& modemPath) {
     getOfonoContacts(modemPath);
 
     R_LOG(INFO, "oFono: Finished pulling all contacts. Sending end notification.");
-    // DBusDataInfo end_info;
-    // end_info[DBUS_DATA_MESSAGE] = "Phonebook sync complete.";
-    // DBUS_SENDER()->sendMessageNoti(DBusCommand::PBAP_PHONEBOOK_PULL_END_NOTI, true, end_info);
+    DBusDataInfo end_info;
+    end_info[DBUS_DATA_MESSAGE] = "Phonebook sync complete.";
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::PBAP_PHONEBOOK_PULL_END_NOTI, true, end_info);
 }
 
 void BluezDBus::getOfonoCallHistory(const std::string& modemPath, const std::string& type) {
@@ -1237,6 +1237,8 @@ void BluezDBus::getOfonoCallHistory(const std::string& modemPath, const std::str
         }
         dbus_message_unref(reply);
     }
+
+
 }
 
 void BluezDBus::getOfonoContacts(const std::string& modemPath) {
