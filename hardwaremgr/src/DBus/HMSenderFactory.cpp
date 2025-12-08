@@ -38,6 +38,16 @@ DBusMessage* HMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
             return makeMsgNoti_DisconnectBTDevice(cmd, isSuccess, msgInfo);
         case DBusCommand::BTDEVICE_REQUEST_CONFIRMATION_NOTI:
             return makeMsgNoti_BTDeviceRequestConfirmation(cmd, isSuccess, msgInfo);
+        case DBusCommand::PBAP_PHONEBOOK_PULL_START_NOTI:
+            return makeMsgNoti_PBAPPhonebookPullStart(cmd, isSuccess, msgInfo);
+        case DBusCommand::PBAP_PHONEBOOK_PULL_NOTI:
+            return makeMsgNoti_PBAPPhonebookPull(cmd, isSuccess, msgInfo);
+        case DBusCommand::CALL_HISTORY_PULL_START_NOTI:
+            return makeMsgNoti_CallHistoryPullStart(cmd, isSuccess, msgInfo);
+        case DBusCommand::CALL_HISTORY_PULL_NOTI:
+            return makeMsgNoti_CallHistoryPull(cmd, isSuccess, msgInfo);
+        case DBusCommand::PBAP_SESSION_END_NOTI:
+            return makeMsgNoti_PBAPSessionEnd(cmd, isSuccess, msgInfo);
         default:
             R_LOG(ERROR, "HMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
             return nullptr;
@@ -148,3 +158,44 @@ DBusMessage* HMSenderFactory::makeMsgNoti_BTDeviceRequestConfirmation(DBusComman
 
     return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
 }
+
+DBusMessage* HMSenderFactory::makeMsgNoti_PBAPPhonebookPullStart(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_PBAPPhonebookPull(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_CallHistoryPullStart(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_CallHistoryPull(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_PBAPSessionEnd(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+

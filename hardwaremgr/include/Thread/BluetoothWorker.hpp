@@ -6,8 +6,6 @@
 #include <dbus/dbus.h>
 
 class EventQueue;
-class Event;
-class Payload;
 class BluezDBus;
 class BluetoothAgent;
 
@@ -26,6 +24,11 @@ class BluetoothWorker : public ThreadBase {
         void handleInterfacesAdded(DBusMessage* msg);
         void handleInterfacesRemoved(DBusMessage* msg);
         void handlePropertiesChanged(DBusMessage* msg);
+
+        // oFono signal handlers
+        void handleModemAdded(DBusMessage* msg);
+        void handleModemRemoved(DBusMessage* msg);
+        void handleOfonoPropertyChanged(DBusMessage* msg);
 };
 
 #endif // BLUETOOTH_WORKER_HPP_

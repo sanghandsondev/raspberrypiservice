@@ -139,6 +139,22 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::BTDEVICE_REQUEST_CONFIRMATION_TIMEOUT:
             hardwareHandler_->handleBTDeviceRequestConfirmationTimeout(payload);
             break;
+        case EventTypeID::PBAP_SESSION_END_NOTI:
+            hardwareHandler_->pbapSessionEndNOTI(payload);
+            break;
+        case EventTypeID::PBAP_PHONEBOOK_PULL_START_NOTI:
+            hardwareHandler_->pbapPhonebookPullStartNOTI(payload);
+            break;
+        case EventTypeID::PBAP_PHONEBOOK_PULL_NOTI:
+            hardwareHandler_->pbapPhonebookPullNOTI(payload);
+            break;
+        case EventTypeID::CALL_HISTORY_PULL_START_NOTI:
+            hardwareHandler_->callHistoryPullStartNOTI(payload);
+            break;
+        case EventTypeID::CALL_HISTORY_PULL_NOTI:
+            hardwareHandler_->callHistoryPullNOTI(payload);
+            break;
+        
         // Record
         case EventTypeID::START_RECORD:
             recordHandler_->startRecord();

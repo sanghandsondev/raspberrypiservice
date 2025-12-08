@@ -508,3 +508,95 @@ void HardwareHandler::handleBTDeviceRequestConfirmationTimeout(std::shared_ptr<P
     data[DBUS_DATA_BT_DEVICE_ADDRESS] = btPayload->getAddress();
     DBUS_SENDER()->sendMessageNoti(DBusCommand::REJECT_REQUEST_CONFIRMATION, true, data);
 }
+
+void HardwareHandler::pbapSessionEndNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "PBAP_SESSION_END_NOTI payload is not of type NotiPayload");
+        return;
+    }
+
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "PBAP session ended successfully: %s", notiPayload->getMsgInfo().c_str());
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Call", "pbap_session_end_noti", {});
+    } else {
+        R_LOG(ERROR, "PBAP session end failed: %s", notiPayload->getMsgInfo().c_str());
+    }
+}
+
+void HardwareHandler::pbapPhonebookPullStartNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "PBAP_PHONEBOOK_PULL_START_NOTI payload is not of type NotiPayload");
+        return;
+    }
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "PBAP phonebook pull started successfully: %s", notiPayload->getMsgInfo().c_str());
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Call", "pbap_phonebook_pull_start_noti", {});
+    } else {
+        R_LOG(ERROR, "PBAP phonebook pull start failed: %s", notiPayload->getMsgInfo().c_str());
+    }
+}
+
+void HardwareHandler::pbapPhonebookPullNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<ContactPayload> contactPayload = std::dynamic_pointer_cast<ContactPayload>(payload);
+    if (contactPayload == nullptr) {
+        R_LOG(ERROR, "PBAP_PHONEBOOK_PULL_NOTI payload is not of type ContactPayload");
+        return;
+    }
+
+    R_LOG(INFO, "Received contact: Name=%s, Number=%s",
+        contactPayload->getName().c_str(),
+        contactPayload->getNumber().c_str());
+
+    webSocket_->getServer()->updateStateAndBroadcast("success", 
+        "PBAP contact received.",
+        "Call", "pbap_phonebook_pull_noti", {
+            {"contact_name", contactPayload->getName()},
+            {"contact_number", contactPayload->getNumber()}
+        });
+}
+
+void HardwareHandler::callHistoryPullStartNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "CALL_HISTORY_PULL_START_NOTI payload is not of type NotiPayload");
+        return;
+    }
+
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "Call history pull started successfully: %s", notiPayload->getMsgInfo().c_str());
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Call", "call_history_pull_start_noti", {});
+    } else {
+        R_LOG(ERROR, "Call history pull start failed: %s", notiPayload->getMsgInfo().c_str());
+    }
+}
+
+void HardwareHandler::callHistoryPullNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<CallHistoryPayload> callHistoryPayload = std::dynamic_pointer_cast<CallHistoryPayload>(payload);
+    if (callHistoryPayload == nullptr) {
+        R_LOG(ERROR, "CALL_HISTORY_PULL_NOTI payload is not of type CallHistoryPayload");
+        return;
+    }
+
+    R_LOG(INFO, "Received call history: Name=%s, Number=%s, Type=%s, Datetime=%s",
+        callHistoryPayload->getName().c_str(),
+        callHistoryPayload->getNumber().c_str(),
+        callHistoryPayload->getType().c_str(),
+        callHistoryPayload->getDateTime().c_str());
+
+    webSocket_->getServer()->updateStateAndBroadcast("success", 
+        "Call history entry received.",
+        "Call", "call_history_pull_noti", {
+            {"call_history_name", callHistoryPayload->getName()},
+            {"call_history_number", callHistoryPayload->getNumber()},
+            {"call_history_type", callHistoryPayload->getType()},
+            {"call_history_datetime", callHistoryPayload->getDateTime()}
+        });
+}

@@ -155,6 +155,55 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             eventQueue_->pushEvent(event);
             break;
         }
+        case DBusCommand::PBAP_SESSION_END_NOTI: {
+            R_LOG(INFO, "Dispatching PBAP_SESSION_END_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::PBAP_SESSION_END_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::PBAP_PHONEBOOK_PULL_START_NOTI: {
+            R_LOG(INFO, "Dispatching PBAP_PHONEBOOK_PULL_START_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::PBAP_PHONEBOOK_PULL_START_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::CALL_HISTORY_PULL_START_NOTI: {
+            R_LOG(INFO, "Dispatching CALL_HISTORY_PULL_START_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::CALL_HISTORY_PULL_START_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::PBAP_PHONEBOOK_PULL_NOTI: {
+            if (!isSuccess) {
+                R_LOG(WARN, "PBAP_PHONEBOOK_PULL_NOTI indicates failure. Message: %s", dataInfo.data[DBUS_DATA_MESSAGE].c_str());
+                break;
+            }
+            R_LOG(INFO, "Dispatching PBAP_PHONEBOOK_PULL_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<ContactPayload>(
+                                                dataInfo.data[DBUS_DATA_CONTACT_NAME],
+                                                dataInfo.data[DBUS_DATA_CONTACT_NUMBER]);
+            auto event = std::make_shared<Event>(EventTypeID::PBAP_PHONEBOOK_PULL_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::CALL_HISTORY_PULL_NOTI: {
+            if (!isSuccess) {
+                R_LOG(WARN, "CALL_HISTORY_PULL_NOTI indicates failure. Message: %s", dataInfo.data[DBUS_DATA_MESSAGE].c_str());
+                break;
+            }
+            R_LOG(INFO, "Dispatching CALL_HISTORY_PULL_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<CallHistoryPayload>(
+                                                dataInfo.data[DBUS_DATA_CALL_HISTORY_NAME],
+                                                dataInfo.data[DBUS_DATA_CALL_HISTORY_NUMBER],
+                                                dataInfo.data[DBUS_DATA_CALL_HISTORY_TYPE],
+                                                dataInfo.data[DBUS_DATA_CALL_HISTORY_DATETIME]);
+            auto event = std::make_shared<Event>(EventTypeID::CALL_HISTORY_PULL_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
 
         // From Record Manager Service
         case DBusCommand::START_RECORD_NOTI: {

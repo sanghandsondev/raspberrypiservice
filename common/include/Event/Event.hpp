@@ -54,6 +54,36 @@ class NotiBTDeviceAddressPayload : public Payload {
         std::string address_;
 };
 
+class ContactPayload : public Payload {
+    public:
+        explicit ContactPayload(const std::string &name, const std::string &number)
+            : name_(name), number_(number) {}
+
+        std::string getName() const { return name_; }
+        std::string getNumber() const { return number_; }
+
+    private:
+        std::string name_;
+        std::string number_;
+};
+
+class CallHistoryPayload : public Payload {
+    public:
+        explicit CallHistoryPayload(const std::string &name, const std::string &number, const std::string &type, const std::string &dateTime)
+            : name_(name), number_(number), type_(type), dateTime_(dateTime) {}
+
+        std::string getName() const { return name_; }
+        std::string getNumber() const { return number_; }
+        std::string getType() const { return type_; }
+        std::string getDateTime() const { return dateTime_; }
+
+    private:
+        std::string name_;
+        std::string number_;
+        std::string type_;
+        std::string dateTime_;
+};
+
 class BluetoothDevicePayload : public Payload {
     public:
         explicit BluetoothDevicePayload(const std::string &name, const std::string &address, int rssi, bool isPaired, bool isConnected, const std::string &icon)
@@ -88,7 +118,7 @@ class BluetoothDeviceAddressPayload : public Payload {
 
 class BluetoothDevicePasskeyPayload : public Payload {
     public:
-        explicit BluetoothDevicePasskeyPayload(const std::string &address, int passkey)
+        explicit BluetoothDevicePasskeyPayload(const std::string &address, std::string passkey)
             : address_(address), passkey_(passkey) {}
         
         std::string getAddress() const { return address_; }

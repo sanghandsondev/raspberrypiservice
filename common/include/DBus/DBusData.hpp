@@ -25,9 +25,19 @@ enum DBusDataType{
     
     DBUS_DATA_BT_PAIRING_PASSKEY,
 
+    DBUS_DATA_CONTACT_NAME,
+    DBUS_DATA_CONTACT_NUMBER,
+
+    // Call History
+    DBUS_DATA_CALL_HISTORY_NAME,
+    DBUS_DATA_CALL_HISTORY_NUMBER,
+    DBUS_DATA_CALL_HISTORY_TYPE, // "missed", "received", "dialed"
+    DBUS_DATA_CALL_HISTORY_DATETIME,
+
     // Record
     DBUS_DATA_WAV_FILE_PATH,
     DBUS_DATA_WAV_FILE_DURATION_SEC,
+
 
     DBUS_DATA_MAX
 };
@@ -53,8 +63,17 @@ struct DBusDataInfo {
 
         data[DBUS_DATA_BT_PAIRING_PASSKEY] = "";
 
+        data[DBUS_DATA_CONTACT_NAME] = "";
+        data[DBUS_DATA_CONTACT_NUMBER] = "";
+
+        data[DBUS_DATA_CALL_HISTORY_NAME] = "";
+        data[DBUS_DATA_CALL_HISTORY_NUMBER] = "";
+        data[DBUS_DATA_CALL_HISTORY_TYPE] = "";
+        data[DBUS_DATA_CALL_HISTORY_DATETIME] = "";
+
         data[DBUS_DATA_WAV_FILE_PATH] = "";
         data[DBUS_DATA_WAV_FILE_DURATION_SEC] = "0";
+
     }
 
     std::string& operator[](DBusDataType type) {

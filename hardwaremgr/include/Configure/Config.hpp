@@ -25,10 +25,22 @@ class Config {
         const std::string &getW1SensorPrefix() const { return W1_SENSOR_PREFIX; }
 
         const std::string &getBluezServiceName() const { return BLUEZ_SERVICE_NAME; }
+        const std::string &getBluezObjectPath() const { return BLUEZ_OBJECT_PATH; }
         const std::string &getBluezAdapterInterface() const { return BLUEZ_ADAPTER_INTERFACE; }
         const std::string &getBluezDeviceInterface() const { return BLUEZ_DEVICE_INTERFACE; }
+        const std::string &getBluezAgentManagerInterface() const { return BLUEZ_AGENT_MANAGER_INTERFACE; }
+        const std::string &getBluezAgentInterface() const { return BLUEZ_AGENT_INTERFACE; }
+        const std::string &getBluezErrorRejected() const { return BLUEZ_ERROR_REJECTED; }
         const std::string &getDBusObjectManagerInterface() const { return DBUS_OBJECT_MANAGER_INTERFACE; }
         const std::string &getDBusPropertiesInterface() const { return DBUS_PROPERTIES_INTERFACE; }
+
+        const std::string &getOfonoServiceName() const { return OFONO_SERVICE_NAME; }
+        const std::string &getOfonoManagerInterface() const { return OFONO_MANAGER_INTERFACE; }
+        const std::string &getOfonoModemInterface() const { return OFONO_MODEM_INTERFACE; }
+        const std::string &getOfonoPhonebookInterface() const { return OFONO_PHONEBOOK_INTERFACE; }
+        const std::string &getOfonoContactInterface() const { return OFONO_CONTACT_INTERFACE; }
+        const std::string &getOfonoVoiceCallManagerInterface() const { return OFONO_VOICECALL_MANAGER_INTERFACE; }
+        const std::string &getOfonoCallHistoryInterface() const { return OFONO_CALL_HISTORY_INTERFACE; }
 
     private:
         Config() = default;
@@ -44,10 +56,23 @@ class Config {
 
         // BlueZ D-Bus configuration
         inline static const std::string BLUEZ_SERVICE_NAME = "org.bluez";
+        inline static const std::string BLUEZ_OBJECT_PATH = "/org/bluez";
         inline static const std::string BLUEZ_ADAPTER_INTERFACE = "org.bluez.Adapter1";
         inline static const std::string BLUEZ_DEVICE_INTERFACE = "org.bluez.Device1";
+        inline static const std::string BLUEZ_AGENT_MANAGER_INTERFACE = "org.bluez.AgentManager1";
+        inline static const std::string BLUEZ_AGENT_INTERFACE = "org.bluez.Agent1";
+        inline static const std::string BLUEZ_ERROR_REJECTED = "org.bluez.Error.Rejected";
         inline static const std::string DBUS_OBJECT_MANAGER_INTERFACE = "org.freedesktop.DBus.ObjectManager";
         inline static const std::string DBUS_PROPERTIES_INTERFACE = "org.freedesktop.DBus.Properties";
+
+        // oFono D-Bus configuration
+        inline static const std::string OFONO_SERVICE_NAME = "org.ofono";
+        inline static const std::string OFONO_MANAGER_INTERFACE = "org.ofono.Manager";
+        inline static const std::string OFONO_MODEM_INTERFACE = "org.ofono.Modem";
+        inline static const std::string OFONO_PHONEBOOK_INTERFACE = "org.ofono.Phonebook";
+        inline static const std::string OFONO_CONTACT_INTERFACE = "org.ofono.Contact";
+        inline static const std::string OFONO_VOICECALL_MANAGER_INTERFACE = "org.ofono.VoiceCallManager";
+        inline static const std::string OFONO_CALL_HISTORY_INTERFACE = "org.ofono.CallHistory";
 
         // 1-Wire sensor configuration: https://pinout.xyz/pinout/1_wire
         // /boot/firmware/config.txt add the line:

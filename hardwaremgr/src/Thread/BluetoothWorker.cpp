@@ -61,29 +61,50 @@ void BluetoothWorker::threadFunction(){
 }
 
 void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
-    if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusObjectManagerInterface().c_str(), "InterfacesAdded")) {
-        R_LOG(DEBUG, "BluetoothWorker: Received InterfacesAdded signal.");
-        handleInterfacesAdded(msg);
-    } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusObjectManagerInterface().c_str(), "InterfacesRemoved")) {
-        R_LOG(DEBUG, "BluetoothWorker: Received InterfacesRemoved signal.");
-        handleInterfacesRemoved(msg);
-    } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(), "PropertiesChanged")) {
-        R_LOG(DEBUG, "BluetoothWorker: Received PropertiesChanged signal.");
-        handlePropertiesChanged(msg);
-    } else if (dbus_message_get_type(msg) == DBUS_MESSAGE_TYPE_METHOD_CALL &&
-               std::string(dbus_message_get_path(msg)) == CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath()) {
-        R_LOG(DEBUG, "BluetoothWorker: Received method call for Bluetooth Agent.");
-        if (agent_) {
-            agent_->handleMessage(msg);
+    const char* sender = dbus_message_get_sender(msg);
+    std::string ofono_service = CONFIG_INSTANCE()->getOfonoServiceName();
+
+    if (sender && std::string(sender) == ofono_service) {
+        // oFono signals
+        if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoManagerInterface().c_str(), "ModemAdded")) {
+            R_LOG(DEBUG, "BluetoothWorker: Received ModemAdded signal from oFono.");
+            handleModemAdded(msg);
+        } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoManagerInterface().c_str(), "ModemRemoved")) {
+            R_LOG(DEBUG, "BluetoothWorker: Received ModemRemoved signal from oFono.");
+            handleModemRemoved(msg);
+        } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(), "PropertiesChanged")) {
+            R_LOG(DEBUG, "BluetoothWorker: Received PropertiesChanged signal from oFono.");
+            handleOfonoPropertyChanged(msg);
+        } else {
+            R_LOG(WARN, "BluetoothWorker: Received unhandled oFono D-Bus message. Path: %s, Interface: %s, Member: %s",
+                dbus_message_get_path(msg),
+                dbus_message_get_interface(msg),
+                dbus_message_get_member(msg));
         }
     } else {
-        // TODO: Handle other signals if needed
-        R_LOG(WARN, "BluetoothWorker: Received unhandled D-Bus message. Path: %s, Interface: %s, Member: %s",
-            dbus_message_get_path(msg),
-            dbus_message_get_interface(msg),
-            dbus_message_get_member(msg));
+        // BlueZ signals and Agent method calls
+        if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusObjectManagerInterface().c_str(), "InterfacesAdded")) {
+            R_LOG(DEBUG, "BluetoothWorker: Received InterfacesAdded signal.");
+            handleInterfacesAdded(msg);
+        } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusObjectManagerInterface().c_str(), "InterfacesRemoved")) {
+            R_LOG(DEBUG, "BluetoothWorker: Received InterfacesRemoved signal.");
+            handleInterfacesRemoved(msg);
+        } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(), "PropertiesChanged")) {
+            R_LOG(DEBUG, "BluetoothWorker: Received PropertiesChanged signal.");
+            handlePropertiesChanged(msg);
+        } else if (dbus_message_get_type(msg) == DBUS_MESSAGE_TYPE_METHOD_CALL &&
+                   std::string(dbus_message_get_path(msg)) == CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath()) {
+            if (agent_) {
+                agent_->handleMessage(msg);
+            }
+        } else {
+            // TODO: Handle other signals if needed
+            R_LOG(WARN, "BluetoothWorker: Received unhandled D-Bus message. Path: %s, Interface: %s, Member: %s",
+                dbus_message_get_path(msg),
+                dbus_message_get_interface(msg),
+                dbus_message_get_member(msg));
+        }
     }
-
 }
 
 void BluetoothWorker::handleInterfacesAdded(DBusMessage* msg) {
@@ -307,5 +328,103 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
                 all_properties[DBUS_DATA_BT_DEVICE_TRUSTED].c_str());
         
         DBUS_SENDER()->sendMessageNoti(DBusCommand::BTDEVICE_PROPERTY_CHANGE_NOTI, true, all_properties);
+    }
+}
+
+// --- oFono Signal Handlers ---
+
+void BluetoothWorker::handleModemAdded(DBusMessage* msg) {
+    const char* modemPath = nullptr;
+    DBusMessageIter iter;
+    if (dbus_message_iter_init(msg, &iter) && dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_OBJECT_PATH) {
+        dbus_message_iter_get_basic(&iter, &modemPath);
+        if (modemPath) {
+            R_LOG(INFO, "oFono: Modem added at %s. Activating...", modemPath);
+            bluezDBus_->setOfonoModemProperty(modemPath, "Powered", true);
+        }
+    }
+}
+
+void BluetoothWorker::handleModemRemoved(DBusMessage* msg) {
+    const char* modemPath = nullptr;
+    DBusMessageIter iter;
+    if (dbus_message_iter_init(msg, &iter) && dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_OBJECT_PATH) {
+        dbus_message_iter_get_basic(&iter, &modemPath);
+        if (modemPath) {
+            R_LOG(INFO, "oFono: Modem removed from %s. Clearing data.", modemPath);
+            DBusDataInfo info;
+            info[DBUS_DATA_MESSAGE] = "Phone disconnected, clearing contacts and call history.";
+            DBUS_SENDER()->sendMessageNoti(DBusCommand::PBAP_SESSION_END_NOTI, true, info);
+        }
+    }
+}
+
+void BluetoothWorker::handleOfonoPropertyChanged(DBusMessage* msg) {
+    const char* path = dbus_message_get_path(msg);
+    DBusMessageIter iter;
+    if (!dbus_message_iter_init(msg, &iter)) return;
+
+    // 1. Interface name (string)
+    if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_STRING) return;
+    const char* interface_name = nullptr;
+    dbus_message_iter_get_basic(&iter, &interface_name);
+    if (!interface_name) return;
+    std::string iface_str(interface_name);
+
+    // 2. Changed properties dictionary (a{sv})
+    DBusMessageIter dict_iter;
+    dbus_message_iter_next(&iter); // Move to changed properties dictionary
+    dbus_message_iter_recurse(&iter, &dict_iter);
+
+    while (dbus_message_iter_get_arg_type(&dict_iter) == DBUS_TYPE_DICT_ENTRY) {
+        DBusMessageIter entry_iter, variant_iter;
+        const char* key = nullptr;
+        
+        dbus_message_iter_recurse(&dict_iter, &entry_iter);
+        dbus_message_iter_get_basic(&entry_iter, &key);
+        
+        if (!key) {
+            dbus_message_iter_next(&dict_iter);
+            continue;
+        }
+        std::string key_str(key);
+
+        dbus_message_iter_next(&entry_iter);
+        dbus_message_iter_recurse(&entry_iter, &variant_iter);
+        
+        if (iface_str == CONFIG_INSTANCE()->getOfonoModemInterface()) {
+            dbus_bool_t value = FALSE;
+            if (key_str == "Powered" && dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
+                dbus_message_iter_get_basic(&variant_iter, &value);
+                if (value) {
+                    R_LOG(INFO, "oFono: Modem %s is Powered. Setting Online.", path);
+                    bluezDBus_->setOfonoModemProperty(path, "Online", true);
+                }
+            } else if (key_str == "Online" && dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
+                dbus_message_iter_get_basic(&variant_iter, &value);
+                if (value) {
+                    R_LOG(INFO, "oFono: Modem %s is Online. Fetching phonebook.", path);
+                    bluezDBus_->syncAllOfonoContacts(path);
+                    bluezDBus_->syncAllOfonoCallHistory(path);
+                }
+            }
+        } else if (iface_str == CONFIG_INSTANCE()->getOfonoPhonebookInterface()) {
+            if (key_str == "Contacts") {
+                R_LOG(INFO, "oFono: Contacts property changed for modem %s. Resyncing phonebook.", path);
+                bluezDBus_->syncAllOfonoContacts(path);
+            }
+        } else if (iface_str == CONFIG_INSTANCE()->getOfonoCallHistoryInterface()) {
+            if (key_str == "DialedCount") {
+                R_LOG(INFO, "oFono: DialedCount changed for modem %s. Syncing latest dialed call.", path);
+                bluezDBus_->syncLatestOfonoCall(path, "dialed");
+            } else if (key_str == "MissedCount") {
+                R_LOG(INFO, "oFono: MissedCount changed for modem %s. Syncing latest missed call.", path);
+                bluezDBus_->syncLatestOfonoCall(path, "missed");
+            } else if (key_str == "ReceivedCount") {
+                R_LOG(INFO, "oFono: ReceivedCount changed for modem %s. Syncing latest received call.", path);
+                bluezDBus_->syncLatestOfonoCall(path, "received");
+            }
+        }
+        dbus_message_iter_next(&dict_iter);
     }
 }
