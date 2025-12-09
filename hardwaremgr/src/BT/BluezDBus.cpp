@@ -324,6 +324,10 @@ void BluezDBus::initializeAdapter() {
         addMatchRule(match_rule_agent);
 
         // Add oFono match rules
+        std::string match_rule_ofono_changed = "type='signal',interface='" + CONFIG_INSTANCE()->getOfonoModemInterface() +
+        "',member='PropertyChanged',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "'";
+        addMatchRule(match_rule_ofono_changed);
+
         std::string modemAddedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getOfonoManagerInterface() + 
         "',member='ModemAdded',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "'";
         addMatchRule(modemAddedRule);
@@ -332,17 +336,17 @@ void BluezDBus::initializeAdapter() {
         "',member='ModemRemoved',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "'";
         addMatchRule(modemRemovedRule);
 
-        std::string ofonoPropChangedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() + 
-        "',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "',arg0='" + CONFIG_INSTANCE()->getOfonoModemInterface() + "'";
-        addMatchRule(ofonoPropChangedRule);
+        // std::string ofonoPropChangedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() + 
+        // "',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "',arg0='" + CONFIG_INSTANCE()->getOfonoModemInterface() + "'";
+        // addMatchRule(ofonoPropChangedRule);
 
-        std::string ofonoPbPropChangedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() + 
-        "',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "',arg0='" + CONFIG_INSTANCE()->getOfonoPhonebookInterface() + "'";
-        addMatchRule(ofonoPbPropChangedRule);
+        // std::string ofonoPbPropChangedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() + 
+        // "',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "',arg0='" + CONFIG_INSTANCE()->getOfonoPhonebookInterface() + "'";
+        // addMatchRule(ofonoPbPropChangedRule);
 
-        std::string ofonoChPropChangedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() + 
-        "',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "',arg0='" + CONFIG_INSTANCE()->getOfonoCallHistoryInterface() + "'";
-        addMatchRule(ofonoChPropChangedRule);
+        // std::string ofonoChPropChangedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() + 
+        // "',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "',arg0='" + CONFIG_INSTANCE()->getOfonoCallHistoryInterface() + "'";
+        // addMatchRule(ofonoChPropChangedRule);
 
         // Add oFono VoiceCallManager signal for new calls (incoming or outgoing)
         std::string callAddedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface() + 
@@ -355,14 +359,14 @@ void BluezDBus::initializeAdapter() {
         addMatchRule(callRemovedRule);
 
         // Add oFono VoiceCallManager property change signal (to detect outgoing calls)
-        std::string vcmPropChangedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() + 
-        "',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "',arg0='" + CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface() + "'";
-        addMatchRule(vcmPropChangedRule);
+        // std::string vcmPropChangedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() + 
+        // "',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "',arg0='" + CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface() + "'";
+        // addMatchRule(vcmPropChangedRule);
 
-        // Add oFono VoiceCall property change signal
-        std::string voiceCallPropChangedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() + 
-        "',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "',arg0='" + CONFIG_INSTANCE()->getOfonoVoiceCallInterface() + "'";
-        addMatchRule(voiceCallPropChangedRule);
+        // // Add oFono VoiceCall property change signal
+        // std::string voiceCallPropChangedRule = "type='signal',interface='" + CONFIG_INSTANCE()->getDBusPropertiesInterface() + 
+        // "',sender='" + CONFIG_INSTANCE()->getOfonoServiceName() + "',arg0='" + CONFIG_INSTANCE()->getOfonoVoiceCallInterface() + "'";
+        // addMatchRule(voiceCallPropChangedRule);
     
         isInitialized_ = true;
     } catch (const std::runtime_error& e) {
@@ -1067,21 +1071,21 @@ void BluezDBus::setOfonoModemProperty(const std::string& modemPath, const std::s
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getOfonoServiceName().c_str(), 
         modemPath.c_str(),
-        CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(), 
-        "Set");
+        CONFIG_INSTANCE()->getOfonoModemInterface().c_str(), 
+        "SetProperty");
 
     if (!msg) {
         R_LOG(ERROR, "Failed to create D-Bus message for oFono Set %s", property.c_str());
         return;
     }
 
-    const char* iface = CONFIG_INSTANCE()->getOfonoModemInterface().c_str();
+    // const char* iface = CONFIG_INSTANCE()->getOfonoModemInterface().c_str();
     const char* prop_name = property.c_str();
     dbus_bool_t b_val = value ? TRUE : FALSE;
 
     DBusMessageIter args, variant;
     dbus_message_iter_init_append(msg, &args);
-    dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &iface);
+    // dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &iface);
     dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &prop_name);
     dbus_message_iter_open_container(&args, DBUS_TYPE_VARIANT, "b", &variant);
     dbus_message_iter_append_basic(&variant, DBUS_TYPE_BOOLEAN, &b_val);

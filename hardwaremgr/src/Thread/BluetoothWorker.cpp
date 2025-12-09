@@ -61,10 +61,10 @@ void BluetoothWorker::threadFunction(){
 }
 
 void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
-    const char* sender = dbus_message_get_sender(msg);
-    std::string ofono_service = CONFIG_INSTANCE()->getOfonoServiceName();
+    // const char* sender = dbus_message_get_sender(msg);
+    // std::string ofono_service = CONFIG_INSTANCE()->getOfonoServiceName();
 
-    if (sender && std::string(sender) == ofono_service) {
+    // if (sender && std::string(sender) == ofono_service) {
         // oFono signals
         if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoManagerInterface().c_str(), "ModemAdded")) {
             R_LOG(DEBUG, "BluetoothWorker: Received ModemAdded signal from oFono.");
@@ -72,7 +72,7 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
         } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoManagerInterface().c_str(), "ModemRemoved")) {
             R_LOG(DEBUG, "BluetoothWorker: Received ModemRemoved signal from oFono.");
             handleModemRemoved(msg);
-        } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(), "PropertiesChanged")) {
+        } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoModemInterface().c_str(), "PropertyChanged")) {
             R_LOG(DEBUG, "BluetoothWorker: Received PropertiesChanged signal from oFono.");
             handleOfonoPropertyChanged(msg);
         } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface().c_str(), "CallAdded")) {
@@ -81,15 +81,8 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
         } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface().c_str(), "CallRemoved")) {
             R_LOG(DEBUG, "BluetoothWorker: Received CallRemoved signal from oFono.");
             handleCallRemoved(msg);
-        } else {
-            R_LOG(WARN, "BluetoothWorker: Received unhandled oFono D-Bus message. Path: %s, Interface: %s, Member: %s",
-                dbus_message_get_path(msg),
-                dbus_message_get_interface(msg),
-                dbus_message_get_member(msg));
-        }
-    } else {
         // BlueZ signals and Agent method calls
-        if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusObjectManagerInterface().c_str(), "InterfacesAdded")) {
+        } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusObjectManagerInterface().c_str(), "InterfacesAdded")) {
             R_LOG(DEBUG, "BluetoothWorker: Received InterfacesAdded signal.");
             handleInterfacesAdded(msg);
         } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusObjectManagerInterface().c_str(), "InterfacesRemoved")) {
@@ -110,8 +103,8 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
                 dbus_message_get_interface(msg),
                 dbus_message_get_member(msg));
         }
-    }
 }
+
 
 void BluetoothWorker::handleInterfacesAdded(DBusMessage* msg) {
     // The InterfacesAdded signal has the signature "oa{sa{sv}}"
@@ -236,8 +229,21 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
     std::string iface_str(interface_name);
     std::string path_str(object_path);
 
+    // Handle oFono property changes
+    // getOfonoVoiceCallManagerInterface
+    // getOfonoModemInterface
+    // getOfonoPhonebookInterface
+    // getOfonoCallHistoryInterface
+    // if (iface_str == CONFIG_INSTANCE()->getOfonoModemInterface() || iface_str == CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface() || 
+    //     iface_str == CONFIG_INSTANCE()->getOfonoPhonebookInterface() || iface_str == CONFIG_INSTANCE()->getOfonoCallHistoryInterface()) {
+    //     R_LOG(DEBUG, "Handling oFono Modem property changes for path: %s", path_str.c_str());
+    //     handleOfonoPropertyChanged(msg);
+    //     return;
+    // }
+
     // Handle oFono VoiceCall property changes
     if (iface_str == CONFIG_INSTANCE()->getOfonoVoiceCallInterface()) {
+        R_LOG(DEBUG, "Handling oFono VoiceCall property changes for path: %s", path_str.c_str());
         handleVoiceCallPropertyChanged(msg);
         return;
     }

@@ -14,18 +14,15 @@
 
 
 // --------------------------
-Hoàn thanh nốt mấy cái DBusCommand để gửi End Noti Pull contact và hisCall
+Dec 09 23:27:47 raspberrypi hardwaremanager[15677]: dbus[15677]: The last reference on a connection was dropped without closing the connection. This is a bug in an application. See dbus_connection_unref() documentation for details.
+Dec 09 23:27:47 raspberrypi hardwaremanager[15677]: Most likely, the application was supposed to call dbus_connection_close(), since this is a private connection.
 
-Khi start Pull noti thì clear danh sách cả local cả trong modelList
-Để khi end thì mới sắp xếp danh sách và ném vào modelList
-Khi endSession thì nhớ clear danh sách cả local cả trong modelList, và để lại text phù hợp
-
-Khi cố tình gọi mà trong trường hợp chưa có bluetooth Điện thoại kết nối thì sẽ hiển thị thông báo ngay
 
 -------------------------------
 1/ Cài đặt và cấu hình oFono
 oFono là một daemon cung cấp API D-Bus cấp cao để điều khiển các chức năng telephony (modem, cuộc gọi, SMS, danh bạ).
 1.1/ sudo apt-get install ofono
+sudo apt-get remove ofono
 
 1.2/Cấp quyền cho oFono: oFono cần quyền để tương tác với BlueZ. Bạn cần chỉnh sửa file cấu hình D-Bus của BlueZ.
 
