@@ -1101,59 +1101,6 @@ void BluezDBus::syncAllOfonoCallHistory(const std::string& modemPath) {
     DBUS_SENDER()->sendMessageNoti(DBusCommand::CALL_HISTORY_PULL_END_NOTI, true, end_info);
 }
 
-void BluezDBus::syncLatestOfonoCall(const std::string& modemPath, const std::string& type) {
-    R_LOG(INFO, "oFono: Fetching latest '%s' call for modem %s.", type.c_str(), modemPath.c_str());
-
-    DBusMessage* msg = dbus_message_new_method_call(
-        CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
-        modemPath.c_str(),
-        CONFIG_INSTANCE()->getOfonoCallHistoryInterface().c_str(),
-        "GetHistory"
-    );
-    if (!msg) {
-        R_LOG(ERROR, "Failed to create GetHistory message for latest call.");
-        return;
-    }
-
-    const char* type_cstr = type.c_str();
-    dbus_message_append_args(msg, DBUS_TYPE_STRING, &type_cstr, DBUS_TYPE_INVALID);
-
-    DBusError err;
-    dbus_error_init(&err);
-    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
-    dbus_message_unref(msg);
-
-    if (dbus_error_is_set(&err)) {
-        R_LOG(ERROR, "Failed to get latest CallHistory for type '%s': %s", type.c_str(), err.message);
-        dbus_error_free(&err);
-        return;
-    }
-
-    if (reply) {
-        DBusMessageIter iter, array_iter;
-        dbus_message_iter_init(reply, &iter); // a(oa{sv})
-        dbus_message_iter_recurse(&iter, &array_iter);
-
-        // oFono returns history sorted from newest to oldest. We only need the first one.
-        if (dbus_message_iter_get_arg_type(&array_iter) == DBUS_TYPE_STRUCT) {
-            DBusMessageIter struct_iter;
-            dbus_message_iter_recurse(&array_iter, &struct_iter);
-
-            if (dbus_message_iter_get_arg_type(&struct_iter) == DBUS_TYPE_OBJECT_PATH) {
-                const char* call_path = nullptr;
-                dbus_message_iter_get_basic(&struct_iter, &call_path);
-                if (call_path) {
-                    R_LOG(INFO, "oFono: Found latest call at path %s", call_path);
-                    getOfonoCallDetails(call_path, type);
-                }
-            }
-        } else {
-            R_LOG(WARN, "oFono: GetHistory for type '%s' returned no items.", type.c_str());
-        }
-        dbus_message_unref(reply);
-    }
-}
-
 void BluezDBus::syncAllOfonoContacts(const std::string& modemPath) {
     R_LOG(INFO, "oFono: Starting full phonebook sync for modem %s.", modemPath.c_str());
 

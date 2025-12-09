@@ -414,15 +414,9 @@ void BluetoothWorker::handleOfonoPropertyChanged(DBusMessage* msg) {
                 bluezDBus_->syncAllOfonoContacts(path);
             }
         } else if (iface_str == CONFIG_INSTANCE()->getOfonoCallHistoryInterface()) {
-            if (key_str == "DialedCount") {
-                R_LOG(INFO, "oFono: DialedCount changed for modem %s. Syncing latest dialed call.", path);
-                bluezDBus_->syncLatestOfonoCall(path, "dialed");
-            } else if (key_str == "MissedCount") {
-                R_LOG(INFO, "oFono: MissedCount changed for modem %s. Syncing latest missed call.", path);
-                bluezDBus_->syncLatestOfonoCall(path, "missed");
-            } else if (key_str == "ReceivedCount") {
-                R_LOG(INFO, "oFono: ReceivedCount changed for modem %s. Syncing latest received call.", path);
-                bluezDBus_->syncLatestOfonoCall(path, "received");
+            if (key_str == "DialedCount" || key_str == "MissedCount" || key_str == "ReceivedCount") {
+                R_LOG(INFO, "oFono: Call history property (%s) changed for modem %s. Resyncing all call history.", key_str.c_str(), path);
+                bluezDBus_->syncAllOfonoCallHistory(path);
             }
         }
         dbus_message_iter_next(&dict_iter);

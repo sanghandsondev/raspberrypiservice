@@ -41,7 +41,6 @@ public:
     void getOfonoContacts(const std::string& modemPath);
     void syncAllOfonoContacts(const std::string& modemPath);
     void syncAllOfonoCallHistory(const std::string& modemPath);
-    void syncLatestOfonoCall(const std::string& modemPath, const std::string& type);
 
 private:
     DBusConnection* conn_;

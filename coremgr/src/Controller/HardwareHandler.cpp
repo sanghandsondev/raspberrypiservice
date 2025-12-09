@@ -523,6 +523,10 @@ void HardwareHandler::pbapSessionEndNOTI(std::shared_ptr<Payload> payload){
             "Call", "pbap_session_end_noti", {});
     } else {
         R_LOG(ERROR, "PBAP session end failed: %s", notiPayload->getMsgInfo().c_str());
+        // Optionally, notify the client about the failure
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(),
+            "Call", "pbap_session_end_noti", {});
     }
 }
 
