@@ -36,6 +36,10 @@ public:
     void setDiscoverable(bool on);
 
     // oFono related methods
+    void dial(const std::string& modemPath, const std::string& number);
+    void answer(const std::string& callPath);
+    void hangupAll(const std::string& modemPath);
+    DBusDataInfo getVoiceCallProperties(const std::string& callPath);
     void setOfonoModemProperty(const std::string& modemPath, const std::string& property, bool value);
     void setOfonoPhonebookStorage(const std::string& modemPath, const std::string& storage);
     void getOfonoContacts(const std::string& modemPath);

@@ -28,6 +28,11 @@ enum DBusDataType{
     DBUS_DATA_CONTACT_NAME,
     DBUS_DATA_CONTACT_NUMBER,
 
+    // Voice Call
+    DBUS_DATA_CALL_NUMBER,
+    DBUS_DATA_CALL_NAME,
+    DBUS_DATA_CALL_STATE, // "dialing", "alerting", "active", "held", "incoming", "waiting", "disconnected"
+
     // Call History
     DBUS_DATA_CALL_HISTORY_NAME,
     DBUS_DATA_CALL_HISTORY_NUMBER,
@@ -65,6 +70,10 @@ struct DBusDataInfo {
 
         data[DBUS_DATA_CONTACT_NAME] = "";
         data[DBUS_DATA_CONTACT_NUMBER] = "";
+
+        data[DBUS_DATA_CALL_NUMBER] = "";
+        data[DBUS_DATA_CALL_NAME] = "";
+        data[DBUS_DATA_CALL_STATE] = "";
 
         data[DBUS_DATA_CALL_HISTORY_NAME] = "";
         data[DBUS_DATA_CALL_HISTORY_NUMBER] = "";

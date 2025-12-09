@@ -4,6 +4,8 @@
 #include <memory>
 #include "ThreadBase.hpp"
 #include <dbus/dbus.h>
+#include <set>
+#include <string>
 
 class EventQueue;
 class BluezDBus;
@@ -18,6 +20,7 @@ class BluetoothWorker : public ThreadBase {
         std::shared_ptr<EventQueue> eventQueue_;
         std::shared_ptr<BluezDBus> bluezDBus_;
         std::shared_ptr<BluetoothAgent> agent_;
+        std::set<std::string> activeCallPaths_;
 
         void threadFunction() override;
         void dispatchMessage(DBusMessage* msg);
@@ -29,6 +32,9 @@ class BluetoothWorker : public ThreadBase {
         void handleModemAdded(DBusMessage* msg);
         void handleModemRemoved(DBusMessage* msg);
         void handleOfonoPropertyChanged(DBusMessage* msg);
+        void handleCallAdded(DBusMessage* msg);
+        void handleVoiceCallPropertyChanged(DBusMessage* msg);
+        void handleCallRemoved(DBusMessage* msg);
 };
 
 #endif // BLUETOOTH_WORKER_HPP_

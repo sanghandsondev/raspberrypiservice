@@ -40,7 +40,9 @@ class Config {
         const std::string &getOfonoPhonebookInterface() const { return OFONO_PHONEBOOK_INTERFACE; }
         const std::string &getOfonoContactInterface() const { return OFONO_CONTACT_INTERFACE; }
         const std::string &getOfonoVoiceCallManagerInterface() const { return OFONO_VOICECALL_MANAGER_INTERFACE; }
+        const std::string &getOfonoVoiceCallInterface() const { return OFONO_VOICECALL_INTERFACE; }
         const std::string &getOfonoCallHistoryInterface() const { return OFONO_CALL_HISTORY_INTERFACE; }
+        const std::string &getOfonoHandsfreeInterface() const { return OFONO_HANDSFREE_INTERFACE; }
 
     private:
         Config() = default;
@@ -72,7 +74,9 @@ class Config {
         inline static const std::string OFONO_PHONEBOOK_INTERFACE = "org.ofono.Phonebook";
         inline static const std::string OFONO_CONTACT_INTERFACE = "org.ofono.Contact";
         inline static const std::string OFONO_VOICECALL_MANAGER_INTERFACE = "org.ofono.VoiceCallManager";
+        inline static const std::string OFONO_VOICECALL_INTERFACE = "org.ofono.VoiceCall";
         inline static const std::string OFONO_CALL_HISTORY_INTERFACE = "org.ofono.CallHistory";
+        inline static const std::string OFONO_HANDSFREE_INTERFACE = "org.ofono.Handsfree";
 
         // 1-Wire sensor configuration: https://pinout.xyz/pinout/1_wire
         // /boot/firmware/config.txt add the line:

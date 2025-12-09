@@ -75,6 +75,12 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
         } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusPropertiesInterface().c_str(), "PropertiesChanged")) {
             R_LOG(DEBUG, "BluetoothWorker: Received PropertiesChanged signal from oFono.");
             handleOfonoPropertyChanged(msg);
+        } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface().c_str(), "CallAdded")) {
+            R_LOG(DEBUG, "BluetoothWorker: Received CallAdded signal from oFono.");
+            handleCallAdded(msg);
+        } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface().c_str(), "CallRemoved")) {
+            R_LOG(DEBUG, "BluetoothWorker: Received CallRemoved signal from oFono.");
+            handleCallRemoved(msg);
         } else {
             R_LOG(WARN, "BluetoothWorker: Received unhandled oFono D-Bus message. Path: %s, Interface: %s, Member: %s",
                 dbus_message_get_path(msg),
@@ -230,6 +236,12 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
     std::string iface_str(interface_name);
     std::string path_str(object_path);
 
+    // Handle oFono VoiceCall property changes
+    if (iface_str == CONFIG_INSTANCE()->getOfonoVoiceCallInterface()) {
+        handleVoiceCallPropertyChanged(msg);
+        return;
+    }
+
     // 2. Changed properties (a{sv})
     dbus_message_iter_next(&iter);
     if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_ARRAY) return;
@@ -352,6 +364,7 @@ void BluetoothWorker::handleModemRemoved(DBusMessage* msg) {
         dbus_message_iter_get_basic(&iter, &modemPath);
         if (modemPath) {
             R_LOG(INFO, "oFono: Modem removed from %s. Clearing data.", modemPath);
+            activeCallPaths_.clear(); // Clear all active calls associated with this modem
             DBusDataInfo info;
             info[DBUS_DATA_MESSAGE] = "Phone disconnected, clearing contacts and call history.";
             DBUS_SENDER()->sendMessageNoti(DBusCommand::PBAP_SESSION_END_NOTI, true, info);
@@ -392,7 +405,33 @@ void BluetoothWorker::handleOfonoPropertyChanged(DBusMessage* msg) {
         dbus_message_iter_next(&entry_iter);
         dbus_message_iter_recurse(&entry_iter, &variant_iter);
         
-        if (iface_str == CONFIG_INSTANCE()->getOfonoModemInterface()) {
+        if (iface_str == CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface()) {
+            if (key_str == "Calls") {
+                R_LOG(INFO, "oFono: Call list changed on modem %s.", path);
+                DBusMessageIter array_iter;
+                dbus_message_iter_recurse(&variant_iter, &array_iter);
+                while (dbus_message_iter_get_arg_type(&array_iter) == DBUS_TYPE_OBJECT_PATH) {
+                    const char* call_path = nullptr;
+                    dbus_message_iter_get_basic(&array_iter, &call_path);
+                    if (call_path && activeCallPaths_.find(call_path) == activeCallPaths_.end()) {
+                        // This is a new call, likely an outgoing one.
+                        R_LOG(INFO, "oFono: Detected new call (likely outgoing): %s", call_path);
+                        activeCallPaths_.insert(call_path);
+                        
+                        // Get properties and notify
+                        DBusDataInfo call_info = bluezDBus_->getVoiceCallProperties(call_path);
+                        if (!call_info[DBUS_DATA_CALL_STATE].empty()) {
+                             R_LOG(INFO, "oFono: New call state is '%s'. Number: %s", 
+                                call_info[DBUS_DATA_CALL_STATE].c_str(), 
+                                call_info[DBUS_DATA_CALL_NUMBER].c_str());
+                            call_info[DBUS_DATA_MESSAGE] = "New call detected, state: " + call_info[DBUS_DATA_CALL_STATE];
+                            DBUS_SENDER()->sendMessageNoti(DBusCommand::CALL_STATE_CHANGED_NOTI, true, call_info);
+                        }
+                    }
+                    dbus_message_iter_next(&array_iter);
+                }
+            }
+        } else if (iface_str == CONFIG_INSTANCE()->getOfonoModemInterface()) {
             dbus_bool_t value = FALSE;
             if (key_str == "Powered" && dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
                 dbus_message_iter_get_basic(&variant_iter, &value);
@@ -420,5 +459,94 @@ void BluetoothWorker::handleOfonoPropertyChanged(DBusMessage* msg) {
             }
         }
         dbus_message_iter_next(&dict_iter);
+    }
+}
+
+void BluetoothWorker::handleVoiceCallPropertyChanged(DBusMessage* msg) {
+    const char* call_path = dbus_message_get_path(msg);
+    if (!call_path) return;
+
+    R_LOG(DEBUG, "oFono: VoiceCall properties changed for %s", call_path);
+
+    // We get all properties to have the full context.
+    DBusDataInfo call_info = bluezDBus_->getVoiceCallProperties(call_path);
+
+    if (call_info[DBUS_DATA_CALL_STATE].empty()) {
+        R_LOG(WARN, "oFono: Could not get state for call %s", call_path);
+        return;
+    }
+
+    std::string state = call_info[DBUS_DATA_CALL_STATE];
+    R_LOG(INFO, "oFono: Call %s state changed to '%s'. Number: %s", 
+        call_path, state.c_str(), call_info[DBUS_DATA_CALL_NUMBER].c_str());
+
+    if (state == "disconnected") {
+        call_info[DBUS_DATA_MESSAGE] = "Call ended.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::CALL_ENDED_NOTI, true, call_info);
+        // The CallRemoved signal is the definitive end, so we just notify here.
+        // The path will be removed from activeCallPaths_ and history will be synced in handleCallRemoved.
+    } else {
+        // For "dialing", "alerting", "active", "held", "incoming", "waiting"
+        call_info[DBUS_DATA_MESSAGE] = "Call state updated to " + state;
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::CALL_STATE_CHANGED_NOTI, true, call_info);
+    }
+}
+
+void BluetoothWorker::handleCallRemoved(DBusMessage* msg) {
+    // Signal signature: "o" (object_path)
+    DBusMessageIter iter;
+    if (!dbus_message_iter_init(msg, &iter)) return;
+
+    const char* call_path = nullptr;
+    dbus_message_iter_get_basic(&iter, &call_path);
+    if (!call_path) return;
+
+    R_LOG(INFO, "oFono: Call object removed: %s", call_path);
+
+    if (activeCallPaths_.count(call_path)) {
+        activeCallPaths_.erase(call_path);
+        
+        DBusDataInfo call_info;
+        call_info[DBUS_DATA_MESSAGE] = "Call has been terminated and removed.";
+        // Send a final notification that this call is gone for good.
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::CALL_ENDED_NOTI, true, call_info);
+    }
+}
+
+void BluetoothWorker::handleCallAdded(DBusMessage* msg) {
+    // Signal signature: "oa{sv}" (object_path, properties)
+    DBusMessageIter iter;
+    if (!dbus_message_iter_init(msg, &iter)) return;
+
+    const char* call_path = nullptr;
+    dbus_message_iter_get_basic(&iter, &call_path);
+    if (!call_path) return;
+
+    R_LOG(INFO, "oFono: Call added on object path %s", call_path);
+    activeCallPaths_.insert(call_path);
+
+    // The properties are also in the signal, but getting all is more robust and consistent.
+    DBusDataInfo call_info = bluezDBus_->getVoiceCallProperties(call_path);
+
+    if (call_info[DBUS_DATA_CALL_NUMBER].empty()) {
+        R_LOG(WARN, "oFono: Could not get number for new call %s", call_path);
+        return;
+    }
+
+    std::string state = call_info[DBUS_DATA_CALL_STATE];
+    R_LOG(INFO, "oFono: New call from %s (%s), initial state: %s", 
+        call_info[DBUS_DATA_CALL_NUMBER].c_str(), 
+        call_info[DBUS_DATA_CALL_NAME].empty() ? "Unknown" : call_info[DBUS_DATA_CALL_NAME].c_str(),
+        state.c_str());
+    
+    if (state == "incoming" || state == "waiting") {
+        call_info[DBUS_DATA_MESSAGE] = "Incoming call";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::INCOMING_CALL_NOTI, true, call_info);
+    } else if (state == "dialing" || state == "alerting") {
+        call_info[DBUS_DATA_MESSAGE] = "Outgoing call";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::OUTGOING_CALL_NOTI, true, call_info);
+    } else {
+        // TODO: Handle other initial states if necessary
+        // "disconnected": Cuộc gọi đã kết thúc. Trạng thái này thường xuất hiện ngay trước khi CallRemoved được phát.
     }
 }

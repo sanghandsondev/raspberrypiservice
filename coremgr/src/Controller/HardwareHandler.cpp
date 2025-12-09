@@ -638,3 +638,87 @@ void HardwareHandler::callHistoryPullEndNOTI(std::shared_ptr<Payload> payload){
         R_LOG(ERROR, "Call history pull end failed: %s", notiPayload->getMsgInfo().c_str());
     }
 }
+
+void HardwareHandler::incomingCallNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<CallPayload> callPayload = std::dynamic_pointer_cast<CallPayload>(payload);
+    if (callPayload == nullptr) {
+        R_LOG(ERROR, "INCOMING_CALL_NOTI payload is not of type CallPayload");
+        return;
+    }
+
+    R_LOG(INFO, "Incoming call: Name=%s, Number=%s, State=%s",
+        callPayload->getName().c_str(),
+        callPayload->getNumber().c_str(),
+        callPayload->getState().c_str());
+
+    webSocket_->getServer()->updateStateAndBroadcast("success", 
+        "Incoming call notification received.",
+        "Call", "incoming_call_noti", {
+            {"call_name", callPayload->getName()},
+            {"call_number", callPayload->getNumber()},
+            {"call_state", callPayload->getState()}
+        });
+}
+
+void HardwareHandler::outgoingCallNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<CallPayload> callPayload = std::dynamic_pointer_cast<CallPayload>(payload);
+    if (callPayload == nullptr) {
+        R_LOG(ERROR, "OUTGOING_CALL_NOTI payload is not of type CallPayload");
+        return;
+    }
+
+    R_LOG(INFO, "Outgoing call: Name=%s, Number=%s, State=%s",
+        callPayload->getName().c_str(),
+        callPayload->getNumber().c_str(),
+        callPayload->getState().c_str());
+
+    webSocket_->getServer()->updateStateAndBroadcast("success", 
+        "Outgoing call notification received.",
+        "Call", "outgoing_call_noti", {
+            {"call_name", callPayload->getName()},
+            {"call_number", callPayload->getNumber()},
+            {"call_state", callPayload->getState()}
+        });
+}
+
+void HardwareHandler::callStateChangedNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<CallPayload> callPayload = std::dynamic_pointer_cast<CallPayload>(payload);
+    if (callPayload == nullptr) {
+        R_LOG(ERROR, "CALL_STATE_CHANGED_NOTI payload is not of type CallPayload");
+        return;
+    }
+
+    R_LOG(INFO, "Call state changed: Name=%s, Number=%s, State=%s",
+        callPayload->getName().c_str(),
+        callPayload->getNumber().c_str(),
+        callPayload->getState().c_str());
+
+    webSocket_->getServer()->updateStateAndBroadcast("success", 
+        "Call state change notification received.",
+        "Call", "call_state_changed_noti", {
+            {"call_name", callPayload->getName()},
+            {"call_number", callPayload->getNumber()},
+            {"call_state", callPayload->getState()}
+        });
+}
+
+void HardwareHandler::callEndedNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<CallPayload> callPayload = std::dynamic_pointer_cast<CallPayload>(payload);
+    if (callPayload == nullptr) {
+        R_LOG(ERROR, "CALL_ENDED_NOTI payload is not of type CallPayload");
+        return;
+    }
+
+    R_LOG(INFO, "Call ended: Name=%s, Number=%s, State=%s",
+        callPayload->getName().c_str(),
+        callPayload->getNumber().c_str(),
+        callPayload->getState().c_str());
+
+    webSocket_->getServer()->updateStateAndBroadcast("success", 
+        "Call ended notification received.",
+        "Call", "call_ended_noti", {
+            {"call_name", callPayload->getName()},
+            {"call_number", callPayload->getNumber()},
+            {"call_state", callPayload->getState()}
+        });
+}

@@ -218,6 +218,62 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             eventQueue_->pushEvent(event);
             break;
         }
+        case DBusCommand::INCOMING_CALL_NOTI: {
+            if (!isSuccess) {
+                R_LOG(WARN, "INCOMING_CALL_NOTI indicates failure. Message: %s", dataInfo.data[DBUS_DATA_MESSAGE].c_str());
+                break;
+            }
+            R_LOG(INFO, "Dispatching INCOMING_CALL_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<CallPayload>(
+                                                dataInfo.data[DBUS_DATA_CALL_NAME],
+                                                dataInfo.data[DBUS_DATA_CALL_NUMBER],
+                                                dataInfo.data[DBUS_DATA_CALL_STATE]);
+            auto event = std::make_shared<Event>(EventTypeID::INCOMING_CALL_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::OUTGOING_CALL_NOTI: {
+            if (!isSuccess) {
+                R_LOG(WARN, "OUTGOING_CALL_NOTI indicates failure. Message: %s", dataInfo.data[DBUS_DATA_MESSAGE].c_str());
+                break;
+            }
+            R_LOG(INFO, "Dispatching OUTGOING_CALL_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<CallPayload>(
+                                                dataInfo.data[DBUS_DATA_CALL_NAME],
+                                                dataInfo.data[DBUS_DATA_CALL_NUMBER],
+                                                dataInfo.data[DBUS_DATA_CALL_STATE]);
+            auto event = std::make_shared<Event>(EventTypeID::OUTGOING_CALL_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::CALL_STATE_CHANGED_NOTI: {
+            if (!isSuccess) {
+                R_LOG(WARN, "CALL_STATE_CHANGED_NOTI indicates failure. Message: %s", dataInfo.data[DBUS_DATA_MESSAGE].c_str());
+                break;
+            }
+            R_LOG(INFO, "Dispatching CALL_STATE_CHANGED_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<CallPayload>(
+                                                dataInfo.data[DBUS_DATA_CALL_NAME],
+                                                dataInfo.data[DBUS_DATA_CALL_NUMBER],
+                                                dataInfo.data[DBUS_DATA_CALL_STATE]);
+            auto event = std::make_shared<Event>(EventTypeID::CALL_STATE_CHANGED_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::CALL_ENDED_NOTI: {
+            if (!isSuccess) {
+                R_LOG(WARN, "CALL_ENDED_NOTI indicates failure. Message: %s", dataInfo.data[DBUS_DATA_MESSAGE].c_str());
+                break;
+            }
+            R_LOG(INFO, "Dispatching CALL_ENDED_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<CallPayload>(
+                                                dataInfo.data[DBUS_DATA_CALL_NAME],
+                                                dataInfo.data[DBUS_DATA_CALL_NUMBER],
+                                                dataInfo.data[DBUS_DATA_CALL_STATE]);
+            auto event = std::make_shared<Event>(EventTypeID::CALL_ENDED_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
 
         // From Record Manager Service
         case DBusCommand::START_RECORD_NOTI: {

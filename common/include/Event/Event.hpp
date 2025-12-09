@@ -84,6 +84,21 @@ class CallHistoryPayload : public Payload {
         std::string dateTime_;
 };
 
+class CallPayload : public Payload {
+    public:
+        explicit CallPayload(const std::string &name, const std::string &number, const std::string &state)
+            : name_(name), number_(number), state_(state) {}
+
+        std::string getName() const { return name_; }
+        std::string getNumber() const { return number_; }
+        std::string getState() const { return state_; }
+
+    private:
+        std::string name_;
+        std::string number_;
+        std::string state_;
+};
+
 class BluetoothDevicePayload : public Payload {
     public:
         explicit BluetoothDevicePayload(const std::string &name, const std::string &address, int rssi, bool isPaired, bool isConnected, const std::string &icon)

@@ -39,6 +39,11 @@ class HMSenderFactory : public ISenderFactory {
         
         DBusMessage* makeMsgNoti_PBAPSessionEnd(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
 
+        DBusMessage* makeMsgNoti_IncomingCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_OutgoingCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_CallStateChanged(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_CallEnded(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+
 };
 
 #endif // HM_SENDER_FACTORY_HPP_

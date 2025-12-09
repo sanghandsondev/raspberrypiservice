@@ -52,6 +52,15 @@ DBusMessage* HMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
             return makeMsgNoti_CallHistoryPullEnd(cmd, isSuccess, msgInfo);
         case DBusCommand::PBAP_SESSION_END_NOTI:
             return makeMsgNoti_PBAPSessionEnd(cmd, isSuccess, msgInfo);
+        case DBusCommand::INCOMING_CALL_NOTI:
+            return makeMsgNoti_IncomingCall(cmd, isSuccess, msgInfo);
+        case DBusCommand::OUTGOING_CALL_NOTI:
+            return makeMsgNoti_OutgoingCall(cmd, isSuccess, msgInfo);
+        case DBusCommand::CALL_STATE_CHANGED_NOTI:
+            return makeMsgNoti_CallStateChanged(cmd, isSuccess, msgInfo);
+        case DBusCommand::CALL_ENDED_NOTI:
+            return makeMsgNoti_CallEnded(cmd, isSuccess, msgInfo);
+
         default:
             R_LOG(ERROR, "HMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
             return nullptr;
@@ -219,3 +228,34 @@ DBusMessage* HMSenderFactory::makeMsgNoti_PBAPSessionEnd(DBusCommand cmd, bool i
     return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
 }
 
+DBusMessage* HMSenderFactory::makeMsgNoti_IncomingCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_OutgoingCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_CallStateChanged(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_CallEnded(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
