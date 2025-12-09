@@ -46,9 +46,10 @@ class HardwareHandler {
         void pbapSessionEndNOTI(std::shared_ptr<Payload>);
         void pbapPhonebookPullStartNOTI(std::shared_ptr<Payload>);
         void pbapPhonebookPullNOTI(std::shared_ptr<Payload>);
+        void pbapPhonebookPullEndNOTI(std::shared_ptr<Payload>);
         void callHistoryPullStartNOTI(std::shared_ptr<Payload>);
         void callHistoryPullNOTI(std::shared_ptr<Payload>);
-
+        void callHistoryPullEndNOTI(std::shared_ptr<Payload>);
     
     private:
         std::unordered_map<std::string, int32_t> timerIdMap_;    // <deviceAddress, timerId>

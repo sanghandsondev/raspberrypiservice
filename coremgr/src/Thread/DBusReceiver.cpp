@@ -169,10 +169,24 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             eventQueue_->pushEvent(event);
             break;
         }
+        case DBusCommand::PBAP_PHONEBOOK_PULL_END_NOTI: {
+            R_LOG(INFO, "Dispatching PBAP_PHONEBOOK_PULL_END_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::PBAP_PHONEBOOK_PULL_END_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
         case DBusCommand::CALL_HISTORY_PULL_START_NOTI: {
             R_LOG(INFO, "Dispatching CALL_HISTORY_PULL_START_NOTI from DBus");
             std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
             auto event = std::make_shared<Event>(EventTypeID::CALL_HISTORY_PULL_START_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::CALL_HISTORY_PULL_END_NOTI: {
+            R_LOG(INFO, "Dispatching CALL_HISTORY_PULL_END_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::CALL_HISTORY_PULL_END_NOTI, payload);
             eventQueue_->pushEvent(event);
             break;
         }

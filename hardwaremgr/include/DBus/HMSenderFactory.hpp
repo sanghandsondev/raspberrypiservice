@@ -28,10 +28,15 @@ class HMSenderFactory : public ISenderFactory {
         DBusMessage* makeMsgNoti_ConnectBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_DisconnectBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_BTDeviceRequestConfirmation(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        
         DBusMessage* makeMsgNoti_PBAPPhonebookPullStart(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_PBAPPhonebookPull(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_PBAPPhonebookPullEnd(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        
         DBusMessage* makeMsgNoti_CallHistoryPullStart(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_CallHistoryPull(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_CallHistoryPullEnd(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        
         DBusMessage* makeMsgNoti_PBAPSessionEnd(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
 
 };

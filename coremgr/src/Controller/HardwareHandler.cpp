@@ -561,6 +561,23 @@ void HardwareHandler::pbapPhonebookPullNOTI(std::shared_ptr<Payload> payload){
         });
 }
 
+void HardwareHandler::pbapPhonebookPullEndNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "PBAP_PHONEBOOK_PULL_END_NOTI payload is not of type NotiPayload");
+        return;
+    }
+
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "PBAP phonebook pull ended successfully: %s", notiPayload->getMsgInfo().c_str());
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Call", "pbap_phonebook_pull_end_noti", {});
+    } else {
+        R_LOG(ERROR, "PBAP phonebook pull end failed: %s", notiPayload->getMsgInfo().c_str());
+    }
+}
+
 void HardwareHandler::callHistoryPullStartNOTI(std::shared_ptr<Payload> payload){
     std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
     if (notiPayload == nullptr) {
@@ -599,4 +616,21 @@ void HardwareHandler::callHistoryPullNOTI(std::shared_ptr<Payload> payload){
             {"call_history_type", callHistoryPayload->getType()},
             {"call_history_datetime", callHistoryPayload->getDateTime()}
         });
+}
+
+void HardwareHandler::callHistoryPullEndNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "CALL_HISTORY_PULL_END_NOTI payload is not of type NotiPayload");
+        return;
+    }
+
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "Call history pull ended successfully: %s", notiPayload->getMsgInfo().c_str());
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Call", "call_history_pull_end_noti", {});
+    } else {
+        R_LOG(ERROR, "Call history pull end failed: %s", notiPayload->getMsgInfo().c_str());
+    }
 }

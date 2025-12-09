@@ -42,10 +42,14 @@ DBusMessage* HMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
             return makeMsgNoti_PBAPPhonebookPullStart(cmd, isSuccess, msgInfo);
         case DBusCommand::PBAP_PHONEBOOK_PULL_NOTI:
             return makeMsgNoti_PBAPPhonebookPull(cmd, isSuccess, msgInfo);
+        case DBusCommand::PBAP_PHONEBOOK_PULL_END_NOTI:
+            return makeMsgNoti_PBAPPhonebookPullEnd(cmd, isSuccess, msgInfo);
         case DBusCommand::CALL_HISTORY_PULL_START_NOTI:
             return makeMsgNoti_CallHistoryPullStart(cmd, isSuccess, msgInfo);
         case DBusCommand::CALL_HISTORY_PULL_NOTI:
             return makeMsgNoti_CallHistoryPull(cmd, isSuccess, msgInfo);
+        case DBusCommand::CALL_HISTORY_PULL_END_NOTI:
+            return makeMsgNoti_CallHistoryPullEnd(cmd, isSuccess, msgInfo);
         case DBusCommand::PBAP_SESSION_END_NOTI:
             return makeMsgNoti_PBAPSessionEnd(cmd, isSuccess, msgInfo);
         default:
@@ -175,6 +179,14 @@ DBusMessage* HMSenderFactory::makeMsgNoti_PBAPPhonebookPull(DBusCommand cmd, boo
     return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
 }
 
+DBusMessage* HMSenderFactory::makeMsgNoti_PBAPPhonebookPullEnd(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
 DBusMessage* HMSenderFactory::makeMsgNoti_CallHistoryPullStart(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/coremanager";
     const char* interfaceName = "com.example.coremanager.interface";
@@ -184,6 +196,14 @@ DBusMessage* HMSenderFactory::makeMsgNoti_CallHistoryPullStart(DBusCommand cmd, 
 }
 
 DBusMessage* HMSenderFactory::makeMsgNoti_CallHistoryPull(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_CallHistoryPullEnd(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/coremanager";
     const char* interfaceName = "com.example.coremanager.interface";
     const char* signalName = "CoreSignal";

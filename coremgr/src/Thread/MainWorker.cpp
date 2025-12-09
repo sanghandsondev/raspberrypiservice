@@ -148,11 +148,17 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::PBAP_PHONEBOOK_PULL_NOTI:
             hardwareHandler_->pbapPhonebookPullNOTI(payload);
             break;
+        case EventTypeID::PBAP_PHONEBOOK_PULL_END_NOTI:
+            hardwareHandler_->pbapPhonebookPullEndNOTI(payload);
+            break;
         case EventTypeID::CALL_HISTORY_PULL_START_NOTI:
             hardwareHandler_->callHistoryPullStartNOTI(payload);
             break;
         case EventTypeID::CALL_HISTORY_PULL_NOTI:
             hardwareHandler_->callHistoryPullNOTI(payload);
+            break;
+        case EventTypeID::CALL_HISTORY_PULL_END_NOTI:
+            hardwareHandler_->callHistoryPullEndNOTI(payload);
             break;
         
         // Record
