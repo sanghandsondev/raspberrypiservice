@@ -39,8 +39,8 @@ int main(){
         R_LOG(ERROR, "Failed to connect to D-Bus for BlueZ. Exiting.");
         return 1;
     }
-    std::shared_ptr<OfonoDBus> ofonoDBus = std::make_shared<OfonoDBus>(bluezDBus->getConnection());
-    std::shared_ptr<BluetoothAgent> agent = std::make_shared<BluetoothAgent>(bluezDBus->getConnection(), bluezDBus);
+    std::shared_ptr<OfonoDBus> ofonoDBus = std::make_shared<OfonoDBus>(bluezDBus->getConnection(), bluezDBus->getMutex());
+    std::shared_ptr<BluetoothAgent> agent = std::make_shared<BluetoothAgent>(bluezDBus->getConnection(), bluezDBus, bluezDBus->getMutex());
 
     // Register agent
     // bluezDBus->registerAgent("NoInputNoOutput"); // Capability for "Just Works"

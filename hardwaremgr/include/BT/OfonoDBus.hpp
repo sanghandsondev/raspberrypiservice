@@ -3,13 +3,14 @@
 
 #include <string>
 #include <memory>
+#include <mutex>
 #include <dbus/dbus.h>
 #include "DBusData.hpp"
 #include <unordered_map>
 
 class OfonoDBus {
 public:
-    explicit OfonoDBus(DBusConnection* conn);
+    explicit OfonoDBus(DBusConnection* conn, std::recursive_mutex& mutex);
     ~OfonoDBus() = default;
 
     // oFono related methods
@@ -26,6 +27,7 @@ public:
 
 private:
     DBusConnection* conn_;
+    std::recursive_mutex& mutex_;
     std::unordered_map<std::string, std::string> phonebook_; // <Number, Name>
 
     void getOfonoContactDetails(const std::string& contactPath);

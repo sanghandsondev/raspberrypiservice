@@ -6,14 +6,16 @@
 #include <stdexcept>
 #include <algorithm>
 #include <vector>
+#include <mutex>
 
-OfonoDBus::OfonoDBus(DBusConnection* conn) : conn_(conn) {
+OfonoDBus::OfonoDBus(DBusConnection* conn, std::recursive_mutex& mutex) : conn_(conn), mutex_(mutex) {
     if (conn_ == nullptr) {
         throw std::runtime_error("OfonoDBus initialized with null DBusConnection");
     }
 }
 
 void OfonoDBus::setOfonoPhonebookStorage(const std::string& modemPath, const std::string& storage) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getOfonoServiceName().c_str(), 
         modemPath.c_str(),
@@ -55,6 +57,7 @@ void OfonoDBus::setOfonoPhonebookStorage(const std::string& modemPath, const std
 }
 
 void OfonoDBus::setOfonoModemProperty(const std::string& modemPath, const std::string& property, bool value) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getOfonoServiceName().c_str(), 
         modemPath.c_str(),
@@ -94,6 +97,7 @@ void OfonoDBus::setOfonoModemProperty(const std::string& modemPath, const std::s
 }
 
 void OfonoDBus::syncAllOfonoCallHistory(const std::string& modemPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "oFono: Starting full call history sync for modem %s.", modemPath.c_str());
 
     DBusDataInfo start_info;
@@ -111,6 +115,7 @@ void OfonoDBus::syncAllOfonoCallHistory(const std::string& modemPath) {
 }
 
 void OfonoDBus::syncAllOfonoContacts(const std::string& modemPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "oFono: Starting full phonebook sync for modem %s.", modemPath.c_str());
 
     // Clear local phonebook before syncing
@@ -138,6 +143,7 @@ void OfonoDBus::syncAllOfonoContacts(const std::string& modemPath) {
 }
 
 void OfonoDBus::getOfonoCallHistory(const std::string& modemPath, const std::string& type) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "oFono: Fetching '%s' call history for modem %s.", type.c_str(), modemPath.c_str());
 
     DBusMessage* msg = dbus_message_new_method_call(
@@ -196,6 +202,7 @@ void OfonoDBus::getOfonoCallHistory(const std::string& modemPath, const std::str
 }
 
 void OfonoDBus::getOfonoContacts(const std::string& modemPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "oFono: Fetching phonebook properties for modem %s.", modemPath.c_str());
 
     DBusMessage* msg = dbus_message_new_method_call(
@@ -255,6 +262,7 @@ void OfonoDBus::getOfonoContacts(const std::string& modemPath) {
 }
 
 std::string OfonoDBus::findNameByNumber(const std::string& number) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     auto it = phonebook_.find(number);
     if (it != phonebook_.end()) {
         return it->second;
@@ -264,6 +272,7 @@ std::string OfonoDBus::findNameByNumber(const std::string& number) {
 }
 
 void OfonoDBus::getOfonoCallDetails(const std::string& callPath, const std::string& type) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
         callPath.c_str(),
@@ -331,6 +340,7 @@ void OfonoDBus::getOfonoCallDetails(const std::string& callPath, const std::stri
 }
 
 void OfonoDBus::getOfonoContactDetails(const std::string& contactPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
         contactPath.c_str(),
@@ -390,6 +400,7 @@ void OfonoDBus::getOfonoContactDetails(const std::string& contactPath) {
 }
 
 void OfonoDBus::dial(const std::string& modemPath, const std::string& number) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "oFono: Dialing number %s on modem %s", number.c_str(), modemPath.c_str());
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
@@ -425,6 +436,7 @@ void OfonoDBus::dial(const std::string& modemPath, const std::string& number) {
 }
 
 void OfonoDBus::answer(const std::string& callPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "oFono: Answering call %s", callPath.c_str());
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
@@ -451,6 +463,7 @@ void OfonoDBus::answer(const std::string& callPath) {
 }
 
 void OfonoDBus::hangupAll(const std::string& modemPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "oFono: Hanging up all calls on modem %s", modemPath.c_str());
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
@@ -477,6 +490,7 @@ void OfonoDBus::hangupAll(const std::string& modemPath) {
 }
 
 DBusDataInfo OfonoDBus::getVoiceCallProperties(const std::string& callPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
         callPath.c_str(),

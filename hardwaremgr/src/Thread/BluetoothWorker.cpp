@@ -12,6 +12,7 @@
 #include <cstring>
 #include <dbus/dbus.h>
 #include <algorithm>
+#include <mutex>
 
 BluetoothWorker::BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus, std::shared_ptr<OfonoDBus> ofonoDBus, std::shared_ptr<BluetoothAgent> agent) 
     : ThreadBase("BluetoothWorker"), eventQueue_(eventQueue), bluezDBus_(bluezDBus), ofonoDBus_(ofonoDBus), agent_(agent) {
@@ -49,6 +50,7 @@ void BluetoothWorker::threadFunction(){
         }
 
         if (pfd.revents & POLLIN) {
+            std::lock_guard<std::recursive_mutex> lock(bluezDBus_->getMutex());
             dbus_connection_read_write(conn, 0);
             DBusMessage* msg = nullptr;
             while ((msg = dbus_connection_pop_message(conn)) != nullptr) {

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <mutex>
 #include <dbus/dbus.h>
 #include "DBusData.hpp"
 #include <unordered_map>
@@ -34,11 +35,13 @@ public:
     DBusDataInfo getAllDeviceProperties(const std::string& objectPath);
     DBusDataInfo getAllAdapterProperties(const std::string& objectPath);
     void setDiscoverable(bool on);
+    std::recursive_mutex& getMutex();
 
 private:
     DBusConnection* conn_;
     std::string adapterPath_;
     bool isInitialized_;
+    std::recursive_mutex mutex_;
     std::unordered_map<std::string, std::string> phonebook_; // <Number, Name>
 
     bool parseManagedObjects(DBusMessageIter *iter);

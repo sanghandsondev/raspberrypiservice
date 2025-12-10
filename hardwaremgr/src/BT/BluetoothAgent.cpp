@@ -6,9 +6,10 @@
 #include "BluezDBus.hpp"
 #include <memory>
 #include <algorithm>
+#include <mutex>
 
-BluetoothAgent::BluetoothAgent(DBusConnection* conn, std::shared_ptr<BluezDBus> bluezDBus) 
-    : conn_(conn), bluezDBus_(bluezDBus) {
+BluetoothAgent::BluetoothAgent(DBusConnection* conn, std::shared_ptr<BluezDBus> bluezDBus, std::recursive_mutex& mutex) 
+    : conn_(conn), bluezDBus_(bluezDBus), mutex_(mutex) {
 }
 
 BluetoothAgent::~BluetoothAgent() {
@@ -147,6 +148,7 @@ void BluetoothAgent::confirmRequest(const std::string& deviceAddress, bool confi
 }
 
 void BluetoothAgent::sendSimpleReply(DBusMessage* message, int type) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     DBusMessage* reply = nullptr;
     if (type == DBUS_MESSAGE_TYPE_METHOD_RETURN) {
         reply = dbus_message_new_method_return(message);

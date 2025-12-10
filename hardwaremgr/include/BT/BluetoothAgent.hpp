@@ -5,12 +5,13 @@
 #include <dbus/dbus.h>
 #include <memory>
 #include <map>
+#include <mutex>
 
 class BluezDBus;
 
 class BluetoothAgent {
 public:
-    explicit BluetoothAgent(DBusConnection* conn, std::shared_ptr<BluezDBus> bluezDBus);
+    explicit BluetoothAgent(DBusConnection* conn, std::shared_ptr<BluezDBus> bluezDBus, std::recursive_mutex& mutex);
     ~BluetoothAgent();
 
     DBusHandlerResult handleMessage(DBusMessage* message);
@@ -19,6 +20,7 @@ public:
 private:
     DBusConnection* conn_;
     std::shared_ptr<BluezDBus> bluezDBus_;
+    std::recursive_mutex& mutex_;
     std::map<std::string, DBusMessage*> pendingConfirmations_;
 
     void handleRequestConfirmation(DBusMessage* message);

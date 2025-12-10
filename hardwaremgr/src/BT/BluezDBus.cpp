@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <vector>
+#include <mutex>
 // #include <unordered_map>
 
 BluezDBus::BluezDBus() : conn_(nullptr), isInitialized_(false) {
@@ -48,6 +49,10 @@ const std::string& BluezDBus::getAdapterPath() const {
     return adapterPath_;
 }
 
+std::recursive_mutex& BluezDBus::getMutex() {
+    return mutex_;
+}
+
 void BluezDBus::addMatchRule(const std::string& rule) {
     DBusError err;
     dbus_error_init(&err);
@@ -63,6 +68,7 @@ void BluezDBus::addMatchRule(const std::string& rule) {
 }
 
 void BluezDBus::startDiscovery() {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "Starting Bluetooth device discovery...");
     DBusDataInfo info;
     DBusMessage* msg = dbus_message_new_method_call(
@@ -98,6 +104,7 @@ void BluezDBus::startDiscovery() {
 }
 
 void BluezDBus::stopDiscovery() {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "Stopping Bluetooth device discovery...");
     DBusDataInfo info;
     DBusMessage* msg = dbus_message_new_method_call(
@@ -256,6 +263,7 @@ DBusDataInfo BluezDBus::parseDeviceProperties(DBusMessageIter *properties_iter) 
 }
 
 void BluezDBus::initializeAdapter() {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "Initializing BlueZ Bluetooth adapter...");
 
     DBusMessage* msg = dbus_message_new_method_call(
@@ -482,11 +490,13 @@ bool BluezDBus::parseManagedObjects(DBusMessageIter *iter) {
 }
 
 void BluezDBus::powerOnAdapter(){
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "Powering ON Bluetooth adapter...");
     setPower(true);
 }
 
 void BluezDBus::powerOffAdapter(){
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "Powering OFF Bluetooth adapter...");
     setPower(false);
 }
@@ -549,6 +559,7 @@ std::string BluezDBus::deviceAddressToObjectPath(const std::string& address) con
 }
 
 void BluezDBus::pairDevice(const std::string& address) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "Attempting to pair with device: %s", address.c_str());
     std::string objectPath = deviceAddressToObjectPath(address);
 
@@ -591,6 +602,7 @@ void BluezDBus::pairDevice(const std::string& address) {
 }
 
 void BluezDBus::unpairDevice(const std::string& address) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "Attempting to unpair (remove) device: %s", address.c_str());
     std::string objectPath = deviceAddressToObjectPath(address);
 
@@ -682,6 +694,7 @@ void BluezDBus::unpairDevice(const std::string& address) {
 }
 
 void BluezDBus::registerAgent(const std::string& capability) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     const char* agent_path = CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath().c_str();
     const char* cap_str = capability.c_str();
 
@@ -728,6 +741,7 @@ void BluezDBus::registerAgent(const std::string& capability) {
 }
 
 void BluezDBus::unregisterAgent() {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     const char* agent_path = CONFIG_INSTANCE()->getHardwareMgrAgentObjectPath().c_str();
 
     DBusMessage* msg = dbus_message_new_method_call(
@@ -753,6 +767,7 @@ void BluezDBus::unregisterAgent() {
 }
 
 DBusDataInfo BluezDBus::getAllDeviceProperties(const std::string& objectPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getBluezServiceName().c_str(),
         objectPath.c_str(),
@@ -798,6 +813,7 @@ DBusDataInfo BluezDBus::getAllDeviceProperties(const std::string& objectPath) {
 }
 
 void BluezDBus::connectDevice(const std::string& address) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "Attempting to connect to device: %s", address.c_str());
     std::string objectPath = deviceAddressToObjectPath(address);
 
@@ -838,6 +854,7 @@ void BluezDBus::connectDevice(const std::string& address) {
 }
 
 void BluezDBus::disconnectDevice(const std::string& address) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "Attempting to disconnect from device: %s", address.c_str());
     std::string objectPath = deviceAddressToObjectPath(address);
 
@@ -878,6 +895,7 @@ void BluezDBus::disconnectDevice(const std::string& address) {
 }
 
 void BluezDBus::trustDevice(const std::string& address) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     R_LOG(INFO, "Setting Trusted=true for device: %s", address.c_str());
     std::string objectPath = deviceAddressToObjectPath(address);
 
@@ -928,6 +946,7 @@ void BluezDBus::trustDevice(const std::string& address) {
 }
 
 void BluezDBus::setDiscoverable(bool on) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     DBusMessage* msg;
     DBusMessageIter args, variant;
     DBusError err;
@@ -972,6 +991,7 @@ void BluezDBus::setDiscoverable(bool on) {
 }
 
 DBusDataInfo BluezDBus::getAllAdapterProperties(const std::string& objectPath){
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
     DBusMessage* msg = dbus_message_new_method_call(
         CONFIG_INSTANCE()->getBluezServiceName().c_str(),
         objectPath.c_str(),
