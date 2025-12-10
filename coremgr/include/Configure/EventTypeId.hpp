@@ -49,6 +49,9 @@ enum class EventTypeID {
     OUTGOING_CALL_NOTI,
     CALL_STATE_CHANGED_NOTI,
     CALL_ENDED_NOTI,
+    DIAL_CALL_NOTI,
+    ANSWER_CALL_NOTI,
+    HANGUP_CALL_NOTI,
 
     // Record
     START_RECORD,

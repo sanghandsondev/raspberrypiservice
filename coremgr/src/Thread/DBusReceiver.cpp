@@ -275,6 +275,30 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             break;
         }
 
+        case DBusCommand::DIAL_CALL_NOTI: {
+            R_LOG(INFO, "Dispatching DIAL_CALL_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::DIAL_CALL_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+
+        case DBusCommand::ANSWER_CALL_NOTI: {
+            R_LOG(INFO, "Dispatching ANSWER_CALL_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::ANSWER_CALL_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+
+        case DBusCommand::HANGUP_CALL_NOTI: {
+            R_LOG(INFO, "Dispatching HANGUP_CALL_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<NotiPayload>(isSuccess, dataInfo.data[DBUS_DATA_MESSAGE]);
+            auto event = std::make_shared<Event>(EventTypeID::HANGUP_CALL_NOTI, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+
         // From Record Manager Service
         case DBusCommand::START_RECORD_NOTI: {
             R_LOG(INFO, "Dispatching START_RECORD_NOTI from DBus");

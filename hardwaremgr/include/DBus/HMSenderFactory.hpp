@@ -43,6 +43,9 @@ class HMSenderFactory : public ISenderFactory {
         DBusMessage* makeMsgNoti_OutgoingCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_CallStateChanged(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
         DBusMessage* makeMsgNoti_CallEnded(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_DialCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_HangupCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
+        DBusMessage* makeMsgNoti_AnswerCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo);
 
 };
 

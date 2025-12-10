@@ -181,6 +181,15 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::CALL_ENDED_NOTI:
             hardwareHandler_->callEndedNOTI(payload);
             break;
+        case EventTypeID::DIAL_CALL_NOTI:
+            hardwareHandler_->dialCallNOTI(payload);
+            break;
+        case EventTypeID::ANSWER_CALL_NOTI:
+            hardwareHandler_->answerCallNOTI(payload);
+            break;
+        case EventTypeID::HANGUP_CALL_NOTI:
+            hardwareHandler_->hangupCallNOTI(payload);
+            break;
         
         // Record
         case EventTypeID::START_RECORD:

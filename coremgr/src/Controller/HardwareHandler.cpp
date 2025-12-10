@@ -745,3 +745,66 @@ void HardwareHandler::callEndedNOTI(std::shared_ptr<Payload> payload){
             {"call_state", callPayload->getState()}
         });
 }
+
+void HardwareHandler::dialCallNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "DIAL_CALL_NOTI payload is not of type NotiPayload");
+        return;
+    }
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "Call dialed successfully: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Call", "dial_call_noti", {});
+    } else {
+        R_LOG(ERROR, "Failed to dial call: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(),
+            "Call", "dial_call_noti", {});
+    }
+}
+
+void HardwareHandler::hangupCallNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "HANGUP_CALL_NOTI payload is not of type NotiPayload");
+        return;
+    }
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "Call hung up successfully: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Call", "hangup_call_noti", {});
+    } else {
+        R_LOG(ERROR, "Failed to hang up call: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(),
+            "Call", "hangup_call_noti", {});
+    }
+}
+
+void HardwareHandler::answerCallNOTI(std::shared_ptr<Payload> payload){
+    std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
+    if (notiPayload == nullptr) {
+        R_LOG(ERROR, "ANSWER_CALL_NOTI payload is not of type NotiPayload");
+        return;
+    }
+    if (notiPayload->isSuccess()) {
+        R_LOG(INFO, "Call answered successfully: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("success", 
+            notiPayload->getMsgInfo(),
+            "Call", "answer_call_noti", {});
+    } else {
+        R_LOG(ERROR, "Failed to answer call: %s", notiPayload->getMsgInfo().c_str());
+
+        webSocket_->getServer()->updateStateAndBroadcast("fail", 
+            notiPayload->getMsgInfo(),
+            "Call", "answer_call_noti", {});
+    }
+}

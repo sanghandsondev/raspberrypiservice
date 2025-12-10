@@ -58,6 +58,9 @@ class HardwareHandler {
         void outgoingCallNOTI(std::shared_ptr<Payload>);
         void callStateChangedNOTI(std::shared_ptr<Payload>);
         void callEndedNOTI(std::shared_ptr<Payload>);
+        void dialCallNOTI(std::shared_ptr<Payload>);
+        void hangupCallNOTI(std::shared_ptr<Payload>);
+        void answerCallNOTI(std::shared_ptr<Payload>);
     
     private:
         std::unordered_map<std::string, int32_t> timerIdMap_;    // <deviceAddress, timerId>

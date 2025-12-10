@@ -4,7 +4,7 @@
 enum class DBusCommand {
     NONE = 0,
 
-    // Hardware
+    // -- HARDWARE --
     INITIALIZE_BLUETOOTH,
     START_SCAN_BTDEVICE,
     STOP_SCAN_BTDEVICE,
@@ -33,12 +33,15 @@ enum class DBusCommand {
     CONNECT_BTDEVICE_NOTI,
     DISCONNECT_BTDEVICE_NOTI,
     BTDEVICE_REQUEST_CONFIRMATION_NOTI,
-
-    // Voice Call Notifications
+    
+    // Call Noti
     INCOMING_CALL_NOTI,
     OUTGOING_CALL_NOTI,
     CALL_STATE_CHANGED_NOTI,
     CALL_ENDED_NOTI,
+    DIAL_CALL_NOTI,
+    ANSWER_CALL_NOTI,
+    HANGUP_CALL_NOTI,
 
     PBAP_SESSION_END_NOTI,
     PBAP_PHONEBOOK_PULL_START_NOTI,
@@ -48,7 +51,7 @@ enum class DBusCommand {
     CALL_HISTORY_PULL_NOTI,
     CALL_HISTORY_PULL_END_NOTI,
 
-    // Record
+    // -- RECORD --
     START_RECORD,
     STOP_RECORD,
     CANCEL_RECORD,

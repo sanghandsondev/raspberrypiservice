@@ -60,6 +60,12 @@ DBusMessage* HMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
             return makeMsgNoti_CallStateChanged(cmd, isSuccess, msgInfo);
         case DBusCommand::CALL_ENDED_NOTI:
             return makeMsgNoti_CallEnded(cmd, isSuccess, msgInfo);
+        case DBusCommand::DIAL_CALL_NOTI:
+            return makeMsgNoti_DialCall(cmd, isSuccess, msgInfo);
+        case DBusCommand::ANSWER_CALL_NOTI:
+            return makeMsgNoti_AnswerCall(cmd, isSuccess, msgInfo);
+        case DBusCommand::HANGUP_CALL_NOTI:
+            return makeMsgNoti_HangupCall(cmd, isSuccess, msgInfo);
 
         default:
             R_LOG(ERROR, "HMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
@@ -253,6 +259,30 @@ DBusMessage* HMSenderFactory::makeMsgNoti_CallStateChanged(DBusCommand cmd, bool
 }
 
 DBusMessage* HMSenderFactory::makeMsgNoti_CallEnded(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_DialCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_HangupCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/coremanager";
+    const char* interfaceName = "com.example.coremanager.interface";
+    const char* signalName = "CoreSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* HMSenderFactory::makeMsgNoti_AnswerCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/coremanager";
     const char* interfaceName = "com.example.coremanager.interface";
     const char* signalName = "CoreSignal";

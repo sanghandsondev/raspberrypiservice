@@ -466,8 +466,11 @@ DBusDataInfo OfonoDBus::getVoiceCallProperties(const std::string& callPath) {
 
 void OfonoDBus::dialCall(const std::string& number) {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
+    DBusDataInfo info;
     if (modemPath_.empty()) {
         R_LOG(ERROR, "oFono: Cannot dial call, no active modem path set.");
+        info[DBUS_DATA_MESSAGE] = "Cannot dial call, no active modem path set.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::DIAL_CALL_NOTI, false, info);
         return;
     }
 
@@ -480,6 +483,8 @@ void OfonoDBus::dialCall(const std::string& number) {
     );
     if (!msg) {
         R_LOG(ERROR, "Failed to create Dial message");
+        info[DBUS_DATA_MESSAGE] = "Failed to create Dial message.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::DIAL_CALL_NOTI, false, info);
         return;
     }
 
@@ -494,9 +499,13 @@ void OfonoDBus::dialCall(const std::string& number) {
 
     if (dbus_error_is_set(&err)) {
         R_LOG(ERROR, "Error calling Dial: %s", err.message);
+        info[DBUS_DATA_MESSAGE] = std::string("Error dialing number: ") + err.message;
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::DIAL_CALL_NOTI, false, info);
         dbus_error_free(&err);
     } else {
         R_LOG(INFO, "Successfully called Dial. Call object path will be received via signal.");
+        info[DBUS_DATA_MESSAGE] = "Dial command sent successfully.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::DIAL_CALL_NOTI, true, info);
     }
 
     if (reply) {
@@ -506,8 +515,11 @@ void OfonoDBus::dialCall(const std::string& number) {
 
 void OfonoDBus::answerCall() {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
+    DBusDataInfo info;
     if (activeCallPaths_.empty()) {
         R_LOG(WARN, "oFono: No active calls to answer.");
+        info[DBUS_DATA_MESSAGE] = "No active calls to answer.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::ANSWER_CALL_NOTI, false, info);
         return;
     }
 
@@ -523,6 +535,8 @@ void OfonoDBus::answerCall() {
 
     if (incomingCallPath.empty()) {
         R_LOG(WARN, "oFono: No incoming call found to answer.");
+        info[DBUS_DATA_MESSAGE] = "No incoming call found to answer.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::ANSWER_CALL_NOTI, false, info);
         return;
     }
 
@@ -535,6 +549,8 @@ void OfonoDBus::answerCall() {
     );
     if (!msg) {
         R_LOG(ERROR, "Failed to create Answer message");
+        info[DBUS_DATA_MESSAGE] = "Failed to create Answer message.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::ANSWER_CALL_NOTI, false, info);
         return;
     }
 
@@ -545,14 +561,19 @@ void OfonoDBus::answerCall() {
 
     if (dbus_error_is_set(&err)) {
         R_LOG(ERROR, "Error calling Answer: %s", err.message);
+        info[DBUS_DATA_MESSAGE] = std::string("Error answering call: ") + err.message;
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::ANSWER_CALL_NOTI, false, info);
         dbus_error_free(&err);
     } else {
         R_LOG(INFO, "Successfully called Answer for %s", incomingCallPath.c_str());
+        info[DBUS_DATA_MESSAGE] = "Call answered successfully.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::ANSWER_CALL_NOTI, true, info);
     }
 }
 
 void OfonoDBus::hangupCall() {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
+    DBusDataInfo info;
     if (modemPath_.empty()) {
         R_LOG(ERROR, "oFono: Cannot hang up call, no active modem path set.");
         return;
@@ -567,6 +588,8 @@ void OfonoDBus::hangupCall() {
     );
     if (!msg) {
         R_LOG(ERROR, "Failed to create HangupAll message");
+        info[DBUS_DATA_MESSAGE] = "Failed to create HangupAll message.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::HANGUP_CALL_NOTI, false, info);
         return;
     }
 
@@ -577,9 +600,13 @@ void OfonoDBus::hangupCall() {
 
     if (dbus_error_is_set(&err)) {
         R_LOG(ERROR, "Error calling HangupAll: %s", err.message);
+        info[DBUS_DATA_MESSAGE] = std::string("Error hanging up calls: ") + err.message;
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::HANGUP_CALL_NOTI, false, info);
         dbus_error_free(&err);
     } else {
         R_LOG(INFO, "Successfully called HangupAll on %s", modemPath_.c_str());
+        info[DBUS_DATA_MESSAGE] = "All calls hung up successfully.";
+        DBUS_SENDER()->sendMessageNoti(DBusCommand::HANGUP_CALL_NOTI, true, info);
     }
 }
 
