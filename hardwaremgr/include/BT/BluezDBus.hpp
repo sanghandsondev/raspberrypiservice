@@ -35,17 +35,6 @@ public:
     DBusDataInfo getAllAdapterProperties(const std::string& objectPath);
     void setDiscoverable(bool on);
 
-    // oFono related methods
-    void dial(const std::string& modemPath, const std::string& number);
-    void answer(const std::string& callPath);
-    void hangupAll(const std::string& modemPath);
-    DBusDataInfo getVoiceCallProperties(const std::string& callPath);
-    void setOfonoModemProperty(const std::string& modemPath, const std::string& property, bool value);
-    void setOfonoPhonebookStorage(const std::string& modemPath, const std::string& storage);
-    void getOfonoContacts(const std::string& modemPath);
-    void syncAllOfonoContacts(const std::string& modemPath);
-    void syncAllOfonoCallHistory(const std::string& modemPath);
-
 private:
     DBusConnection* conn_;
     std::string adapterPath_;
@@ -55,10 +44,6 @@ private:
     bool parseManagedObjects(DBusMessageIter *iter);
     void setPower(bool on);
     std::string deviceAddressToObjectPath(const std::string& address) const;
-    std::string findNameByNumber(const std::string& number);
-    void getOfonoContactDetails(const std::string& contactPath);
-    void getOfonoCallHistory(const std::string& modemPath, const std::string& type);
-    void getOfonoCallDetails(const std::string& callPath, const std::string& type);
 };
 
 #endif // BLUEZ_DBUS_HPP_

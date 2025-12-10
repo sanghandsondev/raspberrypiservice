@@ -2,6 +2,7 @@
 #include "RLogger.hpp"
 #include "Config.hpp"
 #include "BluezDBus.hpp"
+#include "OfonoDBus.hpp"
 #include "DBusSender.hpp"
 #include "DBusData.hpp"
 #include "BluetoothAgent.hpp"
@@ -12,14 +13,14 @@
 #include <dbus/dbus.h>
 #include <algorithm>
 
-BluetoothWorker::BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus, std::shared_ptr<BluetoothAgent> agent) 
-    : ThreadBase("BluetoothWorker"), eventQueue_(eventQueue), bluezDBus_(bluezDBus), agent_(agent) {
+BluetoothWorker::BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus, std::shared_ptr<OfonoDBus> ofonoDBus, std::shared_ptr<BluetoothAgent> agent) 
+    : ThreadBase("BluetoothWorker"), eventQueue_(eventQueue), bluezDBus_(bluezDBus), ofonoDBus_(ofonoDBus), agent_(agent) {
 }
 
 void BluetoothWorker::threadFunction(){
     R_LOG(INFO, "BluetoothWorker Thread function started");
-    if (!bluezDBus_) {
-        R_LOG(ERROR, "BluetoothWorker cannot run without BluezDBus.");
+    if (!bluezDBus_ || !ofonoDBus_) {
+        R_LOG(ERROR, "BluetoothWorker cannot run without BluezDBus and OfonoDBus.");
         return;
     }
 
@@ -73,7 +74,7 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
             R_LOG(DEBUG, "BluetoothWorker: Received ModemRemoved signal from oFono.");
             handleModemRemoved(msg);
         } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoModemInterface().c_str(), "PropertyChanged")) {
-            R_LOG(DEBUG, "BluetoothWorker: Received PropertiesChanged signal from oFono.");
+            R_LOG(DEBUG, "BluetoothWorker: Received PropertyChanged signal from oFono Modem.");
             handleOfonoPropertyChanged(msg);
         } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface().c_str(), "CallAdded")) {
             R_LOG(DEBUG, "BluetoothWorker: Received CallAdded signal from oFono.");
@@ -81,6 +82,9 @@ void BluetoothWorker::dispatchMessage(DBusMessage* msg) {
         } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface().c_str(), "CallRemoved")) {
             R_LOG(DEBUG, "BluetoothWorker: Received CallRemoved signal from oFono.");
             handleCallRemoved(msg);
+        } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getOfonoVoiceCallInterface().c_str(), "PropertyChanged")) {
+            R_LOG(DEBUG, "BluetoothWorker: Received PropertyChanged signal from oFono VoiceCall.");
+            handleVoiceCallPropertyChanged(msg);
         // BlueZ signals and Agent method calls
         } else if (dbus_message_is_signal(msg, CONFIG_INSTANCE()->getDBusObjectManagerInterface().c_str(), "InterfacesAdded")) {
             R_LOG(DEBUG, "BluetoothWorker: Received InterfacesAdded signal.");
@@ -229,22 +233,11 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
     std::string iface_str(interface_name);
     std::string path_str(object_path);
 
-    // Handle oFono property changes
-    // getOfonoVoiceCallManagerInterface
-    // getOfonoModemInterface
-    // getOfonoPhonebookInterface
-    // getOfonoCallHistoryInterface
-    // if (iface_str == CONFIG_INSTANCE()->getOfonoModemInterface() || iface_str == CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface() || 
-    //     iface_str == CONFIG_INSTANCE()->getOfonoPhonebookInterface() || iface_str == CONFIG_INSTANCE()->getOfonoCallHistoryInterface()) {
-    //     R_LOG(DEBUG, "Handling oFono Modem property changes for path: %s", path_str.c_str());
-    //     handleOfonoPropertyChanged(msg);
-    //     return;
-    // }
-
-    // Handle oFono VoiceCall property changes
-    if (iface_str == CONFIG_INSTANCE()->getOfonoVoiceCallInterface()) {
-        R_LOG(DEBUG, "Handling oFono VoiceCall property changes for path: %s", path_str.c_str());
-        handleVoiceCallPropertyChanged(msg);
+    // Handle oFono property changes using the generic PropertiesChanged signal
+    // This is useful for interfaces like Phonebook, CallHistory, VoiceCallManager
+    if (dbus_message_get_sender(msg) && std::string(dbus_message_get_sender(msg)) == CONFIG_INSTANCE()->getOfonoServiceName()) {
+        R_LOG(DEBUG, "Handling oFono PropertiesChanged for interface %s on path: %s", iface_str.c_str(), path_str.c_str());
+        handleOfonoPropertiesChanged(msg);
         return;
     }
 
@@ -358,7 +351,7 @@ void BluetoothWorker::handleModemAdded(DBusMessage* msg) {
         dbus_message_iter_get_basic(&iter, &modemPath);
         if (modemPath) {
             R_LOG(INFO, "oFono: Modem added at %s. Activating...", modemPath);
-            bluezDBus_->setOfonoModemProperty(modemPath, "Powered", true);
+            ofonoDBus_->setOfonoModemProperty(modemPath, "Powered", true);
         }
     }
 }
@@ -379,6 +372,40 @@ void BluetoothWorker::handleModemRemoved(DBusMessage* msg) {
 }
 
 void BluetoothWorker::handleOfonoPropertyChanged(DBusMessage* msg) {
+    const char* path = dbus_message_get_path(msg);
+    const char* iface = dbus_message_get_interface(msg);
+    DBusMessageIter iter;
+    if (!dbus_message_iter_init(msg, &iter)) return;
+
+    const char* key = nullptr;
+    dbus_message_iter_get_basic(&iter, &key);
+    if (!key) return;
+    std::string key_str(key);
+
+    dbus_message_iter_next(&iter); // Move to variant
+    DBusMessageIter variant_iter;
+    dbus_message_iter_recurse(&iter, &variant_iter);
+
+    if (std::string(iface) == CONFIG_INSTANCE()->getOfonoModemInterface()) {
+        dbus_bool_t value = FALSE;
+        if (key_str == "Powered" && dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
+            dbus_message_iter_get_basic(&variant_iter, &value);
+            if (value) {
+                R_LOG(INFO, "oFono: Modem %s is Powered. Setting Online.", path);
+                ofonoDBus_->setOfonoModemProperty(path, "Online", true);
+            }
+        } else if (key_str == "Online" && dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
+            dbus_message_iter_get_basic(&variant_iter, &value);
+            if (value) {
+                R_LOG(INFO, "oFono: Modem %s is Online. Fetching phonebook and call history.", path);
+                ofonoDBus_->syncAllOfonoContacts(path);
+                ofonoDBus_->syncAllOfonoCallHistory(path);
+            }
+        }
+    }
+}
+
+void BluetoothWorker::handleOfonoPropertiesChanged(DBusMessage* msg) {
     const char* path = dbus_message_get_path(msg);
     DBusMessageIter iter;
     if (!dbus_message_iter_init(msg, &iter)) return;
@@ -425,7 +452,7 @@ void BluetoothWorker::handleOfonoPropertyChanged(DBusMessage* msg) {
                         activeCallPaths_.insert(call_path);
                         
                         // Get properties and notify
-                        DBusDataInfo call_info = bluezDBus_->getVoiceCallProperties(call_path);
+                        DBusDataInfo call_info = ofonoDBus_->getVoiceCallProperties(call_path);
                         if (!call_info[DBUS_DATA_CALL_STATE].empty()) {
                              R_LOG(INFO, "oFono: New call state is '%s'. Number: %s", 
                                 call_info[DBUS_DATA_CALL_STATE].c_str(), 
@@ -443,25 +470,25 @@ void BluetoothWorker::handleOfonoPropertyChanged(DBusMessage* msg) {
                 dbus_message_iter_get_basic(&variant_iter, &value);
                 if (value) {
                     R_LOG(INFO, "oFono: Modem %s is Powered. Setting Online.", path);
-                    bluezDBus_->setOfonoModemProperty(path, "Online", true);
+                    ofonoDBus_->setOfonoModemProperty(path, "Online", true);
                 }
             } else if (key_str == "Online" && dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
                 dbus_message_iter_get_basic(&variant_iter, &value);
                 if (value) {
-                    R_LOG(INFO, "oFono: Modem %s is Online. Fetching phonebook.", path);
-                    bluezDBus_->syncAllOfonoContacts(path);
-                    bluezDBus_->syncAllOfonoCallHistory(path);
+                    R_LOG(INFO, "oFono: Modem %s is Online. Fetching phonebook and call history.", path);
+                    ofonoDBus_->syncAllOfonoContacts(path);
+                    ofonoDBus_->syncAllOfonoCallHistory(path);
                 }
             }
         } else if (iface_str == CONFIG_INSTANCE()->getOfonoPhonebookInterface()) {
             if (key_str == "Contacts") {
                 R_LOG(INFO, "oFono: Contacts property changed for modem %s. Resyncing phonebook.", path);
-                bluezDBus_->syncAllOfonoContacts(path);
+                ofonoDBus_->syncAllOfonoContacts(path);
             }
         } else if (iface_str == CONFIG_INSTANCE()->getOfonoCallHistoryInterface()) {
             if (key_str == "DialedCount" || key_str == "MissedCount" || key_str == "ReceivedCount") {
                 R_LOG(INFO, "oFono: Call history property (%s) changed for modem %s. Resyncing all call history.", key_str.c_str(), path);
-                bluezDBus_->syncAllOfonoCallHistory(path);
+                ofonoDBus_->syncAllOfonoCallHistory(path);
             }
         }
         dbus_message_iter_next(&dict_iter);
@@ -472,10 +499,20 @@ void BluetoothWorker::handleVoiceCallPropertyChanged(DBusMessage* msg) {
     const char* call_path = dbus_message_get_path(msg);
     if (!call_path) return;
 
-    R_LOG(DEBUG, "oFono: VoiceCall properties changed for %s", call_path);
+    R_LOG(DEBUG, "oFono: VoiceCall PropertyChanged for %s", call_path);
+
+    DBusMessageIter iter;
+    if (!dbus_message_iter_init(msg, &iter)) return;
+
+    const char* key = nullptr;
+    dbus_message_iter_get_basic(&iter, &key);
+    if (!key || (std::string(key) != "State" && std::string(key) != "LineIdentification")) {
+        // We are only interested in State or LineIdentification changes for this signal
+        return;
+    }
 
     // We get all properties to have the full context.
-    DBusDataInfo call_info = bluezDBus_->getVoiceCallProperties(call_path);
+    DBusDataInfo call_info = ofonoDBus_->getVoiceCallProperties(call_path);
 
     if (call_info[DBUS_DATA_CALL_STATE].empty()) {
         R_LOG(WARN, "oFono: Could not get state for call %s", call_path);
@@ -532,7 +569,7 @@ void BluetoothWorker::handleCallAdded(DBusMessage* msg) {
     activeCallPaths_.insert(call_path);
 
     // The properties are also in the signal, but getting all is more robust and consistent.
-    DBusDataInfo call_info = bluezDBus_->getVoiceCallProperties(call_path);
+    DBusDataInfo call_info = ofonoDBus_->getVoiceCallProperties(call_path);
 
     if (call_info[DBUS_DATA_CALL_NUMBER].empty()) {
         R_LOG(WARN, "oFono: Could not get number for new call %s", call_path);
