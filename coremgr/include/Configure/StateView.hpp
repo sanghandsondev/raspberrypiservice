@@ -23,6 +23,14 @@ enum class BluetoothPowerState {
     PROCESSING
 };
 
+enum class CallState {
+    IDLE = 0,
+    PROCESSING,
+    INCOMING,
+    OUTCOMING,
+    CALLING,
+};
+
 class StateView {
     public:
         static StateView *getInstance() {
@@ -37,6 +45,7 @@ class StateView {
         inline static int CURRENT_TEMPERATURE = 0;
         inline static ScanningBTDeviceState SCANNING_BTDEVICE_STATE = ScanningBTDeviceState::IDLE;
         inline static BluetoothPowerState BLUETOOTH_POWER_STATE = BluetoothPowerState::OFF;
+        inline static CallState CALL_STATE = CallState::IDLE;
 
     private:
         StateView() = default;

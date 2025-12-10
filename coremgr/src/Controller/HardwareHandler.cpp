@@ -186,26 +186,88 @@ void HardwareHandler::acceptBTDeviceRequestConfirmation(std::shared_ptr<Payload>
 }
 
 void HardwareHandler::dialCall(std::shared_ptr<Payload> payload){
-    std::shared_ptr<CallPayload> callPayload = std::dynamic_pointer_cast<CallPayload>(payload);
-    if (callPayload == nullptr) {
-        R_LOG(ERROR, "DIAL_CALL payload is not of type CallPayload");
-        return;
+    CallState currentState = STATE_VIEW_INSTANCE()->CALL_STATE;
+    switch (currentState) {
+        case CallState::IDLE: {
+            R_LOG(INFO, "Dialing call command received in IDLE state. Proceeding to dial.");
+            std::shared_ptr<CallPayload> callPayload = std::dynamic_pointer_cast<CallPayload>(payload);
+            if (callPayload == nullptr) {
+                R_LOG(ERROR, "DIAL_CALL payload is not of type CallPayload");
+                return;
+            }
+            
+                std::string phoneNumber = callPayload->getNumber();
+                R_LOG(INFO, "Dialing call to phone number: %s", phoneNumber.c_str());
+                DBusDataInfo data;
+                data[DBUS_DATA_CALL_NUMBER] = phoneNumber;
+                DBUS_SENDER()->sendMessageNoti(DBusCommand::DIAL_CALL, true, data);
+                STATE_VIEW_INSTANCE()->CALL_STATE = CallState::PROCESSING;
+                break;
+        }
+        case CallState::PROCESSING:
+            R_LOG(WARN, "Received DIAL_CALL event while already PROCESSING. No Action taken.");
+            break;
+        case CallState::INCOMING:
+            R_LOG(WARN, "Received DIAL_CALL event while in INCOMING state. No Action taken.");
+            break;
+        case CallState::OUTCOMING:
+            R_LOG(WARN, "Received DIAL_CALL event while in OUTCOMING state. No Action taken.");
+            break;
+        case CallState::CALLING:
+            R_LOG(WARN, "Received DIAL_CALL event while already CALLING. No Action taken.");
+            break;
+        default:
+            R_LOG(WARN, "Received DIAL_CALL event in invalid state");
+            break;
     }
-    std::string phoneNumber = callPayload->getNumber();
-    R_LOG(INFO, "Dialing call to phone number: %s", phoneNumber.c_str());
-    DBusDataInfo data;
-    data[DBUS_DATA_CALL_NUMBER] = phoneNumber;
-    DBUS_SENDER()->sendMessageNoti(DBusCommand::DIAL_CALL, true, data);
 }
 
 void HardwareHandler::hangupCall(){
-    R_LOG(INFO, "Hanging up the current call.");
-    DBUS_SENDER()->sendMessage(DBusCommand::HANGUP_CALL);
+    CallState currentState = STATE_VIEW_INSTANCE()->CALL_STATE;
+    switch (currentState) {
+        case CallState::PROCESSING:
+            R_LOG(INFO, "Received HANGUP_CALL event while in PROCESSING state. No Action taken.");
+            break;
+        case CallState::OUTCOMING:
+        case CallState::INCOMING:
+        case CallState::CALLING:
+            R_LOG(INFO, "Hanging up the current call.");
+            DBUS_SENDER()->sendMessage(DBusCommand::HANGUP_CALL);
+            STATE_VIEW_INSTANCE()->CALL_STATE = CallState::PROCESSING;
+            break;
+        case CallState::IDLE:
+            R_LOG(WARN, "Received HANGUP_CALL event while in IDLE state. No Action taken.");
+            break;
+        default:
+            R_LOG(WARN, "Received HANGUP_CALL event in invalid state");
+            break;
+    }
 }
 
 void HardwareHandler::answerCall(){
-    R_LOG(INFO, "Answering the incoming call.");
-    DBUS_SENDER()->sendMessage(DBusCommand::ANSWER_CALL);
+    CallState currentState = STATE_VIEW_INSTANCE()->CALL_STATE;
+    switch (currentState) {
+        case CallState::PROCESSING:
+            R_LOG(WARN, "Received ANSWER_CALL event while in PROCESSING state. No Action taken.");
+            break;
+        case CallState::CALLING:
+            R_LOG(WARN, "Received ANSWER_CALL event while already in CALLING state. No Action taken.");
+            break;
+        case CallState::IDLE:
+            R_LOG(WARN, "Received ANSWER_CALL event while in IDLE state. No Action taken.");
+            break;
+        case CallState::INCOMING:
+            R_LOG(INFO, "Answering the incoming call.");
+            DBUS_SENDER()->sendMessage(DBusCommand::ANSWER_CALL);
+            STATE_VIEW_INSTANCE()->CALL_STATE = CallState::PROCESSING;
+            break;
+        case CallState::OUTCOMING:
+            R_LOG(INFO, "Received ANSWER_CALL event while in OUTCOMING state. No Action taken.");
+            break;
+        default:
+            R_LOG(WARN, "Received ANSWER_CALL event in invalid state");
+            break;
+    }
 }
 
 void HardwareHandler::startScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
@@ -673,6 +735,8 @@ void HardwareHandler::incomingCallNOTI(std::shared_ptr<Payload> payload){
         callPayload->getName().c_str(),
         callPayload->getNumber().c_str(),
         callPayload->getState().c_str());
+    
+    STATE_VIEW_INSTANCE()->CALL_STATE = CallState::INCOMING;
 
     webSocket_->getServer()->updateStateAndBroadcast("success", 
         "Incoming call notification received.",
@@ -695,6 +759,8 @@ void HardwareHandler::outgoingCallNOTI(std::shared_ptr<Payload> payload){
         callPayload->getNumber().c_str(),
         callPayload->getState().c_str());
 
+    STATE_VIEW_INSTANCE()->CALL_STATE = CallState::OUTCOMING;
+
     webSocket_->getServer()->updateStateAndBroadcast("success", 
         "Outgoing call notification received.",
         "Call", "outgoing_call_noti", {
@@ -715,6 +781,20 @@ void HardwareHandler::callStateChangedNOTI(std::shared_ptr<Payload> payload){
         callPayload->getName().c_str(),
         callPayload->getNumber().c_str(),
         callPayload->getState().c_str());
+
+    if (callPayload->getState() == "incoming") {
+        STATE_VIEW_INSTANCE()->CALL_STATE = CallState::INCOMING;
+    } else if (callPayload->getState() == "outgoing") {
+        STATE_VIEW_INSTANCE()->CALL_STATE = CallState::OUTCOMING;
+    } else if (callPayload->getState() == "active") {
+        STATE_VIEW_INSTANCE()->CALL_STATE = CallState::CALLING;
+    } else if (callPayload->getState() == "held" || callPayload->getState() == "waiting") {
+        STATE_VIEW_INSTANCE()->CALL_STATE = CallState::CALLING;
+    } else if (callPayload->getState() == "idle" || callPayload->getState() == "disconnected") {
+        STATE_VIEW_INSTANCE()->CALL_STATE = CallState::IDLE;
+    } else {
+        STATE_VIEW_INSTANCE()->CALL_STATE = CallState::IDLE;
+    }
 
     webSocket_->getServer()->updateStateAndBroadcast("success", 
         "Call state change notification received.",
@@ -737,6 +817,8 @@ void HardwareHandler::callEndedNOTI(std::shared_ptr<Payload> payload){
         callPayload->getNumber().c_str(),
         callPayload->getState().c_str());
 
+    STATE_VIEW_INSTANCE()->CALL_STATE = CallState::IDLE;
+
     webSocket_->getServer()->updateStateAndBroadcast("success", 
         "Call ended notification received.",
         "Call", "call_ended_noti", {
@@ -752,15 +834,17 @@ void HardwareHandler::dialCallNOTI(std::shared_ptr<Payload> payload){
         R_LOG(ERROR, "DIAL_CALL_NOTI payload is not of type NotiPayload");
         return;
     }
+
+    STATE_VIEW_INSTANCE()->CALL_STATE = CallState::IDLE;
+
     if (notiPayload->isSuccess()) {
         R_LOG(INFO, "Call dialed successfully: %s", notiPayload->getMsgInfo().c_str());
-
         webSocket_->getServer()->updateStateAndBroadcast("success", 
             notiPayload->getMsgInfo(),
             "Call", "dial_call_noti", {});
     } else {
         R_LOG(ERROR, "Failed to dial call: %s", notiPayload->getMsgInfo().c_str());
-
+        
         webSocket_->getServer()->updateStateAndBroadcast("fail", 
             notiPayload->getMsgInfo(),
             "Call", "dial_call_noti", {});
@@ -773,6 +857,9 @@ void HardwareHandler::hangupCallNOTI(std::shared_ptr<Payload> payload){
         R_LOG(ERROR, "HANGUP_CALL_NOTI payload is not of type NotiPayload");
         return;
     }
+
+    STATE_VIEW_INSTANCE()->CALL_STATE = CallState::IDLE;
+
     if (notiPayload->isSuccess()) {
         R_LOG(INFO, "Call hung up successfully: %s", notiPayload->getMsgInfo().c_str());
 
@@ -794,6 +881,9 @@ void HardwareHandler::answerCallNOTI(std::shared_ptr<Payload> payload){
         R_LOG(ERROR, "ANSWER_CALL_NOTI payload is not of type NotiPayload");
         return;
     }
+
+    STATE_VIEW_INSTANCE()->CALL_STATE = CallState::IDLE;
+
     if (notiPayload->isSuccess()) {
         R_LOG(INFO, "Call answered successfully: %s", notiPayload->getMsgInfo().c_str());
 
