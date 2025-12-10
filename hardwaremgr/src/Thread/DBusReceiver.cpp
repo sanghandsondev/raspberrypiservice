@@ -35,6 +35,14 @@ void DBusReceiver::handleMessage(DBusCommand cmd) {
             R_LOG(INFO, "DBusReceiver: Received BLUETOOTH_POWER_OFF command. Pushing event.");
             eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::BLUETOOTH_POWER_OFF));
             break;
+        case DBusCommand::HANGUP_CALL:
+            R_LOG(INFO, "DBusReceiver: Received HANGUP_CALL command. Pushing event.");
+            eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::HANGUP_CALL));
+            break;
+        case DBusCommand::ANSWER_CALL:
+            R_LOG(INFO, "DBusReceiver: Received ANSWER_CALL command. Pushing event.");
+            eventQueue_->pushEvent(std::make_shared<Event>(EventTypeID::ANSWER_CALL));
+            break;
         default:
             R_LOG(WARN, "DBusReceiver received unknown DBusCommand");
             break;
@@ -91,6 +99,16 @@ void DBusReceiver::handleMessageNoti(DBusCommand cmd, bool isSuccess, const DBus
             std::shared_ptr<Payload> payload = std::make_shared<BluetoothDeviceAddressPayload>(
                                                 msgInfo.data[DBUS_DATA_BT_DEVICE_ADDRESS]);
             auto event = std::make_shared<Event>(EventTypeID::ACCEPT_REQUEST_CONFIRMATION, payload);
+            eventQueue_->pushEvent(event);
+            break;
+        }
+        case DBusCommand::DIAL_CALL: {
+            R_LOG(INFO, "Dispatching DIAL_CALL_NOTI from DBus");
+            std::shared_ptr<Payload> payload = std::make_shared<CallPayload>(
+                                                "",
+                                                msgInfo.data[DBUS_DATA_CALL_NUMBER], 
+                                                "");
+            auto event = std::make_shared<Event>(EventTypeID::DIAL_CALL, payload);
             eventQueue_->pushEvent(event);
             break;
         }

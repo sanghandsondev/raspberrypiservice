@@ -78,6 +78,9 @@ namespace {
         DISCONNECT_BTDEVICE,
         ACCEPT_REQUEST_CONFIRMATION,
         REJECT_REQUEST_CONFIRMATION,
+        DIAL_CALL,
+        HANGUP_CALL,
+        ANSWER_CALL,
 
         // Record
         START_RECORD,
@@ -100,6 +103,9 @@ namespace {
         if(commandStr == "disconnect_btdevice") return CommandType::DISCONNECT_BTDEVICE;
         if(commandStr == "accept_request_confirmation") return CommandType::ACCEPT_REQUEST_CONFIRMATION;
         if(commandStr == "reject_request_confirmation") return CommandType::REJECT_REQUEST_CONFIRMATION;
+        if(commandStr == "dial_call") return CommandType::DIAL_CALL;
+        if(commandStr == "hangup_call") return CommandType::HANGUP_CALL;
+        if(commandStr == "answer_call") return CommandType::ANSWER_CALL;
 
         // Record
         if (commandStr == "start_record") return CommandType::START_RECORD;
@@ -189,6 +195,22 @@ std::shared_ptr<Event> WebSocket::translateMsg(const std::string& message, const
             }
             break;
         }
+        case CommandType::DIAL_CALL:
+        {
+            // { "number": "1234567890" }
+            auto numberOpt = JSON_HELPER_INSTANCE()->getStringField(data, "number");
+            if (numberOpt) {
+                std::shared_ptr<Payload> payload = std::make_shared<CallPayload>("", *numberOpt, "");
+                event = std::make_shared<Event>(EventTypeID::DIAL_CALL, payload);
+            }
+            break;
+        }
+        case CommandType::HANGUP_CALL:
+            event = std::make_shared<Event>(EventTypeID::HANGUP_CALL);
+            break;
+        case CommandType::ANSWER_CALL:
+            event = std::make_shared<Event>(EventTypeID::ANSWER_CALL);
+            break;
 
         // Record
         case CommandType::START_RECORD:

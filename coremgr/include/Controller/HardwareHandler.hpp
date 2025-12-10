@@ -27,6 +27,9 @@ class HardwareHandler {
         void disconnectBTDevice(std::shared_ptr<Payload>);
         void acceptBTDeviceRequestConfirmation(std::shared_ptr<Payload>);
         void rejectBTDeviceRequestConfirmation(std::shared_ptr<Payload>);
+        void dialCall(std::shared_ptr<Payload>);
+        void hangupCall();
+        void answerCall();
 
         void updateTemperatureNOTI(std::shared_ptr<Payload>);
         void startScanBTDeviceNOTI(std::shared_ptr<Payload>);

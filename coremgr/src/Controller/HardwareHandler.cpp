@@ -185,6 +185,29 @@ void HardwareHandler::acceptBTDeviceRequestConfirmation(std::shared_ptr<Payload>
     removeTimerOnTimerIdMap(deviceAddress);
 }
 
+void HardwareHandler::dialCall(std::shared_ptr<Payload> payload){
+    std::shared_ptr<CallPayload> callPayload = std::dynamic_pointer_cast<CallPayload>(payload);
+    if (callPayload == nullptr) {
+        R_LOG(ERROR, "DIAL_CALL payload is not of type CallPayload");
+        return;
+    }
+    std::string phoneNumber = callPayload->getNumber();
+    R_LOG(INFO, "Dialing call to phone number: %s", phoneNumber.c_str());
+    DBusDataInfo data;
+    data[DBUS_DATA_CALL_NUMBER] = phoneNumber;
+    DBUS_SENDER()->sendMessageNoti(DBusCommand::DIAL_CALL, true, data);
+}
+
+void HardwareHandler::hangupCall(){
+    R_LOG(INFO, "Hanging up the current call.");
+    DBUS_SENDER()->sendMessage(DBusCommand::HANGUP_CALL);
+}
+
+void HardwareHandler::answerCall(){
+    R_LOG(INFO, "Answering the incoming call.");
+    DBUS_SENDER()->sendMessage(DBusCommand::ANSWER_CALL);
+}
+
 void HardwareHandler::startScanBTDeviceNOTI(std::shared_ptr<Payload> payload){
     std::shared_ptr<NotiPayload> notiPayload = std::dynamic_pointer_cast<NotiPayload>(payload);
     if (notiPayload == nullptr) {

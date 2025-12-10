@@ -46,7 +46,7 @@ int main(){
     // bluezDBus->registerAgent("NoInputNoOutput"); // Capability for "Just Works"
     bluezDBus->registerAgent("DisplayYesNo");
 
-    auto mainWorker = std::make_shared<MainWorker>(eventQueue, bluezDBus, agent);
+    auto mainWorker = std::make_shared<MainWorker>(eventQueue, bluezDBus, ofonoDBus, agent);
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
     auto monitorWorker = std::make_shared<MonitorWorker>(eventQueue);
     auto bluetoothWorker = std::make_shared<BluetoothWorker>(eventQueue, bluezDBus, ofonoDBus, agent);

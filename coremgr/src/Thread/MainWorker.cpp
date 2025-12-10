@@ -97,6 +97,15 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
         case EventTypeID::REJECT_REQUEST_CONFIRMATION:
             hardwareHandler_->rejectBTDeviceRequestConfirmation(payload);
             break;
+        case EventTypeID::DIAL_CALL:
+            hardwareHandler_->dialCall(payload);
+            break;
+        case EventTypeID::HANGUP_CALL:
+            hardwareHandler_->hangupCall();
+            break;
+        case EventTypeID::ANSWER_CALL:
+            hardwareHandler_->answerCall();
+            break;
         case EventTypeID::UPDATE_TEMPERATURE_NOTI:
             hardwareHandler_->updateTemperatureNOTI(payload);
             break;

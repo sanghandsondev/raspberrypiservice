@@ -7,6 +7,7 @@
 #include <dbus/dbus.h>
 #include "DBusData.hpp"
 #include <unordered_map>
+#include <set>
 
 class OfonoDBus {
 public:
@@ -14,9 +15,9 @@ public:
     ~OfonoDBus() = default;
 
     // oFono related methods
-    void dial(const std::string& modemPath, const std::string& number);
-    void answer(const std::string& callPath);
-    void hangupAll(const std::string& modemPath);
+    void dialCall(const std::string& number);
+    void answerCall();
+    void hangupCall();
     DBusDataInfo getVoiceCallProperties(const std::string& callPath);
     void setOfonoModemProperty(const std::string& modemPath, const std::string& property, bool value);
     void setOfonoPhonebookStorage(const std::string& modemPath, const std::string& storage);
@@ -25,9 +26,18 @@ public:
     void syncAllOfonoCallHistory(const std::string& modemPath);
     std::string findNameByNumber(const std::string& number);
 
+    // State management
+    void setActiveModemPath(const std::string& modemPath);
+    void clearActiveModemPath();
+    void addActiveCallPath(const std::string& callPath);
+    void removeActiveCallPath(const std::string& callPath);
+    const std::set<std::string>& getActiveCallPaths() const;
+
 private:
     DBusConnection* conn_;
     std::recursive_mutex& mutex_;
+    std::string modemPath_;
+    std::set<std::string> activeCallPaths_;
     std::unordered_map<std::string, std::string> phonebook_; // <Number, Name>
 
     void getOfonoContactDetails(const std::string& contactPath);

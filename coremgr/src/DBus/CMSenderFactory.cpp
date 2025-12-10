@@ -14,6 +14,10 @@ DBusMessage* CMSenderFactory::makeMsg(DBusCommand cmd) {
             return makeMsg_BluetoothPowerOn(cmd);
         case DBusCommand::BLUETOOTH_POWER_OFF:
             return makeMsg_BluetoothPowerOff(cmd);
+        case DBusCommand::HANGUP_CALL:
+            return makeMsg_HangupCall(cmd);
+        case DBusCommand::ANSWER_CALL:
+            return makeMsg_AnswerCall(cmd);
         // Record
         case DBusCommand::START_RECORD:
             return makeMsg_StartRecord(cmd);
@@ -42,6 +46,8 @@ DBusMessage* CMSenderFactory::makeMsgNoti(DBusCommand cmd, bool isSuccess, const
         return makeMsgNoti_RejectBTDeviceRequestConfirmation(cmd, isSuccess, msgInfo);
     case DBusCommand::ACCEPT_REQUEST_CONFIRMATION:
         return makeMsgNoti_AcceptBTDeviceRequestConfirmation(cmd, isSuccess, msgInfo);
+    case DBusCommand::DIAL_CALL:
+        return makeMsgNoti_DialCall(cmd, isSuccess, msgInfo);
     default:
         R_LOG(WARN, "CMSenderFactory makeMsgNoti Error: Unknown DBusCommand");
         return nullptr;
@@ -90,6 +96,22 @@ DBusMessage* CMSenderFactory::makeMsg_BluetoothPowerOff(DBusCommand cmd) {
     return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
 }
 
+DBusMessage* CMSenderFactory::makeMsg_HangupCall(DBusCommand cmd) {
+    const char* objectPath = "/com/example/hardwaremanager";
+    const char* interfaceName = "com.example.hardwaremanager.interface";
+    const char* signalName = "HardwareSignal";
+
+    return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
+}
+
+DBusMessage* CMSenderFactory::makeMsg_AnswerCall(DBusCommand cmd) {
+    const char* objectPath = "/com/example/hardwaremanager";
+    const char* interfaceName = "com.example.hardwaremanager.interface";
+    const char* signalName = "HardwareSignal";
+
+    return makeMsgInternal(objectPath, interfaceName, signalName, cmd);
+}
+
 DBusMessage* CMSenderFactory::makeMsgNoti_PairBTDevice(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/hardwaremanager";
     const char* interfaceName = "com.example.hardwaremanager.interface";
@@ -131,6 +153,14 @@ DBusMessage* CMSenderFactory::makeMsgNoti_RejectBTDeviceRequestConfirmation(DBus
 }
 
 DBusMessage* CMSenderFactory::makeMsgNoti_AcceptBTDeviceRequestConfirmation(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
+    const char* objectPath = "/com/example/hardwaremanager";
+    const char* interfaceName = "com.example.hardwaremanager.interface";
+    const char* signalName = "HardwareSignal";
+
+    return makeMsgNotiInternal(objectPath, interfaceName, signalName, cmd, isSuccess, msgInfo);
+}
+
+DBusMessage* CMSenderFactory::makeMsgNoti_DialCall(DBusCommand cmd, bool isSuccess, const DBusDataInfo &msgInfo) {
     const char* objectPath = "/com/example/hardwaremanager";
     const char* interfaceName = "com.example.hardwaremanager.interface";
     const char* signalName = "HardwareSignal";

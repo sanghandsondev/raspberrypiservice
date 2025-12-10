@@ -3,14 +3,15 @@
 #include "Event.hpp"
 #include "EventTypeId.hpp"
 #include "RLogger.hpp"
+#include "OfonoDBus.hpp"
 #include "DBusSender.hpp"
 #include "BluezDBus.hpp"
 #include "BluetoothAgent.hpp"
 #include <thread>
 
 MainWorker::MainWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus,
-     std::shared_ptr<BluetoothAgent> agent) : ThreadBase("MainWorker"), 
-    eventQueue_(eventQueue), bluezDBus_(bluezDBus), agent_(agent) {
+    std::shared_ptr<OfonoDBus> ofonoDBus, std::shared_ptr<BluetoothAgent> agent) : ThreadBase("MainWorker"), 
+    eventQueue_(eventQueue), bluezDBus_(bluezDBus), ofonoDBus_(ofonoDBus), agent_(agent) {
 }
 
 void MainWorker::threadFunction() {
@@ -82,6 +83,18 @@ void MainWorker::processEvent(const std::shared_ptr<Event> event) {
             R_LOG(INFO, "Processing ACCEPT_REQUEST_CONFIRMATION event");
             processAcceptRequestConfirmationEvent(event->getPayload());
             break;
+        case EventTypeID::DIAL_CALL:
+            R_LOG(INFO, "Processing DIAL_CALL event");
+            processDialCallEvent(event->getPayload());
+            break;
+        case EventTypeID::HANGUP_CALL:
+            R_LOG(INFO, "Processing HANGUP_CALL event");
+            processHangupCallEvent();
+            break;
+        case EventTypeID::ANSWER_CALL:
+            R_LOG(INFO, "Processing ANSWER_CALL event");
+            processAnswerCallEvent();
+            break;
         default:
             R_LOG(WARN, "MainWorker received unknown EventTypeID");
             break;
@@ -126,6 +139,22 @@ void MainWorker::processBluetoothPowerOffEvent() {
         return;
     }
     bluezDBus_->powerOffAdapter();
+}
+
+void MainWorker::processHangupCallEvent() {
+    if (!ofonoDBus_) {
+        R_LOG(ERROR, "OfonoDBus is not initialized in MainWorker");
+        return;
+    }
+    ofonoDBus_->hangupCall();
+}
+
+void MainWorker::processAnswerCallEvent() {
+    if (!ofonoDBus_) {
+        R_LOG(ERROR, "OfonoDBus is not initialized in MainWorker");
+        return;
+    }
+    ofonoDBus_->answerCall();
 }
 
 void MainWorker::processPairBTDeviceEvent(std::shared_ptr<Payload> payload) {
@@ -204,4 +233,18 @@ void MainWorker::processAcceptRequestConfirmationEvent(std::shared_ptr<Payload> 
         return;
     }
     agent_->confirmRequest(btPayload->getAddress(), true);
+}
+
+void MainWorker::processDialCallEvent(std::shared_ptr<Payload> payload) {
+    if (!ofonoDBus_) {
+        R_LOG(ERROR, "OfonoDBus is not initialized in MainWorker");
+        return;
+    }
+    std::shared_ptr<CallPayload> callPayload = std::dynamic_pointer_cast<CallPayload>(payload);
+    if (callPayload == nullptr) {
+        R_LOG(ERROR, "DIAL_CALL payload is not of type CallPayload");
+        return;
+    }
+
+    ofonoDBus_->dialCall(callPayload->getNumber());
 }

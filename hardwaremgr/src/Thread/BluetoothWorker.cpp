@@ -353,6 +353,7 @@ void BluetoothWorker::handleModemAdded(DBusMessage* msg) {
         dbus_message_iter_get_basic(&iter, &modemPath);
         if (modemPath) {
             R_LOG(INFO, "oFono: Modem added at %s. Activating...", modemPath);
+            ofonoDBus_->setActiveModemPath(modemPath);
             ofonoDBus_->setOfonoModemProperty(modemPath, "Powered", true);
         }
     }
@@ -365,7 +366,7 @@ void BluetoothWorker::handleModemRemoved(DBusMessage* msg) {
         dbus_message_iter_get_basic(&iter, &modemPath);
         if (modemPath) {
             R_LOG(INFO, "oFono: Modem removed from %s. Clearing data.", modemPath);
-            activeCallPaths_.clear(); // Clear all active calls associated with this modem
+            ofonoDBus_->clearActiveModemPath();
             DBusDataInfo info;
             info[DBUS_DATA_MESSAGE] = "Phone disconnected, clearing contacts and call history.";
             DBUS_SENDER()->sendMessageNoti(DBusCommand::PBAP_SESSION_END_NOTI, true, info);
@@ -448,10 +449,10 @@ void BluetoothWorker::handleOfonoPropertiesChanged(DBusMessage* msg) {
                 while (dbus_message_iter_get_arg_type(&array_iter) == DBUS_TYPE_OBJECT_PATH) {
                     const char* call_path = nullptr;
                     dbus_message_iter_get_basic(&array_iter, &call_path);
-                    if (call_path && activeCallPaths_.find(call_path) == activeCallPaths_.end()) {
+                    if (call_path && ofonoDBus_->getActiveCallPaths().find(call_path) == ofonoDBus_->getActiveCallPaths().end()) {
                         // This is a new call, likely an outgoing one.
                         R_LOG(INFO, "oFono: Detected new call (likely outgoing): %s", call_path);
-                        activeCallPaths_.insert(call_path);
+                        ofonoDBus_->addActiveCallPath(call_path);
                         
                         // Get properties and notify
                         DBusDataInfo call_info = ofonoDBus_->getVoiceCallProperties(call_path);
@@ -548,8 +549,8 @@ void BluetoothWorker::handleCallRemoved(DBusMessage* msg) {
 
     R_LOG(INFO, "oFono: Call object removed: %s", call_path);
 
-    if (activeCallPaths_.count(call_path)) {
-        activeCallPaths_.erase(call_path);
+    if (ofonoDBus_->getActiveCallPaths().count(call_path)) {
+        ofonoDBus_->removeActiveCallPath(call_path);
         
         DBusDataInfo call_info;
         call_info[DBUS_DATA_MESSAGE] = "Call has been terminated and removed.";
@@ -568,7 +569,7 @@ void BluetoothWorker::handleCallAdded(DBusMessage* msg) {
     if (!call_path) return;
 
     R_LOG(INFO, "oFono: Call added on object path %s", call_path);
-    activeCallPaths_.insert(call_path);
+    ofonoDBus_->addActiveCallPath(call_path);
 
     // The properties are also in the signal, but getting all is more robust and consistent.
     DBusDataInfo call_info = ofonoDBus_->getVoiceCallProperties(call_path);

@@ -399,96 +399,6 @@ void OfonoDBus::getOfonoContactDetails(const std::string& contactPath) {
     }
 }
 
-void OfonoDBus::dial(const std::string& modemPath, const std::string& number) {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    R_LOG(INFO, "oFono: Dialing number %s on modem %s", number.c_str(), modemPath.c_str());
-    DBusMessage* msg = dbus_message_new_method_call(
-        CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
-        modemPath.c_str(),
-        CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface().c_str(),
-        "Dial"
-    );
-    if (!msg) {
-        R_LOG(ERROR, "Failed to create Dial message");
-        return;
-    }
-
-    const char* num_cstr = number.c_str();
-    const char* hide_callerid = ""; // or "default"
-    dbus_message_append_args(msg, DBUS_TYPE_STRING, &num_cstr, DBUS_TYPE_STRING, &hide_callerid, DBUS_TYPE_INVALID);
-
-    DBusError err;
-    dbus_error_init(&err);
-    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
-    dbus_message_unref(msg);
-
-    if (dbus_error_is_set(&err)) {
-        R_LOG(ERROR, "Error calling Dial: %s", err.message);
-        dbus_error_free(&err);
-    } else {
-        R_LOG(INFO, "Successfully called Dial. Call object path will be received via signal.");
-        // The actual call object is returned in the reply, but we'll handle it via PropertiesChanged for consistency.
-    }
-
-    if (reply) {
-        dbus_message_unref(reply);
-    }
-}
-
-void OfonoDBus::answer(const std::string& callPath) {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    R_LOG(INFO, "oFono: Answering call %s", callPath.c_str());
-    DBusMessage* msg = dbus_message_new_method_call(
-        CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
-        callPath.c_str(),
-        CONFIG_INSTANCE()->getOfonoVoiceCallInterface().c_str(),
-        "Answer"
-    );
-    if (!msg) {
-        R_LOG(ERROR, "Failed to create Answer message");
-        return;
-    }
-
-    DBusError err;
-    dbus_error_init(&err);
-    dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
-    dbus_message_unref(msg);
-
-    if (dbus_error_is_set(&err)) {
-        R_LOG(ERROR, "Error calling Answer: %s", err.message);
-        dbus_error_free(&err);
-    } else {
-        R_LOG(INFO, "Successfully called Answer for %s", callPath.c_str());
-    }
-}
-
-void OfonoDBus::hangupAll(const std::string& modemPath) {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    R_LOG(INFO, "oFono: Hanging up all calls on modem %s", modemPath.c_str());
-    DBusMessage* msg = dbus_message_new_method_call(
-        CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
-        modemPath.c_str(),
-        CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface().c_str(),
-        "HangupAll"
-    );
-    if (!msg) {
-        R_LOG(ERROR, "Failed to create HangupAll message");
-        return;
-    }
-
-    DBusError err;
-    dbus_error_init(&err);
-    dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
-    dbus_message_unref(msg);
-
-    if (dbus_error_is_set(&err)) {
-        R_LOG(ERROR, "Error calling HangupAll: %s", err.message);
-        dbus_error_free(&err);
-    } else {
-        R_LOG(INFO, "Successfully called HangupAll on %s", modemPath.c_str());
-    }
-}
-
 DBusDataInfo OfonoDBus::getVoiceCallProperties(const std::string& callPath) {
     std::lock_guard<std::recursive_mutex> lock(mutex_);
     DBusMessage* msg = dbus_message_new_method_call(
@@ -552,4 +462,153 @@ DBusDataInfo OfonoDBus::getVoiceCallProperties(const std::string& callPath) {
         dbus_message_unref(reply);
     }
     return call_info;
+}
+
+void OfonoDBus::dialCall(const std::string& number) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (modemPath_.empty()) {
+        R_LOG(ERROR, "oFono: Cannot dial call, no active modem path set.");
+        return;
+    }
+
+    R_LOG(INFO, "oFono: Dialing number %s on modem %s", number.c_str(), modemPath_.c_str());
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
+        modemPath_.c_str(),
+        CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface().c_str(),
+        "Dial"
+    );
+    if (!msg) {
+        R_LOG(ERROR, "Failed to create Dial message");
+        return;
+    }
+
+    const char* num_cstr = number.c_str();
+    const char* hide_callerid = ""; // or "default"
+    dbus_message_append_args(msg, DBUS_TYPE_STRING, &num_cstr, DBUS_TYPE_STRING, &hide_callerid, DBUS_TYPE_INVALID);
+
+    DBusError err;
+    dbus_error_init(&err);
+    DBusMessage* reply = dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error calling Dial: %s", err.message);
+        dbus_error_free(&err);
+    } else {
+        R_LOG(INFO, "Successfully called Dial. Call object path will be received via signal.");
+    }
+
+    if (reply) {
+        dbus_message_unref(reply);
+    }
+}
+
+void OfonoDBus::answerCall() {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (activeCallPaths_.empty()) {
+        R_LOG(WARN, "oFono: No active calls to answer.");
+        return;
+    }
+
+    // Find the incoming call to answer.
+    std::string incomingCallPath;
+    for (const auto& path : activeCallPaths_) {
+        DBusDataInfo props = getVoiceCallProperties(path);
+        if (props[DBUS_DATA_CALL_STATE] == "incoming" || props[DBUS_DATA_CALL_STATE] == "waiting") {
+            incomingCallPath = path;
+            break;
+        }
+    }
+
+    if (incomingCallPath.empty()) {
+        R_LOG(WARN, "oFono: No incoming call found to answer.");
+        return;
+    }
+
+    R_LOG(INFO, "oFono: Answering call %s", incomingCallPath.c_str());
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
+        incomingCallPath.c_str(),
+        CONFIG_INSTANCE()->getOfonoVoiceCallInterface().c_str(),
+        "Answer"
+    );
+    if (!msg) {
+        R_LOG(ERROR, "Failed to create Answer message");
+        return;
+    }
+
+    DBusError err;
+    dbus_error_init(&err);
+    dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error calling Answer: %s", err.message);
+        dbus_error_free(&err);
+    } else {
+        R_LOG(INFO, "Successfully called Answer for %s", incomingCallPath.c_str());
+    }
+}
+
+void OfonoDBus::hangupCall() {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (modemPath_.empty()) {
+        R_LOG(ERROR, "oFono: Cannot hang up call, no active modem path set.");
+        return;
+    }
+
+    R_LOG(INFO, "oFono: Hanging up all calls on modem %s", modemPath_.c_str());
+    DBusMessage* msg = dbus_message_new_method_call(
+        CONFIG_INSTANCE()->getOfonoServiceName().c_str(),
+        modemPath_.c_str(),
+        CONFIG_INSTANCE()->getOfonoVoiceCallManagerInterface().c_str(),
+        "HangupAll"
+    );
+    if (!msg) {
+        R_LOG(ERROR, "Failed to create HangupAll message");
+        return;
+    }
+
+    DBusError err;
+    dbus_error_init(&err);
+    dbus_connection_send_with_reply_and_block(conn_, msg, -1, &err);
+    dbus_message_unref(msg);
+
+    if (dbus_error_is_set(&err)) {
+        R_LOG(ERROR, "Error calling HangupAll: %s", err.message);
+        dbus_error_free(&err);
+    } else {
+        R_LOG(INFO, "Successfully called HangupAll on %s", modemPath_.c_str());
+    }
+}
+
+void OfonoDBus::setActiveModemPath(const std::string& modemPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    modemPath_ = modemPath;
+}
+
+void OfonoDBus::clearActiveModemPath() {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    modemPath_.clear();
+    activeCallPaths_.clear();
+    phonebook_.clear();
+}
+
+void OfonoDBus::addActiveCallPath(const std::string& callPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    activeCallPaths_.insert(callPath);
+}
+
+void OfonoDBus::removeActiveCallPath(const std::string& callPath) {
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    activeCallPaths_.erase(callPath);
+}
+
+const std::set<std::string>& OfonoDBus::getActiveCallPaths() const {
+    // No lock needed for const method returning a const reference if caller handles thread safety.
+    // However, to be safe, let's assume the caller might not.
+    // But since this is a simple getter, we can skip the lock for performance if we trust the callers.
+    // For now, let's return it without a lock.
+    return activeCallPaths_;
 }

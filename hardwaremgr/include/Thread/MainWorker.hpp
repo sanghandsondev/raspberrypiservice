@@ -11,16 +11,18 @@ class Event;
 class Payload;
 class BluezDBus;
 class BluetoothAgent;
+class OfonoDBus;
 
 class MainWorker : public ThreadBase {
     public:
         explicit MainWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus,
-             std::shared_ptr<BluetoothAgent> agent);
+            std::shared_ptr<OfonoDBus> ofonoDBus, std::shared_ptr<BluetoothAgent> agent);
         ~MainWorker() = default;
 
     private:
         std::shared_ptr<EventQueue> eventQueue_;
         std::shared_ptr<BluezDBus> bluezDBus_;
+        std::shared_ptr<OfonoDBus> ofonoDBus_;
         std::shared_ptr<BluetoothAgent> agent_;
 
         void threadFunction() override;
@@ -32,6 +34,8 @@ class MainWorker : public ThreadBase {
         void processStopScanBTDeviceEvent();
         void processBluetoothPowerOnEvent();
         void processBluetoothPowerOffEvent();
+        void processHangupCallEvent();
+        void processAnswerCallEvent();
 
         void processPairBTDeviceEvent(std::shared_ptr<Payload> payload);
         void processUnpairBTDeviceEvent(std::shared_ptr<Payload> payload);
@@ -39,6 +43,7 @@ class MainWorker : public ThreadBase {
         void processDisconnectBTDeviceEvent(std::shared_ptr<Payload> payload);
         void processRejectRequestConfirmationEvent(std::shared_ptr<Payload> payload);
         void processAcceptRequestConfirmationEvent(std::shared_ptr<Payload> payload);
+        void processDialCallEvent(std::shared_ptr<Payload> payload);
 };
 
 #endif // MAIN_WORKER_HPP_
