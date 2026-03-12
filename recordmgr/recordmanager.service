@@ -1,6 +1,7 @@
 [Unit]
 Description=Record Manager Service for Raspberry Pi
-After=coremanager.service
+After=coremanager.service dbus.socket
+Requires=dbus.socket
 
 [Service]
 ExecStart=/usr/local/bin/recordmanager
@@ -11,6 +12,9 @@ RestartSec=5s
 StartLimitBurst=5
 WatchdogSec=10
 Type=notify
+
+# Allow access to ALSA audio devices
+SupplementaryGroups=audio
 
 [Install]
 WantedBy=multi-user.target

@@ -3,6 +3,7 @@
 #include "Config.hpp"
 #include "BluezDBus.hpp"
 #include "OfonoDBus.hpp"
+#include "ObexPbapClient.hpp"
 #include "DBusSender.hpp"
 #include "DBusData.hpp"
 #include "BluetoothAgent.hpp"
@@ -14,8 +15,11 @@
 #include <algorithm>
 #include <mutex>
 
-BluetoothWorker::BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus, std::shared_ptr<OfonoDBus> ofonoDBus, std::shared_ptr<BluetoothAgent> agent) 
-    : ThreadBase("BluetoothWorker"), eventQueue_(eventQueue), bluezDBus_(bluezDBus), ofonoDBus_(ofonoDBus), agent_(agent) {
+BluetoothWorker::BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus, 
+                                 std::shared_ptr<OfonoDBus> ofonoDBus, std::shared_ptr<BluetoothAgent> agent,
+                                 std::shared_ptr<ObexPbapClient> pbapClient) 
+    : ThreadBase("BluetoothWorker"), eventQueue_(eventQueue), bluezDBus_(bluezDBus), 
+      ofonoDBus_(ofonoDBus), agent_(agent), pbapClient_(pbapClient) {
 }
 
 void BluetoothWorker::threadFunction(){
@@ -236,7 +240,7 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
     std::string path_str(object_path);
 
     // Handle oFono property changes using the generic PropertiesChanged signal
-    // This is useful for interfaces like Phonebook, CallHistory, VoiceCallManager
+    // This is useful for interfaces like VoiceCallManager
     if (dbus_message_get_sender(msg) && std::string(dbus_message_get_sender(msg)) == CONFIG_INSTANCE()->getOfonoServiceName()) {
         R_LOG(DEBUG, "Handling oFono PropertiesChanged for interface %s on path: %s", iface_str.c_str(), path_str.c_str());
         handleOfonoPropertiesChanged(msg);
@@ -321,8 +325,30 @@ void BluetoothWorker::handlePropertiesChanged(DBusMessage* msg) {
         if (is_paired && is_connected && !is_trusted) {
             R_LOG(INFO, "Device %s is paired and connected but not trusted. Setting Trusted=true.", all_properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str());
             bluezDBus_->trustDevice(all_properties[DBUS_DATA_BT_DEVICE_ADDRESS]);
-            // Re-fetch properties to include the new trusted state in the notification
-            // all_properties = bluezDBus_->getAllDeviceProperties(path_str);
+        }
+
+        // Trigger PBAP sync when a paired device becomes connected
+        // Check if the "Connected" property actually changed to true
+        if (is_paired && is_connected && !change_propertys[DBUS_DATA_BT_DEVICE_CONNECTED].empty() 
+            && change_propertys[DBUS_DATA_BT_DEVICE_CONNECTED] == "true") {
+            R_LOG(INFO, "Device %s is now connected and paired. Triggering PBAP sync for contacts and call history.",
+                  all_properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str());
+            triggerPbapSync(all_properties[DBUS_DATA_BT_DEVICE_ADDRESS]);
+        }
+
+        // If device disconnected, remove PBAP session
+        if (!change_propertys[DBUS_DATA_BT_DEVICE_CONNECTED].empty() 
+            && change_propertys[DBUS_DATA_BT_DEVICE_CONNECTED] == "false") {
+            R_LOG(INFO, "Device %s disconnected. Removing PBAP session if active.",
+                  all_properties[DBUS_DATA_BT_DEVICE_ADDRESS].c_str());
+            if (pbapClient_ && pbapClient_->hasSession() 
+                && pbapClient_->getSessionDeviceAddress() == all_properties[DBUS_DATA_BT_DEVICE_ADDRESS]) {
+                pbapClient_->removeSession();
+                ofonoDBus_->clearPhonebook();
+                DBusDataInfo pbap_info;
+                pbap_info[DBUS_DATA_MESSAGE] = "Device disconnected. PBAP session closed, phonebook cleared.";
+                DBUS_SENDER()->sendMessageNoti(DBusCommand::PBAP_SESSION_END_NOTI, true, pbap_info);
+            }
         }
 
         // If RSSI only changed, skip sending full update to reduce noise
@@ -367,6 +393,13 @@ void BluetoothWorker::handleModemRemoved(DBusMessage* msg) {
         if (modemPath) {
             R_LOG(INFO, "oFono: Modem removed from %s. Clearing data.", modemPath);
             ofonoDBus_->clearActiveModemPath();
+            
+            // Also remove PBAP session if active
+            if (pbapClient_ && pbapClient_->hasSession()) {
+                pbapClient_->removeSession();
+                ofonoDBus_->clearPhonebook();
+            }
+
             DBusDataInfo info;
             info[DBUS_DATA_MESSAGE] = "Phone disconnected, clearing contacts and call history.";
             DBUS_SENDER()->sendMessageNoti(DBusCommand::PBAP_SESSION_END_NOTI, true, info);
@@ -400,9 +433,9 @@ void BluetoothWorker::handleOfonoPropertyChanged(DBusMessage* msg) {
         } else if (key_str == "Online" && dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
             dbus_message_iter_get_basic(&variant_iter, &value);
             if (value) {
-                R_LOG(INFO, "oFono: Modem %s is Online. Fetching phonebook and call history.", path);
-                ofonoDBus_->syncAllOfonoContacts(path);
-                ofonoDBus_->syncAllOfonoCallHistory(path);
+                R_LOG(INFO, "oFono: Modem %s is Online. HFP ready for voice calls.", path);
+                // NOTE: Phonebook and call history are now pulled via PBAP (ObexPbapClient),
+                // not through oFono. PBAP sync is triggered when the device connects (handlePropertiesChanged).
             }
         }
     }
@@ -478,22 +511,14 @@ void BluetoothWorker::handleOfonoPropertiesChanged(DBusMessage* msg) {
             } else if (key_str == "Online" && dbus_message_iter_get_arg_type(&variant_iter) == DBUS_TYPE_BOOLEAN) {
                 dbus_message_iter_get_basic(&variant_iter, &value);
                 if (value) {
-                    R_LOG(INFO, "oFono: Modem %s is Online. Fetching phonebook and call history.", path);
-                    ofonoDBus_->syncAllOfonoContacts(path);
-                    ofonoDBus_->syncAllOfonoCallHistory(path);
+                    R_LOG(INFO, "oFono: Modem %s is Online. HFP ready for voice calls.", path);
+                    // PBAP sync is handled via BlueZ device connect, not oFono modem online.
                 }
             }
-        } else if (iface_str == CONFIG_INSTANCE()->getOfonoPhonebookInterface()) {
-            if (key_str == "Contacts") {
-                R_LOG(INFO, "oFono: Contacts property changed for modem %s. Resyncing phonebook.", path);
-                ofonoDBus_->syncAllOfonoContacts(path);
-            }
-        } else if (iface_str == CONFIG_INSTANCE()->getOfonoCallHistoryInterface()) {
-            if (key_str == "DialedCount" || key_str == "MissedCount" || key_str == "ReceivedCount") {
-                R_LOG(INFO, "oFono: Call history property (%s) changed for modem %s. Resyncing all call history.", key_str.c_str(), path);
-                ofonoDBus_->syncAllOfonoCallHistory(path);
-            }
         }
+        // NOTE: Removed handlers for oFono Phonebook and CallHistory interfaces.
+        // These interfaces (org.ofono.Phonebook, org.ofono.CallHistory) do NOT exist in oFono.
+        // Contacts and call history are now pulled via PBAP using ObexPbapClient.
         dbus_message_iter_next(&dict_iter);
     }
 }
@@ -595,4 +620,51 @@ void BluetoothWorker::handleCallAdded(DBusMessage* msg) {
         // TODO: Handle other initial states if necessary
         // "disconnected": Cuộc gọi đã kết thúc. Trạng thái này thường xuất hiện ngay trước khi CallRemoved được phát.
     }
+}
+
+void BluetoothWorker::triggerPbapSync(const std::string& deviceAddress) {
+    if (!pbapClient_) {
+        R_LOG(WARN, "BluetoothWorker: ObexPbapClient not available, cannot sync PBAP.");
+        return;
+    }
+
+    // Run PBAP sync in a detached thread to avoid blocking the D-Bus message loop.
+    // PBAP operations are slow (phone may prompt user for permission, 
+    // pulling contacts can take seconds to minutes depending on phonebook size).
+    auto pbap = pbapClient_;
+    auto ofono = ofonoDBus_;
+    std::thread([pbap, ofono, deviceAddress]() {
+        R_LOG(INFO, "PBAP sync thread started for device %s", deviceAddress.c_str());
+
+        // Small delay to let the Bluetooth connection stabilize
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+
+        // Step 1: Create PBAP session
+        if (!pbap->createSession(deviceAddress)) {
+            R_LOG(ERROR, "PBAP sync failed: Could not create session to %s", deviceAddress.c_str());
+            return;
+        }
+
+        // Step 2: Pull phonebook (contacts)
+        std::vector<VCardContact> contacts = pbap->pullPhonebook();
+
+        // Step 3: Feed contacts into OfonoDBus for caller ID lookup during voice calls
+        if (!contacts.empty() && ofono) {
+            std::unordered_map<std::string, std::string> phonebook;
+            for (const auto& contact : contacts) {
+                if (!contact.number.empty()) {
+                    phonebook[contact.number] = contact.name;
+                }
+            }
+            ofono->setPhonebook(phonebook);
+            R_LOG(INFO, "PBAP: Fed %zu contacts to OfonoDBus phonebook for caller ID.", phonebook.size());
+        }
+
+        // Step 4: Pull call history (incoming, outgoing, missed)
+        pbap->pullCallHistory();
+
+        // Step 5: Session remains open for future use (e.g., re-sync on demand)
+        // It will be removed when the device disconnects.
+        R_LOG(INFO, "PBAP sync thread completed for device %s", deviceAddress.c_str());
+    }).detach();
 }

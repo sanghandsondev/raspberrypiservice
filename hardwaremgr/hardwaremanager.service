@@ -1,6 +1,8 @@
 [Unit]
 Description=Hardware Manager Service for Raspberry Pi
-After=coremanager.service
+After=coremanager.service bluetooth.target dbus.socket
+Wants=bluetooth.target
+Requires=dbus.socket
 
 [Service]
 ExecStart=/usr/local/bin/hardwaremanager
@@ -11,6 +13,13 @@ RestartSec=5s
 StartLimitBurst=5
 WatchdogSec=10
 Type=notify
+
+# Required for ObexPbapClient (obexd runs on session bus)
+# dbus-user-session + loginctl enable-linger ensures session bus is available
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+
+# Allow access to Bluetooth HCI device
+SupplementaryGroups=bluetooth
 
 [Install]
 WantedBy=multi-user.target

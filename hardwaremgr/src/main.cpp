@@ -6,6 +6,7 @@
 #include "BluetoothWorker.hpp"
 #include "BluezDBus.hpp"
 #include "OfonoDBus.hpp"
+#include "ObexPbapClient.hpp"
 #include "BluetoothAgent.hpp"
 #include <csignal>
 #include <atomic>
@@ -41,6 +42,7 @@ int main(){
     }
     std::shared_ptr<OfonoDBus> ofonoDBus = std::make_shared<OfonoDBus>(bluezDBus->getConnection(), bluezDBus->getMutex());
     std::shared_ptr<BluetoothAgent> agent = std::make_shared<BluetoothAgent>(bluezDBus->getConnection(), bluezDBus, bluezDBus->getMutex());
+    std::shared_ptr<ObexPbapClient> pbapClient = std::make_shared<ObexPbapClient>(bluezDBus->getMutex());
 
     // Register agent
     // bluezDBus->registerAgent("NoInputNoOutput"); // Capability for "Just Works"
@@ -49,7 +51,7 @@ int main(){
     auto mainWorker = std::make_shared<MainWorker>(eventQueue, bluezDBus, ofonoDBus, agent);
     auto dbusReceiver = std::make_shared<DBusReceiver>(eventQueue);
     auto monitorWorker = std::make_shared<MonitorWorker>(eventQueue);
-    auto bluetoothWorker = std::make_shared<BluetoothWorker>(eventQueue, bluezDBus, ofonoDBus, agent);
+    auto bluetoothWorker = std::make_shared<BluetoothWorker>(eventQueue, bluezDBus, ofonoDBus, agent, pbapClient);
 
     mainWorker->run();
     dbusReceiver->run();

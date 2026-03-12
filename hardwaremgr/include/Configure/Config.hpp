@@ -37,12 +37,16 @@ class Config {
         const std::string &getOfonoServiceName() const { return OFONO_SERVICE_NAME; }
         const std::string &getOfonoManagerInterface() const { return OFONO_MANAGER_INTERFACE; }
         const std::string &getOfonoModemInterface() const { return OFONO_MODEM_INTERFACE; }
-        const std::string &getOfonoPhonebookInterface() const { return OFONO_PHONEBOOK_INTERFACE; }
-        const std::string &getOfonoContactInterface() const { return OFONO_CONTACT_INTERFACE; }
         const std::string &getOfonoVoiceCallManagerInterface() const { return OFONO_VOICECALL_MANAGER_INTERFACE; }
         const std::string &getOfonoVoiceCallInterface() const { return OFONO_VOICECALL_INTERFACE; }
-        const std::string &getOfonoCallHistoryInterface() const { return OFONO_CALL_HISTORY_INTERFACE; }
         const std::string &getOfonoHandsfreeInterface() const { return OFONO_HANDSFREE_INTERFACE; }
+
+        // OBEX (obexd) D-Bus configuration — used by ObexPbapClient for PBAP
+        const std::string &getObexServiceName() const { return OBEX_SERVICE_NAME; }
+        const std::string &getObexClientObjectPath() const { return OBEX_CLIENT_OBJECT_PATH; }
+        const std::string &getObexClientInterface() const { return OBEX_CLIENT_INTERFACE; }
+        const std::string &getObexPbapInterface() const { return OBEX_PBAP_INTERFACE; }
+        const std::string &getObexTransferInterface() const { return OBEX_TRANSFER_INTERFACE; }
 
     private:
         Config() = default;
@@ -67,16 +71,24 @@ class Config {
         inline static const std::string DBUS_OBJECT_MANAGER_INTERFACE = "org.freedesktop.DBus.ObjectManager";
         inline static const std::string DBUS_PROPERTIES_INTERFACE = "org.freedesktop.DBus.Properties";
 
-        // oFono D-Bus configuration
+        // oFono D-Bus configuration (HFP voice calls only)
+        // NOTE: oFono is used for Hands-Free Profile (HFP) voice call management.
+        // Phonebook and call history are pulled via OBEX PBAP (ObexPbapClient).
         inline static const std::string OFONO_SERVICE_NAME = "org.ofono";
         inline static const std::string OFONO_MANAGER_INTERFACE = "org.ofono.Manager";
         inline static const std::string OFONO_MODEM_INTERFACE = "org.ofono.Modem";
-        inline static const std::string OFONO_PHONEBOOK_INTERFACE = "org.ofono.Phonebook";
-        inline static const std::string OFONO_CONTACT_INTERFACE = "org.ofono.Contact";
         inline static const std::string OFONO_VOICECALL_MANAGER_INTERFACE = "org.ofono.VoiceCallManager";
         inline static const std::string OFONO_VOICECALL_INTERFACE = "org.ofono.VoiceCall";
-        inline static const std::string OFONO_CALL_HISTORY_INTERFACE = "org.ofono.CallHistory";
         inline static const std::string OFONO_HANDSFREE_INTERFACE = "org.ofono.Handsfree";
+
+        // OBEX (obexd) D-Bus configuration — PBAP phonebook/call-history access
+        // obexd runs on SESSION bus (not system bus).
+        // Required: sudo apt install bluez-obex (provides /usr/lib/bluetooth/obexd)
+        inline static const std::string OBEX_SERVICE_NAME = "org.bluez.obex";
+        inline static const std::string OBEX_CLIENT_OBJECT_PATH = "/org/bluez/obex";
+        inline static const std::string OBEX_CLIENT_INTERFACE = "org.bluez.obex.Client1";
+        inline static const std::string OBEX_PBAP_INTERFACE = "org.bluez.obex.PhonebookAccess1";
+        inline static const std::string OBEX_TRANSFER_INTERFACE = "org.bluez.obex.Transfer1";
 
         // 1-Wire sensor configuration: https://pinout.xyz/pinout/1_wire
         // /boot/firmware/config.txt add the line:

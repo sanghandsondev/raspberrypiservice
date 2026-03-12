@@ -11,10 +11,13 @@ class EventQueue;
 class BluezDBus;
 class BluetoothAgent;
 class OfonoDBus;
+class ObexPbapClient;
 
 class BluetoothWorker : public ThreadBase {
     public:
-        explicit BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus, std::shared_ptr<OfonoDBus> ofonoDBus, std::shared_ptr<BluetoothAgent> agent);
+        explicit BluetoothWorker(std::shared_ptr<EventQueue> eventQueue, std::shared_ptr<BluezDBus> bluezDBus, 
+                                 std::shared_ptr<OfonoDBus> ofonoDBus, std::shared_ptr<BluetoothAgent> agent,
+                                 std::shared_ptr<ObexPbapClient> pbapClient);
         ~BluetoothWorker() = default;
 
     private:
@@ -22,6 +25,7 @@ class BluetoothWorker : public ThreadBase {
         std::shared_ptr<BluezDBus> bluezDBus_;
         std::shared_ptr<OfonoDBus> ofonoDBus_;
         std::shared_ptr<BluetoothAgent> agent_;
+        std::shared_ptr<ObexPbapClient> pbapClient_;
         std::set<std::string> activeCallPaths_;
 
         void threadFunction() override;
@@ -38,6 +42,9 @@ class BluetoothWorker : public ThreadBase {
         void handleCallAdded(DBusMessage* msg);
         void handleVoiceCallPropertyChanged(DBusMessage* msg);
         void handleCallRemoved(DBusMessage* msg);
+
+        // PBAP sync helper (runs in detached thread)
+        void triggerPbapSync(const std::string& deviceAddress);
 };
 
 #endif // BLUETOOTH_WORKER_HPP_
